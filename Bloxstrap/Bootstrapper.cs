@@ -312,83 +312,26 @@ namespace Bloxstrap
             Dialog?.CloseBootstrapper();
         }
 
-        private RegistryKey GetChannelRegistryKey() => Registry.CurrentUser.CreateSubKey($"SOFTWARE\\ROBLOX Corporation\\Environments\\{AppData.RegistryName}\\Channel");
-
-        private string? GetCurrentChannelFromArgs()
-        {
-            const string LOG_IDENT = "Bootstrapper::GetCurrentChannelFromArgs";
-
-            if (App.LaunchSettings.ChannelFlag.Active && !string.IsNullOrEmpty(App.LaunchSettings.ChannelFlag.Data))
-            {
-                App.Logger.WriteLine(LOG_IDENT, "Got from channel arg");
-                return App.LaunchSettings.ChannelFlag.Data.ToLowerInvariant();
-            }
-
-            Match match = Regex.Match(
-                App.LaunchSettings.RobloxLaunchArgs,
-                "channel:([a-zA-Z0-9-_]+)",
-                RegexOptions.IgnoreCase | RegexOptions.CultureInvariant
-            );
-
-            if (match.Groups.Count == 2)
-            {
-                App.Logger.WriteLine(LOG_IDENT, "Got from launch URI");
-                return match.Groups[1].Value.ToLowerInvariant();
-            }
-
-            if (_launchMode != LaunchMode.Unknown)
-            {
-                using RegistryKey key = GetChannelRegistryKey();
-                if (key.GetValue("www.roblox.com") is string value && !String.IsNullOrEmpty(value))
-                {
-                    App.Logger.WriteLine(LOG_IDENT, $"Got from registry ({AppData.RegistryName})");
-                    return value;
-                }
-            }
-            else
-            {
-                App.Logger.WriteLine(LOG_IDENT, "Skipping registry check, unknown launch");
-            }
-
-            App.Logger.WriteLine(LOG_IDENT, "Could not find channel");
-            return null;
-        }
-
         private void FetchCurrentChannel()
         {
+            // Fork behavior: channel is locked to LIVE. Ignore CLI flags, registry state,
+            // and any other override source. See also UpdateChannelRegistry().
             const string LOG_IDENT = "Bootstrapper::FetchCurrentChannel";
 
             if (_channelFetched)
-            {
-                App.Logger.WriteLine(LOG_IDENT, $"Channel has already been fetched");
                 return;
-            }
 
-            string? channel = GetCurrentChannelFromArgs();
-
-            if (!String.IsNullOrEmpty(channel))
-            {
-                App.Logger.WriteLine(LOG_IDENT, $"Got channel as {channel}");
-
-                Deployment.Channel = channel;
-
-                if (!Deployment.IsDefaultChannel)
-                    App.SendStat("robloxChannel", channel);
-            }
-            else
-            {
-                App.Logger.WriteLine(LOG_IDENT, $"Could not get channel, defaulting to {Deployment.DefaultChannel}");
-
-                Deployment.Channel = Deployment.DefaultChannel;
-            }
-
+            Deployment.Channel = Deployment.DefaultChannel;
+            App.Logger.WriteLine(LOG_IDENT, $"Channel forced to {Deployment.DefaultChannel}");
             _channelFetched = true;
         }
 
         private void UpdateChannelRegistry()
         {
+            // Always blank the Roblox-side channel key on launch. Roblox interprets an empty
+            // value as the LIVE channel, so this overwrites any external tool that flipped it.
             using RegistryKey key = Registry.CurrentUser.CreateSubKey($"SOFTWARE\\ROBLOX Corporation\\Environments\\{AppData.RegistryName}\\Channel");
-            key.SetValueSafe("www.roblox.com", Deployment.IsDefaultChannel ? "" : Deployment.Channel);
+            key.SetValueSafe("www.roblox.com", "");
         }
 
         /// <summary>
@@ -1562,7 +1505,7 @@ namespace Bloxstrap
 
                         Frontend.ShowConnectivityDialog(
                             Strings.Dialog_Connectivity_UnableToDownload,
-                            String.Format(Strings.Dialog_Connectivity_UnableToDownloadReason, "[https://bloxstraplabs.com/wiki/help/bloxstrap-cannot-download-roblox/](https://bloxstraplabs.com/wiki/help/bloxstrap-cannot-download-roblox/)"),
+                            String.Format(Strings.Dialog_Connectivity_UnableToDownloadReason, $"[{App.ProjectSupportLink}]({App.ProjectSupportLink})"),
                             MessageBoxImage.Error,
                             ex
                         );

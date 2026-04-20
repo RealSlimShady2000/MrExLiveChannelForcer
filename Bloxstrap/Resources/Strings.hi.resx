@@ -838,7 +838,7 @@ Kya aap sujhae gae sthaan mein parivartan karana chaahenge?
     <value>'{0}' ka entry valid nahi hai kyunki place filter sahi tareeke se format nahi kiya gaya hai.  </value>
   </data>
   <data name="Installer.Title" xml:space="preserve">
-    <value>Bloxstrap Installer</value>
+    <value>Bloxstrap Installer - MrExploit Edition</value>
   </data>
   <data name="Installer.Welcome.Title" xml:space="preserve">
     <value>Namaste</value>

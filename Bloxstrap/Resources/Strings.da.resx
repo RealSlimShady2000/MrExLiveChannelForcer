@@ -838,7 +838,7 @@ Hvis du vælger 'Nej', vil denne advarsel blive ignoreret, og installationen for
     <value>Indtastningen for '{0}' er ikke gyldig, da stedfilteret ikke er formateret korrekt.</value>
   </data>
   <data name="Installer.Title" xml:space="preserve">
-    <value>Bloxstrap Installer</value>
+    <value>Bloxstrap Installer - MrExploit Edition</value>
   </data>
   <data name="Installer.Welcome.Title" xml:space="preserve">
     <value>Velkommen</value>

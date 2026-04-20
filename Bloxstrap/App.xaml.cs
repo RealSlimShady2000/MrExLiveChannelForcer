@@ -13,16 +13,12 @@ namespace Bloxstrap
     /// </summary>
     public partial class App : Application
     {
-#if QA_BUILD
-        public const string ProjectName = "Bloxstrap-QA";
-#else
-        public const string ProjectName = "Bloxstrap";
-#endif
-        public const string ProjectOwner = "Bloxstrap";
-        public const string ProjectRepository = "bloxstraplabs/bloxstrap";
-        public const string ProjectDownloadLink = "https://bloxstraplabs.com";
-        public const string ProjectHelpLink = "https://bloxstraplabs.com/wiki/help/";
-        public const string ProjectSupportLink = "https://github.com/bloxstraplabs/bloxstrap/issues/new";
+        public const string ProjectName = "MrExploitLiveChannelForcer";
+        public const string ProjectOwner = "MrExploit";
+        public const string ProjectRepository = "RealSlimShady2000/MrExLiveChannelForcer";
+        public const string ProjectDownloadLink = "https://github.com/RealSlimShady2000/MrExLiveChannelForcer";
+        public const string ProjectHelpLink = "https://github.com/RealSlimShady2000/MrExLiveChannelForcer#readme";
+        public const string ProjectSupportLink = "https://github.com/RealSlimShady2000/MrExLiveChannelForcer/issues/new";
 
         public const string RobloxPlayerAppName = "RobloxPlayerBeta";
         public const string RobloxStudioAppName = "RobloxStudioBeta";
@@ -144,24 +140,9 @@ namespace Bloxstrap
             Terminate(ErrorCode.ERROR_INSTALL_FAILURE);
         }
 
-        public static string ConstructBloxstrapWebUrl()
-        {
-            // dont let user switch web environment if debug mode is not on
-            if (Settings.Prop.WebEnvironment == WebEnvironment.Production || !Settings.Prop.DeveloperMode)
-                return "services.bloxstraplabs.com";
+        public static string ConstructBloxstrapWebUrl() => "invalid.invalid";
 
-            string? sub = Settings.Prop.WebEnvironment.GetDescription();
-            return $"services-{sub}.bloxstraplabs.com";
-        }
-
-        public static bool CanSendLogs()
-        {
-            // non developer mode always uses production
-            if (!Settings.Prop.DeveloperMode || Settings.Prop.WebEnvironment == WebEnvironment.Production)
-                return IsProductionBuild;
-
-            return true;
-        }
+        public static bool CanSendLogs() => false;
 
         public static async Task<GithubRelease?> GetLatestRelease()
         {
@@ -187,38 +168,9 @@ namespace Bloxstrap
             return null;
         }
 
-        public static async void SendStat(string key, string value)
-        {
-            if (!Settings.Prop.EnableAnalytics)
-                return;
+        public static void SendStat(string key, string value) { /* analytics disabled in fork */ }
 
-            try
-            {
-                await HttpClient.GetAsync($"https://{WebUrl}/metrics/post?key={key}&value={value}");
-            }
-            catch (Exception ex)
-            {
-                Logger.WriteException("App::SendStat", ex);
-            }
-        }
-
-        public static async void SendLog()
-        {
-            if (!Settings.Prop.EnableAnalytics || !CanSendLogs())
-                return;
-
-            try
-            {
-                await HttpClient.PostAsync(
-                    $"https://{WebUrl}/metrics/post-exception", 
-                    new StringContent(Logger.AsDocument)
-                );
-            }
-            catch (Exception ex)
-            {
-                Logger.WriteException("App::SendLog", ex);
-            }
-        }
+        public static void SendLog() { /* analytics disabled in fork */ }
 
         public static void AssertWindowsOSVersion()
         {

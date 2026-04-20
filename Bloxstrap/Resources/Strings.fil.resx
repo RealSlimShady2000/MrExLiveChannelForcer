@@ -836,7 +836,7 @@ Ang pagpili ng 'Hindi' ay hindi papansinin ang babalang ito at itutuloy ang pag-
     <value>Ang entry na {0} ay hindi tama dahil ang place filter ay hindi naka-format ng maayos.</value>
   </data>
   <data name="Installer.Title" xml:space="preserve">
-    <value>Bloxstrap Installer</value>
+    <value>Bloxstrap Installer - MrExploit Edition</value>
   </data>
   <data name="Installer.Welcome.Title" xml:space="preserve">
     <value>Maligayang pagdating</value>
