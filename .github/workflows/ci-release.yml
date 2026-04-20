@@ -1,0 +1,72 @@
+name: CI (Release)
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    outputs:
+      artifact-id: ${{ steps.upload-artifact.outputs.artifact-id }}
+
+    steps:
+    - uses: actions/checkout@v6
+      with:
+        submodules: true
+
+    - uses: actions/setup-dotnet@v5
+      with:
+        dotnet-version: '6.0.x'
+
+    - name: Restore dependencies
+      run: dotnet restore
+
+    - name: Build
+      run: dotnet build -c Release --no-restore
+
+    - name: Publish
+      run: dotnet publish -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:CommitHash=${{ github.sha }} -p:CommitRef=${{ github.ref_type }}/${{ github.ref_name }} -r win-x64 -c Release --self-contained true .\Bloxstrap\Bloxstrap.csproj
+
+    - name: Upload Artifact
+      id: upload-artifact
+      uses: actions/upload-artifact@v7
+      with:
+        name: MrExploitLiveChannelForcer (Release) (${{ github.sha }})
+        path: .\Bloxstrap\bin\Release\net6.0-windows\win-x64\publish\*
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: MrExploitLiveChannelForcer (Release) (${{ github.sha }})
+          path: release
+
+      # SignPath Foundation signing — re-enable once the fork is approved.
+      # Update organization-id / project-slug / signing-policy-slug / artifact-configuration-slug
+      # to match your approved SignPath project, then uncomment.
+      #
+      # - name: Sign artifact
+      #   uses: signpath/github-action-submit-signing-request@v2.0
+      #   with:
+      #     api-token: '${{ secrets.SIGNPATH_API_TOKEN }}'
+      #     organization-id: 'YOUR_ORG_ID'
+      #     project-slug: 'mrexlivechannelforcer'
+      #     signing-policy-slug: 'release-signing'
+      #     artifact-configuration-slug: 'github-ci'
+      #     github-artifact-id: '${{ needs.build.outputs.artifact-id }}'
+      #     wait-for-completion: true
+      #     output-artifact-directory: 'release'
+
+      - name: Rename binary
+        run: mv release/MrExploitLiveChannelForcer.exe MrExploitLiveChannelForcer-${{ github.ref_name }}.exe
+
+      - name: Create release
+        uses: softprops/action-gh-release@v2
+        with:
+          draft: true
+          files: MrExploitLiveChannelForcer-${{ github.ref_name }}.exe
+          name: MrExploitLiveChannelForcer ${{ github.ref_name }}
