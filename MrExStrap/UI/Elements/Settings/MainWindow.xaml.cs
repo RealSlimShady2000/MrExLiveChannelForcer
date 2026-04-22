@@ -1,13 +1,13 @@
-﻿using System.ComponentModel;
+using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
 
 using Wpf.Ui.Controls.Interfaces;
 using Wpf.Ui.Mvvm.Contracts;
 
-using Bloxstrap.UI.ViewModels.Settings;
+using MrExStrap.UI.ViewModels.Settings;
 
-namespace Bloxstrap.UI.Elements.Settings
+namespace MrExStrap.UI.Elements.Settings
 {
     /// <summary>
     /// Interaction logic for MainWindow.xaml

@@ -1,9 +1,9 @@
-﻿using System.Globalization;
+using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 
-namespace Bloxstrap.UI.Utility
+namespace MrExStrap.UI.Utility
 {
     static class Rendering
     {

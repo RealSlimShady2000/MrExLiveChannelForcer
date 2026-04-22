@@ -1,4 +1,4 @@
-﻿namespace Bloxstrap.UI.ViewModels.Settings
+namespace MrExStrap.UI.ViewModels.Settings
 {
     public class BehaviourViewModel : NotifyPropertyChangedViewModel
     {

@@ -1,4 +1,4 @@
-﻿using System.Reflection;
+using System.Reflection;
 using System.Security.Cryptography;
 using System.Windows;
 using System.Windows.Shell;
@@ -6,14 +6,15 @@ using System.Windows.Threading;
 
 using Microsoft.Win32;
 
-namespace Bloxstrap
+namespace MrExStrap
 {
     /// <summary>
     /// Interaction logic for App.xaml
     /// </summary>
     public partial class App : Application
     {
-        public const string ProjectName = "MrExploitLiveChannelForcer";
+        public const string ProjectName = "MrExBloxstrap";
+        public const string ProjectDisplayName = "Bloxstrap - Mr Exploit edition";
         public const string ProjectOwner = "MrExploit";
         public const string ProjectRepository = "RealSlimShady2000/MrExLiveChannelForcer";
         public const string ProjectDownloadLink = "https://github.com/RealSlimShady2000/MrExLiveChannelForcer";
@@ -30,7 +31,7 @@ namespace Bloxstrap
 
         public static BuildMetadataAttribute BuildMetadata = Assembly.GetExecutingAssembly().GetCustomAttribute<BuildMetadataAttribute>()!;
 
-        public static string Version = Assembly.GetExecutingAssembly().GetName().Version!.ToString()[..^2];
+        public static string Version = Assembly.GetExecutingAssembly().GetName().Version!.Major.ToString();
 
         public static Bootstrapper? Bootstrapper { get; set; } = null!;
 

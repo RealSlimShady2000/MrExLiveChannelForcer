@@ -1,4 +1,4 @@
-﻿namespace Bloxstrap.Models.SettingTasks.Base
+namespace MrExStrap.Models.SettingTasks.Base
 {
     public abstract class EnumBaseTask<T> : BaseTask where T : struct, Enum
     {

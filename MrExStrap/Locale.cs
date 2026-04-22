@@ -1,6 +1,6 @@
-﻿using System.Windows;
+using System.Windows;
 
-namespace Bloxstrap
+namespace MrExStrap
 {
     internal static class Locale
     {

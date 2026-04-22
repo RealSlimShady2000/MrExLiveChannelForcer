@@ -1,15 +1,15 @@
-﻿using System.Windows.Forms;
+using System.Windows.Forms;
 using System.Windows.Shell;
 
-using Bloxstrap.UI.Utility;
+using MrExStrap.UI.Utility;
 
-namespace Bloxstrap.UI.Elements.Bootstrapper.Base
+namespace MrExStrap.UI.Elements.Bootstrapper.Base
 {
     public class WinFormsDialogBase : Form, IBootstrapperDialog
     {
         public const int TaskbarProgressMaximum = 100;
 
-        public Bloxstrap.Bootstrapper? Bootstrapper { get; set; }
+        public MrExStrap.Bootstrapper? Bootstrapper { get; set; }
 
         private bool _isClosing;
 

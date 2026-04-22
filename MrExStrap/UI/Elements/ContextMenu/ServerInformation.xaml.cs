@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -12,10 +12,10 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 
-using Bloxstrap.Integrations;
-using Bloxstrap.UI.ViewModels.ContextMenu;
+using MrExStrap.Integrations;
+using MrExStrap.UI.ViewModels.ContextMenu;
 
-namespace Bloxstrap.UI.Elements.ContextMenu
+namespace MrExStrap.UI.Elements.ContextMenu
 {
     /// <summary>
     /// Interaction logic for ServerInformation.xaml

@@ -1,4 +1,4 @@
-﻿namespace Bloxstrap.Enums.FlagPresets
+namespace MrExStrap.Enums.FlagPresets
 {
     public enum TextureQuality
     {

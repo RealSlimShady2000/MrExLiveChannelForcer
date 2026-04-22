@@ -1,11 +1,11 @@
-﻿using System.Windows;
+using System.Windows;
 using System.Windows.Input;
 
 using CommunityToolkit.Mvvm.Input;
 
-using Bloxstrap.Enums.FlagPresets;
+using MrExStrap.Enums.FlagPresets;
 
-namespace Bloxstrap.UI.ViewModels.Settings
+namespace MrExStrap.UI.ViewModels.Settings
 {
     public class FastFlagsViewModel : NotifyPropertyChangedViewModel
     {

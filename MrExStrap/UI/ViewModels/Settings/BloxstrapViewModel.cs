@@ -1,10 +1,10 @@
-﻿using System.Windows;
+using System.Windows;
 using System.Windows.Input;
 using CommunityToolkit.Mvvm.Input;
 using ICSharpCode.SharpZipLib.Zip;
 using Microsoft.Win32;
 
-namespace Bloxstrap.UI.ViewModels.Settings
+namespace MrExStrap.UI.ViewModels.Settings
 {
     public class BloxstrapViewModel : NotifyPropertyChangedViewModel
     {
@@ -16,10 +16,10 @@ namespace Bloxstrap.UI.ViewModels.Settings
             set => App.Settings.Prop.CheckForUpdates = value;
         }
 
-        public bool AnalyticsEnabled
+        public bool LiveChannelToastEnabled
         {
-            get => App.Settings.Prop.EnableAnalytics;
-            set => App.Settings.Prop.EnableAnalytics = value;
+            get => App.Settings.Prop.ShowLiveChannelToast;
+            set => App.Settings.Prop.ShowLiveChannelToast = value;
         }
 
         public WebEnvironment WebEnvironment
@@ -42,7 +42,7 @@ namespace Bloxstrap.UI.ViewModels.Settings
 
             var dialog = new SaveFileDialog 
             { 
-                FileName = $"Bloxstrap-export-{timestamp}.zip",
+                FileName = $"MrExStrap-export-{timestamp}.zip",
                 Filter = $"{Strings.FileTypes_ZipArchive}|*.zip" 
             };
 

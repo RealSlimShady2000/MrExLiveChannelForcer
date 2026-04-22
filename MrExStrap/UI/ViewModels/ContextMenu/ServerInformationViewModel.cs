@@ -1,9 +1,9 @@
-﻿using System.Windows;
+using System.Windows;
 using System.Windows.Input;
-using Bloxstrap.Integrations;
+using MrExStrap.Integrations;
 using CommunityToolkit.Mvvm.Input;
 
-namespace Bloxstrap.UI.ViewModels.ContextMenu
+namespace MrExStrap.UI.ViewModels.ContextMenu
 {
     internal class ServerInformationViewModel : NotifyPropertyChangedViewModel
     {

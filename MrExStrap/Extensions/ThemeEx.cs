@@ -1,6 +1,6 @@
-﻿using Microsoft.Win32;
+using Microsoft.Win32;
 
-namespace Bloxstrap.Extensions
+namespace MrExStrap.Extensions
 {
     public static class ThemeEx
     {

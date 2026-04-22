@@ -1,6 +1,6 @@
-﻿using System.ComponentModel;
+using System.ComponentModel;
 
-namespace Bloxstrap.Enums
+namespace MrExStrap.Enums
 {
     [JsonConverter(typeof(JsonStringEnumConverter))]
     public enum WebEnvironment

@@ -3,7 +3,7 @@ using System.IO;
 using System.Windows.Media.Imaging;
 using System.Windows.Media;
 
-namespace Bloxstrap.Extensions
+namespace MrExStrap.Extensions
 {
     public static class IconEx
     {
@@ -15,22 +15,22 @@ namespace Bloxstrap.Extensions
             icon.Save(stream);
             stream.Seek(0, SeekOrigin.Begin);
 
-            if (handleException)
+            try
             {
-                try
+                var decoder = BitmapDecoder.Create(stream, BitmapCreateOptions.None, BitmapCacheOption.OnLoad);
+                BitmapFrame best = decoder.Frames[0];
+                foreach (var frame in decoder.Frames)
                 {
-                    return BitmapFrame.Create(stream, BitmapCreateOptions.None, BitmapCacheOption.OnLoad);
+                    if (frame.PixelWidth > best.PixelWidth)
+                        best = frame;
                 }
-                catch (Exception ex)
-                {
-                    App.Logger.WriteException("IconEx::GetImageSource", ex);
-                    Frontend.ShowMessageBox(string.Format(Strings.Dialog_IconLoadFailed, ex.Message));
-                    return BootstrapperIcon.IconBloxstrap.GetIcon().GetImageSource(false);
-                }
+                return best;
             }
-            else
+            catch (Exception ex) when (handleException)
             {
-                return BitmapFrame.Create(stream, BitmapCreateOptions.None, BitmapCacheOption.OnLoad);
+                App.Logger.WriteException("IconEx::GetImageSource", ex);
+                Frontend.ShowMessageBox(string.Format(Strings.Dialog_IconLoadFailed, ex.Message));
+                return BootstrapperIcon.IconBloxstrap.GetIcon().GetImageSource(false);
             }
         }
     }

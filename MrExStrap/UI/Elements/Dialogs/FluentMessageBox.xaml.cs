@@ -1,4 +1,4 @@
-﻿using System.Media;
+using System.Media;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Interop;
@@ -7,9 +7,9 @@ using System.Windows.Media.Imaging;
 using Windows.Win32;
 using Windows.Win32.Foundation;
 
-using Bloxstrap.UI.Utility;
+using MrExStrap.UI.Utility;
 
-namespace Bloxstrap.UI.Elements.Dialogs
+namespace MrExStrap.UI.Elements.Dialogs
 {
     // wpfui does have its own messagebox control but it SUCKS so heres this instead
 
@@ -24,7 +24,7 @@ namespace Bloxstrap.UI.Elements.Dialogs
         {
             InitializeComponent();
 
-            Title = App.ProjectName;
+            Title = App.ProjectDisplayName;
             RootTitleBar.Title = Title;
 
             string? iconFilename = null;
@@ -58,7 +58,7 @@ namespace Bloxstrap.UI.Elements.Dialogs
             else
                 IconImage.Source = new BitmapImage(new Uri($"pack://application:,,,/Resources/MessageBox/{iconFilename}.png"));
 
-            Title = App.ProjectName;
+            Title = App.ProjectDisplayName;
             MessageTextBlock.Text = message;
             MessageTextBlock.MarkdownText = message;
             ButtonOne.Visibility = Visibility.Collapsed;

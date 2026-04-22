@@ -1,4 +1,4 @@
-﻿// To debug the automatic updater:
+// To debug the automatic updater:
 // - Uncomment the definition below
 // - Publish the executable
 // - Launch the executable (click no when it asks you to upgrade)
@@ -19,13 +19,13 @@ using System.Windows.Shell;
 
 using Microsoft.Win32;
 
-using Bloxstrap.AppData;
-using Bloxstrap.RobloxInterfaces;
-using Bloxstrap.UI.Elements.Bootstrapper.Base;
+using MrExStrap.AppData;
+using MrExStrap.RobloxInterfaces;
+using MrExStrap.UI.Elements.Bootstrapper.Base;
 
 using ICSharpCode.SharpZipLib.Zip;
 
-namespace Bloxstrap
+namespace MrExStrap
 {
     public class Bootstrapper
     {
@@ -60,6 +60,7 @@ namespace Bloxstrap
         private double _taskbarProgressIncrement;
         private double _taskbarProgressMaximum;
         private long _totalDownloadedBytes = 0;
+        private long _totalPackedBytes = 0;
         private bool _packageExtractionSuccess = true;
 
         private bool _mustUpgrade => App.LaunchSettings.ForceFlag.Active || App.State.Prop.ForceReinstall || String.IsNullOrEmpty(AppData.DistributionState.VersionGuid) || !File.Exists(AppData.ExecutablePath);
@@ -74,9 +75,9 @@ namespace Bloxstrap
         public bool IsStudioLaunch => _launchMode != LaunchMode.Player;
 
         public string MutexName => $"{MutexNamePrefix}-{_launchMode}";
-        public string BackgroundUpdaterMutexName => $"Bloxstrap-BackgroundUpdater-{_launchMode}";
+        public string BackgroundUpdaterMutexName => $"MrExStrap-BackgroundUpdater-{_launchMode}";
 
-        public string MutexNamePrefix { get; set; } = "Bloxstrap-Bootstrapper";
+        public string MutexNamePrefix { get; set; } = "MrExStrap-Bootstrapper";
         public bool QuitIfMutexExists { get; set; } = false;
         #endregion
 
@@ -137,6 +138,42 @@ namespace Bloxstrap
             taskbarProgressValue = Math.Clamp(taskbarProgressValue, 0, _taskbarProgressMaximum);
 
             Dialog.TaskbarProgressValue = taskbarProgressValue;
+
+            // MrExStrap fork: show "X MB / Y MB" next to the progress bar
+            if (_totalPackedBytes > 0 && Dialog is UI.Elements.Bootstrapper.FluentDialog fluent)
+            {
+                long clampedDownloaded = Math.Clamp(_totalDownloadedBytes, 0, _totalPackedBytes);
+                fluent.DownloadSizeText = $"{FormatBytes(clampedDownloaded)} / {FormatBytes(_totalPackedBytes)}";
+            }
+        }
+
+        private static string FormatBytes(long bytes)
+        {
+            if (bytes <= 0) return "0 B";
+            string[] units = { "B", "KB", "MB", "GB" };
+            double n = bytes;
+            int u = 0;
+            while (n >= 1024 && u < units.Length - 1) { n /= 1024; u++; }
+            return $"{n:0.#} {units[u]}";
+        }
+
+        private static long? TryExtractPlaceId(string commandLine)
+        {
+            if (string.IsNullOrWhiteSpace(commandLine))
+                return null;
+
+            // Deep-links surface placeId in many shapes:
+            //   placeId=13700835620   placeId:13700835620   placeId%3D13700835620
+            // Match "placeid" followed by any non-digit separators, then capture the first digit run.
+            var match = System.Text.RegularExpressions.Regex.Match(
+                commandLine,
+                @"placeid[^0-9]+(\d{1,19})",
+                System.Text.RegularExpressions.RegexOptions.IgnoreCase | System.Text.RegularExpressions.RegexOptions.CultureInvariant);
+
+            if (!match.Success)
+                return null;
+
+            return long.TryParse(match.Groups[1].Value, out long placeId) ? placeId : null;
         }
 
         private void HandleConnectionError(Exception exception)
@@ -328,10 +365,48 @@ namespace Bloxstrap
 
         private void UpdateChannelRegistry()
         {
-            // Always blank the Roblox-side channel key on launch. Roblox interprets an empty
-            // value as the LIVE channel, so this overwrites any external tool that flipped it.
-            using RegistryKey key = Registry.CurrentUser.CreateSubKey($"SOFTWARE\\ROBLOX Corporation\\Environments\\{AppData.RegistryName}\\Channel");
-            key.SetValueSafe("www.roblox.com", "");
+            // Always blank the Roblox-side channel key on launch, then verify the write.
+            // Roblox interprets an empty value (or "production") as the LIVE channel.
+            // Any non-empty, non-"production" value means some other tool flipped the key;
+            // we overwrite it regardless.
+            const string LOG_IDENT = "Bootstrapper::UpdateChannelRegistry";
+            string subKeyPath = $"SOFTWARE\\ROBLOX Corporation\\Environments\\{AppData.RegistryName}\\Channel";
+            const string valueName = "www.roblox.com";
+
+            for (int attempt = 1; attempt <= 2; attempt++)
+            {
+                try
+                {
+                    using (RegistryKey writeKey = Registry.CurrentUser.CreateSubKey(subKeyPath))
+                    {
+                        writeKey.SetValueSafe(valueName, "");
+                    }
+
+                    string? readBack;
+                    using (RegistryKey? verifyKey = Registry.CurrentUser.OpenSubKey(subKeyPath, writable: false))
+                    {
+                        readBack = verifyKey?.GetValue(valueName) as string;
+                    }
+
+                    bool locked = string.IsNullOrEmpty(readBack)
+                        || string.Equals(readBack, Deployment.DefaultChannel, StringComparison.OrdinalIgnoreCase);
+
+                    if (locked)
+                    {
+                        App.Logger.WriteLine(LOG_IDENT, $"Channel lock verified: LIVE (attempt {attempt})");
+                        return;
+                    }
+
+                    App.Logger.WriteLine(LOG_IDENT, $"Verification MISMATCH on attempt {attempt}: read back '{readBack}', expected empty or '{Deployment.DefaultChannel}'");
+                }
+                catch (Exception ex)
+                {
+                    App.Logger.WriteLine(LOG_IDENT, $"Registry access failed on attempt {attempt}");
+                    App.Logger.WriteException(LOG_IDENT, ex);
+                }
+            }
+
+            App.Logger.WriteLine(LOG_IDENT, "WARNING: Channel lock could not be verified after retry. Roblox will still launch.");
         }
 
         /// <summary>
@@ -350,7 +425,30 @@ namespace Bloxstrap
             string? newVersionGuid = null;
             Version? newVersion = null;
 
-            if (!App.LaunchSettings.VersionFlag.Active || string.IsNullOrEmpty(App.LaunchSettings.VersionFlag.Data))
+            // Version-resolution priority:
+            //   1. CLI --version flag (session-scoped override)
+            //   2. Settings.UseCustomVersion + CustomVersionGuid (MrExStrap downgrade feature, persisted)
+            //   3. Fetch latest from clientsettingscdn
+            // UpdateChannelRegistry() is called in every branch — channel lock must stay active
+            // regardless of which version we're launching.
+
+            bool cliVersion = App.LaunchSettings.VersionFlag.Active && !string.IsNullOrEmpty(App.LaunchSettings.VersionFlag.Data);
+            bool pinnedVersion = App.Settings.Prop.UseCustomVersion
+                && Utility.VersionGuidValidator.IsWellFormed(App.Settings.Prop.CustomVersionGuid);
+
+            if (cliVersion)
+            {
+                App.Logger.WriteLine(LOG_IDENT, $"Version set to {App.LaunchSettings.VersionFlag.Data} from arguments");
+                newVersionGuid = App.LaunchSettings.VersionFlag.Data;
+                UpdateChannelRegistry();
+            }
+            else if (pinnedVersion)
+            {
+                App.Logger.WriteLine(LOG_IDENT, $"Version pinned to {App.Settings.Prop.CustomVersionGuid} from settings");
+                newVersionGuid = App.Settings.Prop.CustomVersionGuid;
+                UpdateChannelRegistry();
+            }
+            else
             {
                 ClientVersion clientVersion;
 
@@ -371,12 +469,6 @@ namespace Bloxstrap
                 newVersionGuid = clientVersion.VersionGuid;
                 newVersion = Utilities.ParseVersionSafe(clientVersion.Version);
             }
-            else
-            {
-                App.Logger.WriteLine(LOG_IDENT, $"Version set to {App.LaunchSettings.VersionFlag.Data} from arguments");
-                newVersionGuid = App.LaunchSettings.VersionFlag.Data;
-                // we can't determine the version
-            }
 
             if (newVersionGuid != _latestVersionGuid)
             {
@@ -389,6 +481,26 @@ namespace Bloxstrap
                 var pkgManifestData = await App.HttpClient.GetStringAsync(pkgManifestUrl);
 
                 _versionPackageManifest = new(pkgManifestData);
+            }
+
+            // MrExStrap fork: surface version info + downgrade state on the loading screen.
+            if (Dialog is UI.Elements.Bootstrapper.FluentDialog fluent)
+            {
+                string versionLabel = _latestVersion is not null
+                    ? $"Roblox v{_latestVersion} \u00B7 {_latestVersionGuid}"
+                    : _latestVersionGuid;
+                fluent.VersionInfoText = versionLabel;
+                fluent.IsDowngraded = cliVersion || pinnedVersion;
+
+                // Place info (player launches only): parse placeId from the raw launch args.
+                // We don't know the game name without a network call — just show the place id so
+                // the user can confirm they're joining the right experience.
+                if (!IsStudioLaunch)
+                {
+                    long? placeId = TryExtractPlaceId(_launchCommandLine);
+                    if (placeId.HasValue)
+                        fluent.PlaceInfoText = $"Joining Roblox place #{placeId.Value}";
+                }
             }
 
             // this can happen if version is set through arguments
@@ -567,6 +679,10 @@ namespace Bloxstrap
 
             App.Logger.WriteLine(LOG_IDENT, $"Started Roblox (PID {_appPid}), waiting for log file");
 
+            // Fork feature: single post-launch toast confirming the LIVE channel.
+            // Runs once per launch. Handles its own dispatch and cleanup.
+            MrExStrap.Utility.LiveChannelToast.Show();
+
             logCreatedEvent.WaitOne(TimeSpan.FromSeconds(15));
 
             if (String.IsNullOrEmpty(logFileName))
@@ -713,7 +829,7 @@ namespace Bloxstrap
             // i don't like this, but there isn't much better way of doing it /shrug
             if (Process.GetProcessesByName(App.ProjectName).Length > 1)
             {
-                App.Logger.WriteLine(LOG_IDENT, $"More than one Bloxstrap instance running, aborting update check");
+                App.Logger.WriteLine(LOG_IDENT, $"More than one MrExStrap instance running, aborting update check");
                 return false;
             }
 
@@ -747,7 +863,7 @@ namespace Bloxstrap
             try
             {
 #if DEBUG_UPDATER
-                string downloadLocation = Path.Combine(Paths.TempUpdates, "Bloxstrap.exe");
+                string downloadLocation = Path.Combine(Paths.TempUpdates, "MrExStrap.exe");
 
                 Directory.CreateDirectory(Paths.TempUpdates);
 
@@ -1022,6 +1138,7 @@ namespace Bloxstrap
 
                 // compute total bytes to download
                 int totalPackedSize = _versionPackageManifest.Sum(package => package.PackedSize);
+                _totalPackedBytes = totalPackedSize;
                 _progressIncrement = (double)ProgressBarMaximum / totalPackedSize;
 
                 if (Dialog is WinFormsDialogBase)

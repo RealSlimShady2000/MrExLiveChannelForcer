@@ -1,10 +1,10 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Bloxstrap.Utility
+namespace MrExStrap.Utility
 {
     public class InterProcessLock : IDisposable
     {
@@ -16,7 +16,7 @@ namespace Bloxstrap.Utility
 
         public InterProcessLock(string name, TimeSpan timeout)
         {
-            Mutex = new Mutex(false, "Bloxstrap-" + name);
+            Mutex = new Mutex(false, "MrExStrap-" + name);
 
             try
             {

@@ -1,7 +1,7 @@
-﻿using Bloxstrap.Integrations;
-using Bloxstrap.UI.ViewModels.ContextMenu;
+using MrExStrap.Integrations;
+using MrExStrap.UI.ViewModels.ContextMenu;
 
-namespace Bloxstrap.UI.Elements.ContextMenu
+namespace MrExStrap.UI.Elements.ContextMenu
 {
     /// <summary>
     /// Interaction logic for ServerInformation.xaml

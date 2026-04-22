@@ -1,4 +1,4 @@
-﻿using System.Media;
+using System.Media;
 using System.Web;
 using System.Windows;
 using System.Windows.Interop;
@@ -6,7 +6,7 @@ using System.Windows.Interop;
 using Windows.Win32;
 using Windows.Win32.Foundation;
 
-namespace Bloxstrap.UI.Elements.Dialogs
+namespace MrExStrap.UI.Elements.Dialogs
 {
     // hmm... do i use MVVM for this?
     // this is entirely static, so i think im fine without it, and this way is just so much more efficient
@@ -27,7 +27,7 @@ namespace Bloxstrap.UI.Elements.Dialogs
                 LocateLogFileButton.Content = Strings.Dialog_Exception_CopyLogContents;
 
             string repoUrl = $"https://github.com/{App.ProjectRepository}";
-            string wikiUrl = $"https://bloxstraplabs.com/wiki/help/";
+            string wikiUrl = $"{repoUrl}/issues";
 
             string title = HttpUtility.UrlEncode($"[BUG] {exception.GetType()}: {exception.Message}");
             string log = HttpUtility.UrlEncode(App.Logger.AsDocument);

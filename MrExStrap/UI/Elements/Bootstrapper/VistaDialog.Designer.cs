@@ -1,4 +1,4 @@
-﻿namespace Bloxstrap.UI.Elements.Bootstrapper
+namespace MrExStrap.UI.Elements.Bootstrapper
 {
     partial class VistaDialog
     {

@@ -1,15 +1,15 @@
-﻿using System.Windows;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Collections.ObjectModel;
 
 using Wpf.Ui.Mvvm.Contracts;
 
-using Bloxstrap.UI.Elements.Dialogs;
+using MrExStrap.UI.Elements.Dialogs;
 using Newtonsoft.Json.Linq;
 using System.Xml.Linq;
 
-namespace Bloxstrap.UI.Elements.Settings.Pages
+namespace MrExStrap.UI.Elements.Settings.Pages
 {
     /// <summary>
     /// Interaction logic for FastFlagEditorPage.xaml

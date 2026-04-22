@@ -1,11 +1,11 @@
-﻿using System.Windows;
+using System.Windows;
 using System.Windows.Interop;
 using Wpf.Ui.Appearance;
 using Wpf.Ui.Controls;
 using Wpf.Ui.Mvvm.Contracts;
 using Wpf.Ui.Mvvm.Services;
 
-namespace Bloxstrap.UI.Elements.Base
+namespace MrExStrap.UI.Elements.Base
 {
     public abstract class WpfUiWindow : UiWindow
     {

@@ -1,15 +1,15 @@
-﻿<base:WpfUiWindow
-    x:Class="Bloxstrap.UI.Elements.Bootstrapper.FluentDialog"
+<base:WpfUiWindow
+    x:Class="MrExStrap.UI.Elements.Bootstrapper.FluentDialog"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:base="clr-namespace:Bloxstrap.UI.Elements.Base"
+    xmlns:base="clr-namespace:MrExStrap.UI.Elements.Base"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:resources="clr-namespace:Bloxstrap.Resources"
+    xmlns:resources="clr-namespace:MrExStrap.Resources"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
-    xmlns:vms="clr-namespace:Bloxstrap.UI.ViewModels.Bootstrapper"
+    xmlns:vms="clr-namespace:MrExStrap.UI.ViewModels.Bootstrapper"
     Width="500"
-    Height="280"
+    Height="380"
     MinHeight="0"
     d:DataContext="{d:DesignInstance vms:FluentDialogViewModel,
                                      IsDesignTimeCreatable=True}"
@@ -38,40 +38,93 @@
 
         <Grid Margin="32,16">
             <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
                 <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
 
+            <!-- Row 0: badge row (CHANNEL: LIVE + optional DOWNGRADED) -->
+            <StackPanel Grid.Row="0" Margin="0,28,0,0" Orientation="Horizontal" HorizontalAlignment="Center">
+                <Border Padding="10,3" Background="#1E6B2E" CornerRadius="10">
+                    <TextBlock FontSize="11" FontWeight="SemiBold" Foreground="White" Text="CHANNEL: LIVE (locked)" />
+                </Border>
+                <Border Margin="6,0,0,0" Padding="10,3" Background="#C46B15" CornerRadius="10"
+                        Visibility="{Binding DowngradedBadgeVisibility, Mode=OneWay}">
+                    <TextBlock FontSize="11" FontWeight="SemiBold" Foreground="White" Text="DOWNGRADED" />
+                </Border>
+            </StackPanel>
+
+            <!-- Row 1: icon -->
             <Image
-                Grid.Row="0"
+                Grid.Row="1"
                 Width="80"
                 Height="80"
-                Margin="0,30,0,0"
+                Margin="0,8,0,0"
                 HorizontalAlignment="Center"
                 VerticalAlignment="Top"
                 RenderOptions.BitmapScalingMode="HighQuality"
                 Source="{Binding Icon, Mode=OneWay}" />
 
+            <!-- Row 2: main status text -->
             <TextBlock
-                Grid.Row="1"
-                Margin="0,0,0,8"
+                Grid.Row="2"
+                Margin="0,0,0,4"
                 HorizontalAlignment="Center"
                 FontSize="18"
                 Foreground="{DynamicResource TextFillColorPrimaryBrush}"
                 Text="{Binding Message, Mode=OneWay}"
                 TextWrapping="Wrap" />
 
+            <!-- Row 3: Place info (only when launching into a specific game) -->
+            <TextBlock
+                Grid.Row="3"
+                Margin="0,0,0,2"
+                HorizontalAlignment="Center"
+                FontSize="12"
+                Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                Text="{Binding PlaceInfoText, Mode=OneWay}"
+                TextWrapping="Wrap"
+                Visibility="{Binding PlaceInfoVisibility, Mode=OneWay}" />
+
+            <!-- Row 4: Roblox version + hash (resolved from CDN) -->
+            <TextBlock
+                Grid.Row="4"
+                Margin="0,0,0,8"
+                HorizontalAlignment="Center"
+                FontSize="11"
+                FontFamily="Consolas"
+                Foreground="{DynamicResource TextFillColorTertiaryBrush}"
+                Text="{Binding VersionInfoText, Mode=OneWay}"
+                TextWrapping="Wrap"
+                TextAlignment="Center"
+                Visibility="{Binding VersionInfoVisibility, Mode=OneWay}" />
+
+            <!-- Row 5: progress bar -->
             <ProgressBar
-                Grid.Row="2"
-                Margin="0,0,0,16"
+                Grid.Row="5"
+                Margin="0,0,0,2"
                 IsIndeterminate="{Binding ProgressIndeterminate, Mode=OneWay}"
                 Maximum="{Binding ProgressMaximum, Mode=OneWay}"
                 Value="{Binding ProgressValue, Mode=OneWay}" />
 
+            <!-- Row 6: download size (only while downloading) -->
+            <TextBlock
+                Grid.Row="6"
+                Margin="0,0,0,16"
+                HorizontalAlignment="Right"
+                FontSize="11"
+                Foreground="{DynamicResource TextFillColorTertiaryBrush}"
+                Text="{Binding DownloadSizeText, Mode=OneWay}"
+                Visibility="{Binding DownloadSizeVisibility, Mode=OneWay}" />
+
+            <!-- Row 7: cancel -->
             <Button
-                Grid.Row="3"
+                Grid.Row="7"
                 Width="120"
                 Padding="4"
                 HorizontalAlignment="Center"

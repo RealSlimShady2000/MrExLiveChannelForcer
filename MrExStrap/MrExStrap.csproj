@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
@@ -6,14 +6,14 @@
     <Nullable>enable</Nullable>
     <UseWPF>true</UseWPF>
     <UseWindowsForms>True</UseWindowsForms>
-    <ApplicationIcon>Bloxstrap.ico</ApplicationIcon>
-    <AssemblyName>MrExploitLiveChannelForcer</AssemblyName>
-    <RootNamespace>Bloxstrap</RootNamespace>
-    <Product>MrExploitLiveChannelForcer</Product>
+    <ApplicationIcon>MrExStrap.ico</ApplicationIcon>
+    <AssemblyName>MrExBloxstrap</AssemblyName>
+    <RootNamespace>MrExStrap</RootNamespace>
+    <Product>MrExBloxstrap</Product>
     <AssemblyTitle>MrExploit Live Channel Forcer</AssemblyTitle>
     <Company>MrExploit</Company>
-    <Version>1.0.0</Version>
-    <FileVersion>1.0.0</FileVersion>
+    <Version>420.0.0</Version>
+    <FileVersion>420.0.0.0</FileVersion>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
@@ -21,7 +21,8 @@
   </PropertyGroup>
     
   <ItemGroup>
-    <Resource Include="Bloxstrap.ico" />
+    <Resource Include="MrExStrap.ico" />
+    <Resource Include="Resources\MrExploit.png" />
     <Resource Include="Resources\Fonts\NotoSansThai-VariableFont_wdth,wght.ttf" />
     <Resource Include="Resources\Fonts\Rubik-VariableFont_wght.ttf" />
     <Resource Include="Resources\BootstrapperStyles\ByfronDialog\ByfronLogoDark.jpg" />
@@ -78,7 +79,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <AssemblyAttribute Include="Bloxstrap.Models.Attributes.BuildMetadataAttribute">
+    <AssemblyAttribute Include="MrExStrap.Models.Attributes.BuildMetadataAttribute">
       <_Parameter1>$([System.DateTime]::UtcNow.ToString("s"))Z</_Parameter1>
       <_Parameter2>$(COMPUTERNAME)\$(USERNAME)</_Parameter2>
       <_Parameter3>$(CommitHash)</_Parameter3>

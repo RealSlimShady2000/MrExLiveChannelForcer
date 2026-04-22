@@ -1,6 +1,6 @@
-﻿using System.Text;
+using System.Text;
 
-namespace Bloxstrap.Extensions
+namespace MrExStrap.Extensions
 {
     static class CustomThemeTemplateEx
     {

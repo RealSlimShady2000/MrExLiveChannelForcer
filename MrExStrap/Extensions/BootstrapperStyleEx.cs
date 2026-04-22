@@ -1,4 +1,4 @@
-﻿namespace Bloxstrap.Extensions
+namespace MrExStrap.Extensions
 {
     static class BootstrapperStyleEx
     {

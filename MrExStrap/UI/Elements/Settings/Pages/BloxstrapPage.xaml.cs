@@ -1,11 +1,11 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Bloxstrap.UI.ViewModels.Settings;
+using MrExStrap.UI.ViewModels.Settings;
 
-namespace Bloxstrap.UI.Elements.Settings.Pages
+namespace MrExStrap.UI.Elements.Settings.Pages
 {
     /// <summary>
     /// Interaction logic for BloxstrapPage.xaml

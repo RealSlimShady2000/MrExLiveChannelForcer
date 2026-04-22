@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using System.Windows.Data;
 using System.Xml.Linq;
 
-namespace Bloxstrap.UI.Converters
+namespace MrExStrap.UI.Converters
 {
     class EnumNameConverter : IValueConverter
     {

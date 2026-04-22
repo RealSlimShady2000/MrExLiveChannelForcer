@@ -1,4 +1,4 @@
-﻿namespace Bloxstrap.Models.APIs.Roblox
+namespace MrExStrap.Models.APIs.Roblox
 {
 
     /// <summary>

@@ -1,6 +1,6 @@
-﻿using System.Security.Cryptography;
+using System.Security.Cryptography;
 
-namespace Bloxstrap.Utility
+namespace MrExStrap.Utility
 {
     public static class MD5Hash
     {

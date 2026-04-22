@@ -1,11 +1,11 @@
-﻿using System.Windows;
+using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shell;
 
 using CommunityToolkit.Mvvm.Input;
 
-namespace Bloxstrap.UI.ViewModels.Bootstrapper
+namespace MrExStrap.UI.ViewModels.Bootstrapper
 {
     public class BootstrapperDialogViewModel : NotifyPropertyChangedViewModel
     {
@@ -25,6 +25,63 @@ namespace Bloxstrap.UI.ViewModels.Bootstrapper
 
         public bool CancelEnabled { get; set; } = false;
         public Visibility CancelButtonVisibility => CancelEnabled ? Visibility.Visible : Visibility.Collapsed;
+
+        // --- MrExStrap fork: extended loading-screen info ---
+
+        private string _versionInfoText = "";
+        public string VersionInfoText
+        {
+            get => _versionInfoText;
+            set
+            {
+                _versionInfoText = value ?? "";
+                OnPropertyChanged(nameof(VersionInfoText));
+                OnPropertyChanged(nameof(VersionInfoVisibility));
+            }
+        }
+        public Visibility VersionInfoVisibility =>
+            string.IsNullOrEmpty(_versionInfoText) ? Visibility.Collapsed : Visibility.Visible;
+
+        private bool _isDowngraded;
+        public bool IsDowngraded
+        {
+            get => _isDowngraded;
+            set
+            {
+                _isDowngraded = value;
+                OnPropertyChanged(nameof(IsDowngraded));
+                OnPropertyChanged(nameof(DowngradedBadgeVisibility));
+            }
+        }
+        public Visibility DowngradedBadgeVisibility => _isDowngraded ? Visibility.Visible : Visibility.Collapsed;
+
+        private string _downloadSizeText = "";
+        public string DownloadSizeText
+        {
+            get => _downloadSizeText;
+            set
+            {
+                _downloadSizeText = value ?? "";
+                OnPropertyChanged(nameof(DownloadSizeText));
+                OnPropertyChanged(nameof(DownloadSizeVisibility));
+            }
+        }
+        public Visibility DownloadSizeVisibility =>
+            string.IsNullOrEmpty(_downloadSizeText) ? Visibility.Collapsed : Visibility.Visible;
+
+        private string _placeInfoText = "";
+        public string PlaceInfoText
+        {
+            get => _placeInfoText;
+            set
+            {
+                _placeInfoText = value ?? "";
+                OnPropertyChanged(nameof(PlaceInfoText));
+                OnPropertyChanged(nameof(PlaceInfoVisibility));
+            }
+        }
+        public Visibility PlaceInfoVisibility =>
+            string.IsNullOrEmpty(_placeInfoText) ? Visibility.Collapsed : Visibility.Visible;
 
         [Obsolete("Do not use this! This is for the designer only.", true)]
         public BootstrapperDialogViewModel()

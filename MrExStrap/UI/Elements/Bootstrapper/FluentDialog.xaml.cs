@@ -1,5 +1,5 @@
-﻿using Bloxstrap.UI.Elements.Bootstrapper.Base;
-using Bloxstrap.UI.ViewModels.Bootstrapper;
+using MrExStrap.UI.Elements.Bootstrapper.Base;
+using MrExStrap.UI.ViewModels.Bootstrapper;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -19,7 +19,7 @@ using System.Windows.Shapes;
 using System.Windows.Shell;
 using System.Windows.Threading;
 
-namespace Bloxstrap.UI.Elements.Bootstrapper
+namespace MrExStrap.UI.Elements.Bootstrapper
 {
     /// <summary>
     /// Interaction logic for FluentDialog.xaml
@@ -28,7 +28,7 @@ namespace Bloxstrap.UI.Elements.Bootstrapper
     {
         private readonly FluentDialogViewModel _viewModel;
 
-        public Bloxstrap.Bootstrapper? Bootstrapper { get; set; }
+        public MrExStrap.Bootstrapper? Bootstrapper { get; set; }
 
         private bool _isClosing;
 
@@ -103,6 +103,32 @@ namespace Bloxstrap.UI.Elements.Bootstrapper
                 _viewModel.OnPropertyChanged(nameof(_viewModel.CancelButtonVisibility));
                 _viewModel.OnPropertyChanged(nameof(_viewModel.CancelEnabled));
             }
+        }
+
+        // --- MrExStrap fork: extended loading-screen info ---
+
+        public string VersionInfoText
+        {
+            get => _viewModel.VersionInfoText;
+            set => _viewModel.VersionInfoText = value;
+        }
+
+        public bool IsDowngraded
+        {
+            get => _viewModel.IsDowngraded;
+            set => _viewModel.IsDowngraded = value;
+        }
+
+        public string DownloadSizeText
+        {
+            get => _viewModel.DownloadSizeText;
+            set => _viewModel.DownloadSizeText = value;
+        }
+
+        public string PlaceInfoText
+        {
+            get => _viewModel.PlaceInfoText;
+            set => _viewModel.PlaceInfoText = value;
         }
         #endregion
 

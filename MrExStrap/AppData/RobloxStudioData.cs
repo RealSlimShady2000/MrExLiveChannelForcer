@@ -1,4 +1,4 @@
-﻿namespace Bloxstrap.AppData
+namespace MrExStrap.AppData
 {
     public class RobloxStudioData : CommonAppData, IAppData
     {

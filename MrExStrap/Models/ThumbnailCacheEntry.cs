@@ -1,4 +1,4 @@
-﻿namespace Bloxstrap.Models
+namespace MrExStrap.Models
 {
     internal class ThumbnailCacheEntry
     {

@@ -1,4 +1,4 @@
-﻿using System.Windows.Input;
+using System.Windows.Input;
 using System.Xml;
 
 using ICSharpCode.AvalonEdit.CodeCompletion;
@@ -7,11 +7,11 @@ using ICSharpCode.AvalonEdit.Editing;
 using ICSharpCode.AvalonEdit.Highlighting.Xshd;
 using ICSharpCode.AvalonEdit.Highlighting;
 
-using Bloxstrap.UI.Elements.Base;
-using Bloxstrap.UI.ViewModels.Editor;
+using MrExStrap.UI.Elements.Base;
+using MrExStrap.UI.ViewModels.Editor;
 using System.Windows;
 
-namespace Bloxstrap.UI.Elements.Editor
+namespace MrExStrap.UI.Elements.Editor
 {
     /// <summary>
     /// Interaction logic for BootstrapperEditorWindow.xaml

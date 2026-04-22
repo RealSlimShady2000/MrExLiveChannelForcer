@@ -1,11 +1,11 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Data;
 
-namespace Bloxstrap.UI.Converters
+namespace MrExStrap.UI.Converters
 {
     public class StringFormatConverter : IValueConverter
     {

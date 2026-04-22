@@ -24,14 +24,14 @@ jobs:
       run: dotnet build -c Release --no-restore
 
     - name: Publish
-      run: dotnet publish -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:CommitHash=${{ github.sha }} -p:CommitRef=${{ github.ref_type }}/${{ github.ref_name }} -r win-x64 -c Release --self-contained true .\Bloxstrap\Bloxstrap.csproj
+      run: dotnet publish -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:CommitHash=${{ github.sha }} -p:CommitRef=${{ github.ref_type }}/${{ github.ref_name }} -r win-x64 -c Release --self-contained true .\MrExStrap\MrExStrap.csproj
 
     - name: Upload Artifact
       id: upload-artifact
       uses: actions/upload-artifact@v7
       with:
-        name: MrExploitLiveChannelForcer (Release) (${{ github.sha }})
-        path: .\Bloxstrap\bin\Release\net6.0-windows\win-x64\publish\*
+        name: MrExBloxstrap (Release) (${{ github.sha }})
+        path: .\MrExStrap\bin\Release\net6.0-windows\win-x64\publish\*
 
   release:
     needs: build
@@ -42,7 +42,7 @@ jobs:
       - name: Download artifact
         uses: actions/download-artifact@v4
         with:
-          name: MrExploitLiveChannelForcer (Release) (${{ github.sha }})
+          name: MrExBloxstrap (Release) (${{ github.sha }})
           path: release
 
       # SignPath Foundation signing — re-enable once the fork is approved.
@@ -62,11 +62,11 @@ jobs:
       #     output-artifact-directory: 'release'
 
       - name: Rename binary
-        run: mv release/MrExploitLiveChannelForcer.exe MrExploitLiveChannelForcer-${{ github.ref_name }}.exe
+        run: mv release/MrExBloxstrap.exe MrExBloxstrap-${{ github.ref_name }}.exe
 
       - name: Create release
         uses: softprops/action-gh-release@v2
         with:
           draft: true
-          files: MrExploitLiveChannelForcer-${{ github.ref_name }}.exe
-          name: MrExploitLiveChannelForcer ${{ github.ref_name }}
+          files: MrExBloxstrap-${{ github.ref_name }}.exe
+          name: MrExBloxstrap ${{ github.ref_name }}

@@ -1,4 +1,4 @@
-﻿using System.Collections.ObjectModel;
+using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -8,11 +8,11 @@ using ICSharpCode.SharpZipLib.Zip;
 
 using Microsoft.Win32;
 
-using Bloxstrap.UI.Elements.Settings;
-using Bloxstrap.UI.Elements.Editor;
-using Bloxstrap.UI.Elements.Dialogs;
+using MrExStrap.UI.Elements.Settings;
+using MrExStrap.UI.Elements.Editor;
+using MrExStrap.UI.Elements.Dialogs;
 
-namespace Bloxstrap.UI.ViewModels.Settings
+namespace MrExStrap.UI.ViewModels.Settings
 {
     public class AppearanceViewModel : NotifyPropertyChangedViewModel
     {

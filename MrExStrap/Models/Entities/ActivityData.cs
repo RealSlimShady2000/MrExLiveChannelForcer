@@ -1,11 +1,11 @@
-﻿using System.Web;
+using System.Web;
 using System.Windows;
 using System.Windows.Input;
-using Bloxstrap.AppData;
-using Bloxstrap.Models.APIs;
+using MrExStrap.AppData;
+using MrExStrap.Models.APIs;
 using CommunityToolkit.Mvvm.Input;
 
-namespace Bloxstrap.Models.Entities
+namespace MrExStrap.Models.Entities
 {
     public class ActivityData
     {

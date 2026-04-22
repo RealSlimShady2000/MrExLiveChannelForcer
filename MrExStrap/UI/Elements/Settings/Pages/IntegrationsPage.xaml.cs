@@ -1,8 +1,8 @@
-﻿using System.Windows.Controls;
+using System.Windows.Controls;
 
-using Bloxstrap.UI.ViewModels.Settings;
+using MrExStrap.UI.ViewModels.Settings;
 
-namespace Bloxstrap.UI.Elements.Settings.Pages
+namespace MrExStrap.UI.Elements.Settings.Pages
 {
     /// <summary>
     /// Interaction logic for IntegrationsPage.xaml

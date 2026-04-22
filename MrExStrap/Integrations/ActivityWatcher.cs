@@ -1,4 +1,4 @@
-﻿namespace Bloxstrap.Integrations
+namespace MrExStrap.Integrations
 {
     public class ActivityWatcher : IDisposable
     {

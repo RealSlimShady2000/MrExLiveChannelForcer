@@ -1,6 +1,6 @@
-﻿using System.Windows;
+using System.Windows;
 
-namespace Bloxstrap.UI.Elements.Bootstrapper.Base
+namespace MrExStrap.UI.Elements.Bootstrapper.Base
 {
     static class BaseFunctions
     {

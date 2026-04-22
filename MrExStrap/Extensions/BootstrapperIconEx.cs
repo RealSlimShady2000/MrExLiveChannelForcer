@@ -1,6 +1,6 @@
-﻿using System.Drawing;
+using System.Drawing;
 
-namespace Bloxstrap.Extensions
+namespace MrExStrap.Extensions
 {
     static class BootstrapperIconEx
     {

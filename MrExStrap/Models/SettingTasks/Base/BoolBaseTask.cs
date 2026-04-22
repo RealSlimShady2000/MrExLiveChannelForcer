@@ -1,10 +1,10 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Bloxstrap.Models.SettingTasks.Base
+namespace MrExStrap.Models.SettingTasks.Base
 {
     public abstract class BoolBaseTask : BaseTask
     {

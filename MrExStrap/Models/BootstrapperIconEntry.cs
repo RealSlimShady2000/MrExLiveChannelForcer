@@ -1,6 +1,6 @@
-﻿using System.Windows.Media;
+using System.Windows.Media;
 
-namespace Bloxstrap.Models
+namespace MrExStrap.Models
 {
     public class BootstrapperIconEntry
     {

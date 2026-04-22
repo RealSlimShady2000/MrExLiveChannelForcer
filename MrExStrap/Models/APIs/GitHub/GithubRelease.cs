@@ -1,4 +1,4 @@
-﻿namespace Bloxstrap.Models.APIs.GitHub
+namespace MrExStrap.Models.APIs.GitHub
 {
     public class GithubRelease
     {

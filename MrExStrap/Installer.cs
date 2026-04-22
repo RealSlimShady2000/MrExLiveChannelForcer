@@ -1,7 +1,7 @@
-﻿using System.Windows;
+using System.Windows;
 using Microsoft.Win32;
 
-namespace Bloxstrap
+namespace MrExStrap
 {
     internal class Installer
     {
@@ -521,7 +521,7 @@ namespace Bloxstrap
                     }
 
                     string oldDesktopPath = Path.Combine(Paths.Desktop, "Play Roblox.lnk");
-                    string oldStartPath = Path.Combine(Paths.WindowsStartMenu, "Bloxstrap");
+                    string oldStartPath = Path.Combine(Paths.WindowsStartMenu, "MrExStrap");
 
                     if (File.Exists(oldDesktopPath))
                         File.Move(oldDesktopPath, DesktopShortcut, true);
@@ -630,14 +630,14 @@ namespace Bloxstrap
                         releaseNoteVersion = currentVer;
                     }
 
-                    Utilities.ShellExecute($"https://github.com/{App.ProjectRepository}/wiki/Release-notes-for-Bloxstrap-v{releaseNoteVersion}");
+                    Utilities.ShellExecute($"https://github.com/{App.ProjectRepository}/wiki/Release-notes-for-MrExStrap-v{releaseNoteVersion}");
                 }
 #pragma warning restore CS0162 // Unreachable code detected
             }
             else
             {
                 Frontend.ShowMessageBox(
-                    string.Format(Strings.InstallChecker_Updated, currentVer),
+                    string.Format(Strings.InstallChecker_Updated, App.Version),
                     MessageBoxImage.Information,
                     MessageBoxButton.OK
                 );

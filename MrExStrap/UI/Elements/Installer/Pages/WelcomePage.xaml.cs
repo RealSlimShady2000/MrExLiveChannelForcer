@@ -1,7 +1,7 @@
-﻿using System.Windows;
-using Bloxstrap.UI.ViewModels.Installer;
+using System.Windows;
+using MrExStrap.UI.ViewModels.Installer;
 
-namespace Bloxstrap.UI.Elements.Installer.Pages
+namespace MrExStrap.UI.Elements.Installer.Pages
 {
     /// <summary>
     /// Interaction logic for WelcomePage.xaml

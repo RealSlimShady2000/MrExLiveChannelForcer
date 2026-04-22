@@ -1,7 +1,7 @@
-﻿using System.Windows;
+using System.Windows;
 using System.Xml.Linq;
 
-namespace Bloxstrap.UI.Elements.Bootstrapper
+namespace MrExStrap.UI.Elements.Bootstrapper
 {
     public partial class CustomDialog
     {

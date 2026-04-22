@@ -1,8 +1,8 @@
-﻿using System.Windows.Controls;
+using System.Windows.Controls;
 using Wpf.Ui.Controls.Interfaces;
 using Wpf.Ui.Mvvm.Contracts;
 
-namespace Bloxstrap.UI.Elements.About
+namespace MrExStrap.UI.Elements.About
 {
     /// <summary>
     /// Interaction logic for MainWindow.xaml
@@ -14,9 +14,6 @@ namespace Bloxstrap.UI.Elements.About
             InitializeComponent();
 
             App.Logger.WriteLine("MainWindow", "Initializing about window");
-
-            if (Locale.CurrentCulture.Name.StartsWith("tr"))
-                TranslatorsText.FontSize = 9;
         }
 
         #region INavigationWindow methods

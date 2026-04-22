@@ -1,7 +1,7 @@
-﻿using System.Windows;
-using Bloxstrap.Resources;
+using System.Windows;
+using MrExStrap.Resources;
 
-namespace Bloxstrap.Utility
+namespace MrExStrap.Utility
 {
     internal static class Shortcut
     {

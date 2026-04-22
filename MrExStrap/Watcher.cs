@@ -1,8 +1,8 @@
-﻿using Bloxstrap.AppData;
-using Bloxstrap.Integrations;
-using Bloxstrap.Models;
+using MrExStrap.AppData;
+using MrExStrap.Integrations;
+using MrExStrap.Models;
 
-namespace Bloxstrap
+namespace MrExStrap
 {
     public class Watcher : IDisposable
     {

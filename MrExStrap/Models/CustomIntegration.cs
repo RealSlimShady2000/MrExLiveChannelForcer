@@ -1,4 +1,4 @@
-﻿namespace Bloxstrap.Models
+namespace MrExStrap.Models
 {
     public class CustomIntegration
     {

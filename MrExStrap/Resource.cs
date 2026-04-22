@@ -1,6 +1,6 @@
-﻿using System.Reflection;
+using System.Reflection;
 
-namespace Bloxstrap
+namespace MrExStrap
 {
     static class Resource
     {

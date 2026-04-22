@@ -1,4 +1,4 @@
-namespace Bloxstrap.Models.APIs
+namespace MrExStrap.Models.APIs
 {
     public class IPInfoResponse
     {

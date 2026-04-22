@@ -1,12 +1,12 @@
-﻿using System.Windows;
+using System.Windows;
 using System.Windows.Input;
 using CommunityToolkit.Mvvm.Input;
 
-using Bloxstrap.Resources;
+using MrExStrap.Resources;
 
 using Microsoft.Win32;
 
-namespace Bloxstrap.UI.ViewModels.Installer
+namespace MrExStrap.UI.ViewModels.Installer
 {
     public class CompletionViewModel
     {

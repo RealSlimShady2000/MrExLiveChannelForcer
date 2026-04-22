@@ -1,6 +1,6 @@
-﻿using Bloxstrap.Models.RobloxApi;
+using MrExStrap.Models.RobloxApi;
 
-namespace Bloxstrap.Models.Entities
+namespace MrExStrap.Models.Entities
 {
     public class UserDetails
     {

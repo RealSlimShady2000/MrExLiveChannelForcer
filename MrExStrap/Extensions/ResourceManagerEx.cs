@@ -1,6 +1,6 @@
-﻿using System.Resources;
+using System.Resources;
 
-namespace Bloxstrap.Extensions
+namespace MrExStrap.Extensions
 {
     static class ResourceManagerEx
     {

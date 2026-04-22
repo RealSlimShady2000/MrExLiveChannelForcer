@@ -1,6 +1,6 @@
-﻿using System.Collections.ObjectModel;
+using System.Collections.ObjectModel;
 
-namespace Bloxstrap.Models.Persistable
+namespace MrExStrap.Models.Persistable
 {
     public class Settings
     {
@@ -33,5 +33,12 @@ namespace Bloxstrap.Models.Persistable
 
         // mod preset configuration
         public bool UseDisableAppPatch { get; set; } = false;
+
+        // version downgrade (MrExStrap fork feature)
+        public bool UseCustomVersion { get; set; } = false;
+        public string CustomVersionGuid { get; set; } = "";
+
+        // post-launch "Channel: LIVE" toast (MrExStrap fork feature)
+        public bool ShowLiveChannelToast { get; set; } = true;
     }
 }

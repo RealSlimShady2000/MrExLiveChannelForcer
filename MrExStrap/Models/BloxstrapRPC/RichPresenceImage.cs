@@ -1,4 +1,4 @@
-﻿namespace Bloxstrap.Models.BloxstrapRPC
+namespace MrExStrap.Models.BloxstrapRPC
 {
     class RichPresenceImage
     {

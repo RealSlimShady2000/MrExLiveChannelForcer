@@ -1,12 +1,11 @@
-﻿namespace Bloxstrap.UI.ViewModels.Installer
+namespace MrExStrap.UI.ViewModels.Installer
 {
     public class WelcomeViewModel : NotifyPropertyChangedViewModel
     {
         // formatting is done here instead of in xaml, it's just a bit easier
         public string MainText => String.Format(
             Strings.Installer_Welcome_MainText,
-            $"[github.com/{App.ProjectRepository}](https://github.com/{App.ProjectRepository})",
-            $"[{App.ProjectName}]({App.ProjectDownloadLink})"
+            $"[{App.ProjectName}](https://github.com/{App.ProjectRepository})"
         );
 
         public string VersionNotice { get; private set; } = "";

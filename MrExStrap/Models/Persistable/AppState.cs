@@ -1,4 +1,4 @@
-﻿namespace Bloxstrap.Models.Persistable
+namespace MrExStrap.Models.Persistable
 {
     public class AppState
     {
