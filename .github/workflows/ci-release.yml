@@ -37,6 +37,9 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/v')
+    # needed for softprops/action-gh-release to create + upload assets on the tag's release
+    permissions:
+      contents: write
 
     steps:
       - name: Download artifact
