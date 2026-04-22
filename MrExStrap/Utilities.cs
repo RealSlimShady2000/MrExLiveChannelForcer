@@ -39,6 +39,11 @@ namespace MrExStrap
             if (idx != -1)
                 version = version[..idx];
 
+            // MrExStrap fork uses single-number versioning (420, 420.1, 420.2...).
+            // System.Version requires at least major.minor — pad single-segment values with ".0".
+            if (!version.Contains('.'))
+                version += ".0";
+
             return new Version(version);
         }
 

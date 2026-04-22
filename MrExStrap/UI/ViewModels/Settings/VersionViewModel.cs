@@ -33,6 +33,7 @@ namespace MrExStrap.UI.ViewModels.Settings
             {
                 App.Settings.Prop.UseCustomVersion = value;
                 OnPropertyChanged(nameof(UseCustomVersion));
+                OnPropertyChanged(nameof(ShowLiveUpdateBanner));
                 RefreshStatusFromCurrentInput();
             }
         }
@@ -44,6 +45,7 @@ namespace MrExStrap.UI.ViewModels.Settings
             {
                 App.Settings.Prop.CustomVersionGuid = (value ?? "").Trim();
                 OnPropertyChanged(nameof(CustomVersionGuid));
+                OnPropertyChanged(nameof(ShowLiveUpdateBanner));
                 RefreshStatusFromCurrentInput();
             }
         }
@@ -51,7 +53,13 @@ namespace MrExStrap.UI.ViewModels.Settings
         public string LiveHash
         {
             get => _liveHash;
-            private set { _liveHash = value; OnPropertyChanged(nameof(LiveHash)); OnPropertyChanged(nameof(HasLiveHash)); }
+            private set
+            {
+                _liveHash = value;
+                OnPropertyChanged(nameof(LiveHash));
+                OnPropertyChanged(nameof(HasLiveHash));
+                OnPropertyChanged(nameof(ShowLiveUpdateBanner));
+            }
         }
 
         public string LiveVersion
@@ -100,6 +108,7 @@ namespace MrExStrap.UI.ViewModels.Settings
                 {
                     CustomVersionGuid = value.RbxVersion;
                     UseCustomVersion = true;
+                    RememberHash(value.RbxVersion);
 
                     string upToDate = value.UpdateStatus ? "up-to-date" : "OUT OF DATE";
                     string detection = value.Detected ? "DETECTED" : "undetected";
@@ -138,6 +147,38 @@ namespace MrExStrap.UI.ViewModels.Settings
         public ICommand ResetCommand { get; }
         public ICommand RefreshExploitsCommand { get; }
 
+        public ObservableCollection<string> RecentHashes { get; } = new();
+
+        private string? _selectedRecentHash;
+        public string? SelectedRecentHash
+        {
+            get => _selectedRecentHash;
+            set
+            {
+                _selectedRecentHash = value;
+                OnPropertyChanged(nameof(SelectedRecentHash));
+
+                if (!string.IsNullOrWhiteSpace(value))
+                {
+                    CustomVersionGuid = value;
+                    UseCustomVersion = true;
+                    SetStatus($"Loaded {value} from recent list. Click Verify to confirm it still exists.", NeutralBrush);
+                }
+            }
+        }
+
+        public bool HasRecentHashes => RecentHashes.Count > 0;
+
+        public bool ShowLiveUpdateBanner =>
+            HasLiveHash
+            && App.Settings.Prop.UseCustomVersion
+            && !string.IsNullOrEmpty(App.Settings.Prop.CustomVersionGuid)
+            && LiveHash != App.Settings.Prop.CustomVersionGuid
+            && LiveHash != App.State.Prop.DismissedLiveHash;
+
+        public ICommand UpdatePinToLiveCommand { get; }
+        public ICommand DismissLiveBannerCommand { get; }
+
         public VersionViewModel()
         {
             FetchLiveCommand = new AsyncRelayCommand(FetchLiveAsync);
@@ -146,12 +187,59 @@ namespace MrExStrap.UI.ViewModels.Settings
             VerifyCommand = new AsyncRelayCommand(VerifyAsync);
             ResetCommand = new RelayCommand(Reset);
             RefreshExploitsCommand = new AsyncRelayCommand(LoadExploitsAsync);
+            UpdatePinToLiveCommand = new RelayCommand(UpdatePinToLive);
+            DismissLiveBannerCommand = new RelayCommand(DismissLiveBanner);
 
+            LoadRecentHashesFromState();
             RefreshStatusFromCurrentInput();
 
             // Fire-and-forget: auto-detect LIVE hash + populate exploit list on page open.
             _ = FetchLiveAsync();
             _ = LoadExploitsAsync();
+        }
+
+        private void LoadRecentHashesFromState()
+        {
+            RecentHashes.Clear();
+            foreach (var h in App.State.Prop.RecentCustomVersionHashes)
+            {
+                if (VersionGuidValidator.IsWellFormed(h))
+                    RecentHashes.Add(h);
+            }
+            OnPropertyChanged(nameof(HasRecentHashes));
+        }
+
+        private void RememberHash(string hash)
+        {
+            if (!VersionGuidValidator.IsWellFormed(hash))
+                return;
+
+            // Dedupe: remove any existing copy, then push to front. Cap at 10.
+            var list = App.State.Prop.RecentCustomVersionHashes;
+            list.RemoveAll(h => string.Equals(h, hash, StringComparison.OrdinalIgnoreCase));
+            list.Insert(0, hash);
+            while (list.Count > 10)
+                list.RemoveAt(list.Count - 1);
+
+            LoadRecentHashesFromState();
+        }
+
+        private void UpdatePinToLive()
+        {
+            if (!HasLiveHash)
+                return;
+
+            CustomVersionGuid = LiveHash;
+            UseCustomVersion = true;
+            RememberHash(LiveHash);
+            OnPropertyChanged(nameof(ShowLiveUpdateBanner));
+            SetStatus($"Pin updated to current LIVE: {LiveHash}.", OkBrush);
+        }
+
+        private void DismissLiveBanner()
+        {
+            App.State.Prop.DismissedLiveHash = LiveHash ?? "";
+            OnPropertyChanged(nameof(ShowLiveUpdateBanner));
         }
 
         private async Task FetchLiveAsync()
@@ -174,7 +262,20 @@ namespace MrExStrap.UI.ViewModels.Settings
 
                 LiveHash = info.Hash;
                 LiveVersion = string.IsNullOrEmpty(info.Version) ? "" : $"Roblox v{info.Version}";
-                LiveReleasedText = FormatReleased(info.LastModifiedUtc);
+
+                // Record the first time this installation observes a hash as LIVE. The CDN
+                // Last-Modified timestamp reflects package upload, which can be many hours
+                // before the LIVE pointer actually flips — first-seen gives a locally-true
+                // "when did Roblox switch?" signal.
+                var firstSeenDict = App.State.Prop.LiveHashFirstSeenUtc;
+                if (!firstSeenDict.ContainsKey(info.Hash))
+                {
+                    firstSeenDict[info.Hash] = DateTime.UtcNow;
+                    TrimFirstSeenDict(firstSeenDict, keepMostRecent: 30);
+                }
+                DateTime? firstSeenUtc = firstSeenDict.TryGetValue(info.Hash, out var ts) ? ts : null;
+
+                LiveReleasedText = FormatReleased(info.LastModifiedUtc, firstSeenUtc);
 
                 if (!UseCustomVersion)
                     SetStatus($"Current LIVE version: {LiveHash}. Click \"Pin this version\" or pick an executor below to lock it in.", NeutralBrush);
@@ -231,6 +332,7 @@ namespace MrExStrap.UI.ViewModels.Settings
 
             CustomVersionGuid = LiveHash;
             UseCustomVersion = true;
+            RememberHash(LiveHash);
             SetStatus($"Pinned to current LIVE: {LiveHash}.", OkBrush);
         }
 
@@ -292,11 +394,16 @@ namespace MrExStrap.UI.ViewModels.Settings
                 string summary = $"Verified: {details.Hash} exists on CDN";
                 if (details.PackageCount > 0)
                     summary += $" ({details.PackageCount} packages, {FormatBytes(details.TotalCompressedBytes)} to download)";
-                if (details.LastModifiedUtc.HasValue)
-                    summary += $". {FormatReleased(details.LastModifiedUtc)}";
+
+                DateTime? verifiedFirstSeen = App.State.Prop.LiveHashFirstSeenUtc.TryGetValue(details.Hash, out var vts) ? vts : (DateTime?)null;
+                string when = FormatReleased(details.LastModifiedUtc, verifiedFirstSeen);
+                if (!string.IsNullOrEmpty(when))
+                    summary += ". " + when;
                 else
                     summary += ".";
                 SetStatus(summary, OkBrush);
+
+                RememberHash(details.Hash);
             }
             catch (Exception ex)
             {
@@ -358,24 +465,58 @@ namespace MrExStrap.UI.ViewModels.Settings
             return $"{n:0.#} {units[u]}";
         }
 
-        private static string FormatReleased(DateTime? lastModifiedUtc)
+        // Compose the "when" line. We show two distinct facts because they mean different things:
+        //   * CDN uploaded = Last-Modified on the package manifest. Roblox often pre-stages packages
+        //                    on the CDN hours before flipping the LIVE pointer, so this lags reality.
+        //   * First seen LIVE = the first moment this installation observed this hash as the LIVE
+        //                       pointer. This is an accurate "when did Roblox switch?" for you.
+        private static string FormatReleased(DateTime? lastModifiedUtc, DateTime? firstSeenLiveUtc)
         {
-            if (!lastModifiedUtc.HasValue) return "";
+            var parts = new List<string>();
 
-            DateTime utc = lastModifiedUtc.Value;
-            DateTime local = utc.ToLocalTime();
-            TimeSpan age = DateTime.UtcNow - utc;
+            if (lastModifiedUtc.HasValue)
+            {
+                DateTime utc = lastModifiedUtc.Value;
+                DateTime local = utc.ToLocalTime();
+                parts.Add($"CDN uploaded {local:yyyy-MM-dd HH:mm} UTC{local:zzz} ({FormatRelative(DateTime.UtcNow - utc)})");
+            }
 
-            string relative;
-            if (age.TotalSeconds < 0) relative = "in the future?";
-            else if (age.TotalMinutes < 1) relative = "just now";
-            else if (age.TotalMinutes < 60) relative = $"{(int)age.TotalMinutes} min ago";
-            else if (age.TotalHours < 24) relative = $"{(int)age.TotalHours}h ago";
-            else if (age.TotalDays < 30) relative = $"{(int)age.TotalDays}d ago";
-            else if (age.TotalDays < 365) relative = $"~{(int)(age.TotalDays / 30)}mo ago";
-            else relative = $"~{(int)(age.TotalDays / 365)}y ago";
+            if (firstSeenLiveUtc.HasValue)
+            {
+                TimeSpan age = DateTime.UtcNow - firstSeenLiveUtc.Value;
+                // Emphasise fresh observations — if we saw this LIVE less than 15 min ago it almost
+                // certainly means Roblox just pushed it as the production build.
+                if (age.TotalMinutes < 15)
+                    parts.Add($"First seen LIVE {FormatRelative(age)} — likely a fresh production push");
+                else
+                    parts.Add($"First seen LIVE {FormatRelative(age)}");
+            }
 
-            return $"Released {local:yyyy-MM-dd HH:mm} UTC{local:zzz} ({relative})";
+            return string.Join("  ·  ", parts);
+        }
+
+        private static string FormatRelative(TimeSpan age)
+        {
+            if (age.TotalSeconds < 0) return "in the future?";
+            if (age.TotalMinutes < 1) return "just now";
+            if (age.TotalMinutes < 60) return $"{(int)age.TotalMinutes} min ago";
+            if (age.TotalHours < 24) return $"{(int)age.TotalHours}h ago";
+            if (age.TotalDays < 30) return $"{(int)age.TotalDays}d ago";
+            if (age.TotalDays < 365) return $"~{(int)(age.TotalDays / 30)}mo ago";
+            return $"~{(int)(age.TotalDays / 365)}y ago";
+        }
+
+        private static void TrimFirstSeenDict(Dictionary<string, DateTime> dict, int keepMostRecent)
+        {
+            if (dict.Count <= keepMostRecent) return;
+
+            var drop = dict.OrderByDescending(kv => kv.Value)
+                           .Skip(keepMostRecent)
+                           .Select(kv => kv.Key)
+                           .ToList();
+
+            foreach (var k in drop)
+                dict.Remove(k);
         }
     }
 }

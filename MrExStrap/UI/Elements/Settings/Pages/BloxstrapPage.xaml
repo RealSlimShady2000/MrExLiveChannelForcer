@@ -7,12 +7,17 @@
       xmlns:local="clr-namespace:MrExStrap.UI.Elements.Settings.Pages"
       xmlns:controls="clr-namespace:MrExStrap.UI.Elements.Controls"
       xmlns:models="clr-namespace:MrExStrap.UI.ViewModels.Settings"
+      xmlns:vmroot="clr-namespace:MrExStrap.UI.ViewModels"
       xmlns:resources="clr-namespace:MrExStrap.Resources"
       d:DataContext="{d:DesignInstance Type=models:BloxstrapViewModel}"
       mc:Ignorable="d" 
       d:DesignHeight="600" d:DesignWidth="800"
       Title="BehaviourPage"
       Scrollable="True">
+
+    <ui:UiPage.Resources>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+    </ui:UiPage.Resources>
 
     <StackPanel Margin="0,0,14,14">
         <TextBlock Margin="0,0,0,8" Text="{x:Static resources:Strings.Menu_Bloxstrap_Description}" FontSize="14" Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
@@ -45,6 +50,125 @@
             Description="Site to use for metrics">
             <ComboBox Width="200" Padding="10,5,10,5" ItemsSource="{Binding WebEnvironments, Mode=OneWay}" SelectedValue="{Binding WebEnvironment, Mode=TwoWay}" />
         </controls:OptionControl>
+
+        <!-- Privacy mode toggle -->
+        <controls:OptionControl Margin="0,8,0,0"
+            Header="Privacy mode (clear tracking cookies before launch)"
+            Description="Truncates Roblox's RobloxCookies.dat right before every launch, so each session starts without cached session-tracking cookies from the previous run. Cookie-level only. This does NOT spoof MAC / HWID / machine GUID, and does NOT affect BanAsync device-level fingerprinting.">
+            <ui:ToggleSwitch IsChecked="{Binding PrivacyModeEnabled, Mode=TwoWay}" />
+        </controls:OptionControl>
+
+        <!-- Multi-instance toggle -->
+        <controls:OptionControl Margin="0,8,0,0"
+            Header="Multi-instance (run more than one Roblox client)"
+            Description="After launch, closes Roblox's singleton lock so you can start another Roblox client alongside the first one. Runs in the background, takes a few seconds. Same-user only, no admin needed.">
+            <ui:ToggleSwitch IsChecked="{Binding MultiInstanceEnabled, Mode=TwoWay}" />
+        </controls:OptionControl>
+
+        <!-- Auto window tiling toggle -->
+        <controls:OptionControl Margin="0,8,0,0"
+            Header="Auto window tiling"
+            Description="After launch, arranges all open Roblox windows in a grid on your primary monitor. Handy when running multiple clients at once. Ignored if you only have one window open.">
+            <ui:ToggleSwitch IsChecked="{Binding WindowTilingEnabled, Mode=TwoWay}" />
+        </controls:OptionControl>
+
+        <controls:OptionControl Margin="0,8,0,0"
+            Header="Tiling layout"
+            Description="Grid shape for auto tiling. Auto picks rows and columns based on how many windows are open.">
+            <ComboBox Width="140" Padding="10,5,10,5"
+                      ItemsSource="{Binding WindowTilingLayouts, Mode=OneWay}"
+                      SelectedValue="{Binding WindowTilingLayout, Mode=TwoWay}" />
+        </controls:OptionControl>
+
+        <TextBlock Margin="0,4,0,0" FontSize="11" Foreground="{DynamicResource TextFillColorTertiaryBrush}" TextWrapping="Wrap">
+            <Run>Privacy mode, multi-instance and auto window tiling adapted from</Run>
+            <Hyperlink Command="vmroot:GlobalViewModel.OpenWebpageCommand"
+                       CommandParameter="https://gitlab.com/centerepic/robloxmanager">sasha / centerepic's robloxmanager</Hyperlink>
+            <Run>(MIT).</Run>
+        </TextBlock>
+
+        <!-- Clear Roblox cache -->
+        <controls:OptionControl Margin="0,8,0,0"
+            Header="Clear Roblox cache"
+            Description="Delete the Roblox client cache (Bloxstrap Mr Exploit edition's version cache + the default-location Roblox install). Your settings, FastFlags, and custom themes are kept. Roblox will redownload the client on next launch.">
+            <ui:Button MinWidth="100" Icon="Delete24" Content="Clear" Appearance="Danger"
+                       Command="{Binding ClearRobloxCacheCommand, Mode=OneTime}" />
+        </controls:OptionControl>
+
+        <!-- Debug mode toggle -->
+        <controls:OptionControl Margin="0,8,0,0"
+            Header="Debug mode"
+            Description="Reveals a 'Run health check' button and 'Open log folder' shortcut below. Use when something isn't working right — the health check output is useful to attach to a support message.">
+            <ui:ToggleSwitch IsChecked="{Binding DebugModeEnabled, Mode=TwoWay}" />
+        </controls:OptionControl>
+
+        <!-- Debug actions (visible only when debug mode is on) -->
+        <Grid Margin="0,8,0,0" Visibility="{Binding DebugModeVisibility, Mode=OneWay}">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <ui:Button Grid.Column="0" Icon="Heart24" Content="Run health check"
+                       Appearance="Primary"
+                       Command="{Binding RunHealthCheckCommand, Mode=OneTime}" />
+            <ui:Button Grid.Column="1" Margin="8,0,0,0" Icon="FolderOpen24" Content="Open log folder"
+                       Command="{Binding OpenLogFolderCommand, Mode=OneTime}" />
+        </Grid>
+
+        <!-- Running Roblox instances panel -->
+        <ui:CardExpander Margin="0,8,0,0" IsExpanded="False">
+            <ui:CardExpander.Header>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0">
+                        <TextBlock FontSize="14" Text="{Binding RunningInstancesHeader, Mode=OneWay}" />
+                        <TextBlock FontSize="12" Foreground="{DynamicResource TextFillColorTertiaryBrush}" TextWrapping="Wrap"
+                                   Text="Live list of RobloxPlayerBeta processes. Use the per-row kill button to close a specific instance — handy when running several at once." />
+                    </StackPanel>
+                    <ui:Button Grid.Column="1" MinWidth="100" Margin="0,0,16,0" Icon="ArrowClockwise24" Content="Refresh"
+                               Command="{Binding RefreshRunningInstancesCommand, Mode=OneTime}" />
+                </Grid>
+            </ui:CardExpander.Header>
+            <StackPanel>
+                <TextBlock FontSize="12" Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                           Text="No Roblox processes are currently running. Launch the app to see it appear here."
+                           Visibility="{Binding HasNoRunningInstances, Converter={StaticResource BooleanToVisibilityConverter}, Mode=OneWay}" />
+                <ItemsControl ItemsSource="{Binding RunningInstances, Mode=OneWay}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Grid Margin="0,4,0,4">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="{Binding Pid}" FontFamily="Consolas" FontSize="12"
+                                           VerticalAlignment="Center" MinWidth="60" />
+                                <TextBlock Grid.Column="1" Text="{Binding Uptime}" FontSize="12" Margin="12,0,0,0"
+                                           VerticalAlignment="Center" MinWidth="80"
+                                           Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                                <TextBlock Grid.Column="2" FontSize="12" Margin="12,0,0,0" VerticalAlignment="Center" MinWidth="80"
+                                           Foreground="{DynamicResource TextFillColorSecondaryBrush}">
+                                    <Run Text="{Binding MemoryMb, Mode=OneWay}" />
+                                    <Run Text=" MB" />
+                                </TextBlock>
+                                <TextBlock Grid.Column="3" Text="{Binding WindowTitle}" FontSize="12" Margin="12,0,8,0"
+                                           VerticalAlignment="Center" TextTrimming="CharacterEllipsis"
+                                           Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
+                                <ui:Button Grid.Column="4" MinWidth="70" Icon="Dismiss24" Content="Kill" Appearance="Danger"
+                                           Command="{Binding DataContext.KillInstanceCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                           CommandParameter="{Binding Pid}" />
+                            </Grid>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
+        </ui:CardExpander>
 
         <ui:CardExpander Margin="0,8,0,0" IsExpanded="True">
             <ui:CardExpander.Header>

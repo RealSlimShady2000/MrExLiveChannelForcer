@@ -21,6 +21,32 @@
                    Text="Pin the Roblox client to a specific build instead of downloading the latest. The channel is always forced to LIVE regardless of the build you pin."
                    FontSize="14" TextWrapping="Wrap" Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
 
+        <!-- New-LIVE-version banner: shown when user is pinned and Roblox has a newer LIVE hash they haven't dismissed -->
+        <Border Margin="0,0,0,12" Padding="12,10" CornerRadius="4"
+                Background="#402EA84A" BorderBrush="#2EA84A" BorderThickness="0,0,0,2"
+                Visibility="{Binding ShowLiveUpdateBanner, Converter={StaticResource BooleanToVisibilityConverter}, Mode=OneWay}">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                    <TextBlock FontWeight="SemiBold" FontSize="13">
+                        <Run>Roblox shipped a new LIVE build.</Run>
+                    </TextBlock>
+                    <TextBlock TextWrapping="Wrap" FontSize="12" Margin="0,2,0,0" Foreground="{DynamicResource TextFillColorSecondaryBrush}">
+                        <Run>You're pinned to an older build. Update your pin to the latest, or dismiss this to stay where you are.</Run>
+                    </TextBlock>
+                </StackPanel>
+                <ui:Button Grid.Column="1" Margin="8,0,0,0" Content="Update pin"
+                           Appearance="Primary"
+                           Command="{Binding UpdatePinToLiveCommand, Mode=OneTime}" />
+                <ui:Button Grid.Column="2" Margin="8,0,0,0" Content="Dismiss"
+                           Command="{Binding DismissLiveBannerCommand, Mode=OneTime}" />
+            </Grid>
+        </Border>
+
         <Border Margin="0,4,0,16" Padding="12,8" Background="#40E0A322" BorderBrush="#E0A322" BorderThickness="0,0,0,2" CornerRadius="4">
             <TextBlock TextWrapping="Wrap" FontSize="12" Foreground="{DynamicResource TextFillColorPrimaryBrush}">
                 <Run FontWeight="SemiBold">Warning: </Run>
@@ -82,7 +108,9 @@
                     <TextBlock Grid.Column="0" Text="{Binding LiveVersion, Mode=OneWay}" FontSize="12" FontWeight="SemiBold"
                                Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
                     <TextBlock Grid.Column="1" Margin="12,0,0,0" Text="{Binding LiveReleasedText, Mode=OneWay}" FontSize="12"
-                               Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                               TextWrapping="Wrap"
+                               Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                               ToolTip="CDN uploaded = when Roblox put the package files on the CDN (can be hours before production). First seen LIVE = when this install first saw Roblox flip the LIVE pointer to this hash — a locally-true 'when did it release' signal." />
                 </Grid>
             </StackPanel>
         </Border>
@@ -160,6 +188,22 @@
             <Run FontFamily="Consolas">version-xxxxxxxxxxxxxxxx</Run>
             <Run>(16 hex chars), or use the options above to fill it in. Click Verify to confirm the build still exists on CDN.</Run>
         </TextBlock>
+
+        <!-- Recent hashes dropdown (only shown if we have any) -->
+        <Grid Margin="0,0,0,8"
+              Visibility="{Binding HasRecentHashes, Converter={StaticResource BooleanToVisibilityConverter}, Mode=OneWay}">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <TextBlock Grid.Column="0" Text="Recent:" VerticalAlignment="Center" Margin="0,0,8,0" FontSize="12"
+                       Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+            <ComboBox Grid.Column="1"
+                      ItemsSource="{Binding RecentHashes, Mode=OneWay}"
+                      SelectedItem="{Binding SelectedRecentHash, Mode=TwoWay}"
+                      FontFamily="Consolas" FontSize="12"
+                      HorizontalAlignment="Stretch" />
+        </Grid>
 
         <Grid Margin="0,0,0,8">
             <Grid.ColumnDefinitions>

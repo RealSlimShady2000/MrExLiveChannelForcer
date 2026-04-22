@@ -39,7 +39,7 @@ namespace MrExStrap.Utility
                     Icon = Properties.Resources.IconBloxstrap,
                     Visible = true,
                     BalloonTipTitle = "Channel: LIVE",
-                    BalloonTipText = $"Roblox launched on the LIVE channel. Enforced by {App.ProjectName}.",
+                    BalloonTipText = $"Roblox launched on the LIVE channel. Enforced by {App.ProjectName}. You can disable this notification in settings.",
                     BalloonTipIcon = WinForms.ToolTipIcon.Info
                 };
                 icon.ShowBalloonTip(5000);

@@ -31,9 +31,19 @@ namespace MrExStrap
 
         public static BuildMetadataAttribute BuildMetadata = Assembly.GetExecutingAssembly().GetCustomAttribute<BuildMetadataAttribute>()!;
 
-        public static string Version = Assembly.GetExecutingAssembly().GetName().Version!.Major.ToString();
+        public static string Version = FormatAssemblyVersion(Assembly.GetExecutingAssembly().GetName().Version!);
+
+        // Fork uses single-integer major versions ("420"), with an optional minor when we
+        // ship point releases ("420.1"). Build + revision are ignored at display time.
+        private static string FormatAssemblyVersion(System.Version v) =>
+            v.Minor == 0 ? v.Major.ToString() : $"{v.Major}.{v.Minor}";
 
         public static Bootstrapper? Bootstrapper { get; set; } = null!;
+
+        // MrExStrap fork feature: portable mode. Set at startup when a "portable.txt" flag
+        // file sits next to the exe. In portable mode we run in-place, store all user data
+        // next to the exe, and skip registry writes / Start-menu shortcuts.
+        public static bool IsPortableMode { get; private set; } = false;
 
         public static bool IsActionBuild => !String.IsNullOrEmpty(BuildMetadata.CommitRef);
 
@@ -237,64 +247,79 @@ namespace MrExStrap
             LaunchSettings = new LaunchSettings(e.Args);
 
             // installation check begins here
-            using var uninstallKey = Registry.CurrentUser.OpenSubKey(UninstallKey);
             string? installLocation = null;
             bool fixInstallLocation = false;
-            
-            if (uninstallKey?.GetValue("InstallLocation") is string value)
+
+            // Portable-mode detection (MrExStrap fork): a "portable.txt" flag next to the exe
+            // opts into portable mode. When portable, we skip the installer + registry flow
+            // entirely — data lives next to the exe, no LocalAppData, no Start-menu shortcuts.
+            string? exeDir = Directory.GetParent(Paths.Process)?.FullName;
+            if (!string.IsNullOrEmpty(exeDir) && File.Exists(Path.Combine(exeDir, "portable.txt")))
             {
-                if (Directory.Exists(value))
-                {
-                    installLocation = value;
-                }
-                else
-                {
-                    // check if user profile folder has been renamed
-                    var match = Regex.Match(value, @"^[a-zA-Z]:\\Users\\([^\\]+)", RegexOptions.IgnoreCase);
+                IsPortableMode = true;
+                installLocation = exeDir;
+                Logger.WriteLine(LOG_IDENT, $"Portable mode enabled (portable.txt found at {exeDir})");
+            }
 
-                    if (match.Success)
+            if (!IsPortableMode)
+            {
+                using var uninstallKey = Registry.CurrentUser.OpenSubKey(UninstallKey);
+
+                if (uninstallKey?.GetValue("InstallLocation") is string value)
+                {
+                    if (Directory.Exists(value))
                     {
-                        string newLocation = value.Replace(match.Value, Paths.UserProfile, StringComparison.InvariantCultureIgnoreCase);
+                        installLocation = value;
+                    }
+                    else
+                    {
+                        // check if user profile folder has been renamed
+                        var match = Regex.Match(value, @"^[a-zA-Z]:\\Users\\([^\\]+)", RegexOptions.IgnoreCase);
 
-                        if (Directory.Exists(newLocation))
+                        if (match.Success)
                         {
-                            installLocation = newLocation;
-                            fixInstallLocation = true;
+                            string newLocation = value.Replace(match.Value, Paths.UserProfile, StringComparison.InvariantCultureIgnoreCase);
+
+                            if (Directory.Exists(newLocation))
+                            {
+                                installLocation = newLocation;
+                                fixInstallLocation = true;
+                            }
                         }
                     }
                 }
-            }
 
-            // silently change install location if we detect a portable run
-            if (installLocation is null && Directory.GetParent(Paths.Process)?.FullName is string processDir)
-            {
-                var files = Directory.GetFiles(processDir).Select(x => Path.GetFileName(x)).ToArray();
-
-                // check if settings.json and state.json are the only files in the folder
-                if (files.Length <= 3 && files.Contains("Settings.json") && files.Contains("State.json"))
+                // silently change install location if we detect a portable run
+                if (installLocation is null && Directory.GetParent(Paths.Process)?.FullName is string processDir)
                 {
-                    installLocation = processDir;
-                    fixInstallLocation = true;
+                    var files = Directory.GetFiles(processDir).Select(x => Path.GetFileName(x)).ToArray();
+
+                    // check if settings.json and state.json are the only files in the folder
+                    if (files.Length <= 3 && files.Contains("Settings.json") && files.Contains("State.json"))
+                    {
+                        installLocation = processDir;
+                        fixInstallLocation = true;
+                    }
                 }
-            }
 
-            if (fixInstallLocation && installLocation is not null)
-            {
-                var installer = new Installer
+                if (fixInstallLocation && installLocation is not null)
                 {
-                    InstallLocation = installLocation,
-                    IsImplicitInstall = true
-                };
+                    var installer = new Installer
+                    {
+                        InstallLocation = installLocation,
+                        IsImplicitInstall = true
+                    };
 
-                if (installer.CheckInstallLocation())
-                {
-                    Logger.WriteLine(LOG_IDENT, $"Changing install location to '{installLocation}'");
-                    installer.DoInstall();
-                }
-                else
-                {
-                    // force reinstall
-                    installLocation = null;
+                    if (installer.CheckInstallLocation())
+                    {
+                        Logger.WriteLine(LOG_IDENT, $"Changing install location to '{installLocation}'");
+                        installer.DoInstall();
+                    }
+                    else
+                    {
+                        // force reinstall
+                        installLocation = null;
+                    }
                 }
             }
 
@@ -311,8 +336,9 @@ namespace MrExStrap
 
                 Logger.WriteLine(LOG_IDENT, "Entering main logic");
 
-                // ensure executable is in the install directory
-                if (Paths.Process != Paths.Application && !File.Exists(Paths.Application))
+                // ensure executable is in the install directory — skipped in portable mode
+                // since the running exe already IS the install
+                if (!IsPortableMode && Paths.Process != Paths.Application && !File.Exists(Paths.Application))
                 {
                     Logger.WriteLine(LOG_IDENT, "Copying to install directory");
                     File.Copy(Paths.Process, Paths.Application);

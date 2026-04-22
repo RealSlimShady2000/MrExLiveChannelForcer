@@ -40,5 +40,18 @@ namespace MrExStrap.Models.Persistable
 
         // post-launch "Channel: LIVE" toast (MrExStrap fork feature)
         public bool ShowLiveChannelToast { get; set; } = true;
+
+        // privacy mode — truncate RobloxCookies.dat before every launch (MrExStrap fork feature)
+        public bool EnablePrivacyMode { get; set; } = false;
+
+        // multi-instance: close ROBLOX_singletonEvent after launch so another Roblox can start (MrExStrap fork feature)
+        public bool MultiInstanceEnabled { get; set; } = false;
+
+        // auto-tile Roblox windows in a grid once they're visible (MrExStrap fork feature)
+        public bool WindowTilingEnabled { get; set; } = false;
+        public WindowTilingLayout WindowTilingLayout { get; set; } = WindowTilingLayout.Auto;
+
+        // user-visible debug mode — reveals the Run health check button (MrExStrap fork feature)
+        public bool DebugModeEnabled { get; set; } = false;
     }
 }

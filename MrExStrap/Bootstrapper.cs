@@ -613,6 +613,15 @@ namespace MrExStrap
         {
             const string LOG_IDENT = "Bootstrapper::StartRoblox";
 
+            // Privacy mode: wipe Roblox's cookie cache right before the player process spawns.
+            // Best-effort, never throws up to the caller — a file-locked cookie file shouldn't
+            // prevent a launch.
+            if (App.Settings.Prop.EnablePrivacyMode)
+            {
+                App.Logger.WriteLine(LOG_IDENT, "Privacy mode enabled — truncating RobloxCookies.dat");
+                Utility.PrivacyMode.TruncateRobloxCookies();
+            }
+
             SetStatus(Strings.Bootstrapper_Status_Starting);
 
             var startInfo = new ProcessStartInfo()
@@ -682,6 +691,21 @@ namespace MrExStrap
             // Fork feature: single post-launch toast confirming the LIVE channel.
             // Runs once per launch. Handles its own dispatch and cleanup.
             MrExStrap.Utility.LiveChannelToast.Show();
+
+            // Multi-instance: close Roblox's singleton event so a second client can launch.
+            // Background task + internal grace window — safe if Roblox exits early.
+            if (App.Settings.Prop.MultiInstanceEnabled && _launchMode == LaunchMode.Player)
+            {
+                App.Logger.WriteLine(LOG_IDENT, $"Multi-instance enabled — scheduling singleton close for PID {_appPid}");
+                MrExStrap.Utility.MultiInstance.ScheduleSingletonClose(_appPid);
+            }
+
+            // Window tiling: arrange all Roblox windows into a grid after a short delay.
+            if (App.Settings.Prop.WindowTilingEnabled && _launchMode == LaunchMode.Player)
+            {
+                App.Logger.WriteLine(LOG_IDENT, $"Window tiling enabled — scheduling tile pass with layout {App.Settings.Prop.WindowTilingLayout}");
+                MrExStrap.Utility.WindowTiler.ScheduleTilePass(App.Settings.Prop.WindowTilingLayout);
+            }
 
             logCreatedEvent.WaitOne(TimeSpan.FromSeconds(15));
 
@@ -824,7 +848,16 @@ namespace MrExStrap
         private async Task<bool> CheckForUpdates()
         {
             const string LOG_IDENT = "Bootstrapper::CheckForUpdates";
-            
+
+            // Portable mode: the user is running in-place (often from a USB stick). We never
+            // auto-replace the running exe here — they update by downloading the new portable
+            // ZIP themselves.
+            if (App.IsPortableMode)
+            {
+                App.Logger.WriteLine(LOG_IDENT, "Portable mode: skipping auto-update replace.");
+                return false;
+            }
+
             // don't update if there's another instance running (likely running in the background)
             // i don't like this, but there isn't much better way of doing it /shrug
             if (Process.GetProcessesByName(App.ProjectName).Length > 1)
@@ -841,7 +874,19 @@ namespace MrExStrap
             if (releaseInfo is null)
                 return false;
 
-            var versionComparison = Utilities.CompareVersions(App.Version, releaseInfo.TagName);
+            VersionComparison versionComparison;
+            try
+            {
+                versionComparison = Utilities.CompareVersions(App.Version, releaseInfo.TagName);
+            }
+            catch (Exception ex)
+            {
+                // Don't let a version-string parse failure block launch. Skip the update check
+                // this session and move on — users can still manually update from the GitHub release.
+                App.Logger.WriteException(LOG_IDENT, ex);
+                App.Logger.WriteLine(LOG_IDENT, $"Update check aborted: couldn't compare '{App.Version}' with '{releaseInfo.TagName}'. Continuing launch.");
+                return false;
+            }
 
             // check if we aren't using a deployed build, so we can update to one if a new version comes out
             if (App.IsProductionBuild && versionComparison == VersionComparison.Equal || versionComparison == VersionComparison.GreaterThan)
