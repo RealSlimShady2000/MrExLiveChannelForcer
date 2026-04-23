@@ -987,7 +987,18 @@ namespace MrExStrap
 
                 File.Copy(Paths.Process, downloadLocation, true);
 #else
-                var asset = releaseInfo.Assets![0];
+                // Pick the .exe asset explicitly. GitHub returns assets in upload order, which
+                // can put the portable zip first — blindly grabbing Assets[0] downloads the
+                // wrong artifact and Process.Start fails on the zip. This bit users coming
+                // from v420.1/2/3 trying to auto-update.
+                var asset = releaseInfo.Assets?.FirstOrDefault(a =>
+                    a.Name.EndsWith(".exe", StringComparison.OrdinalIgnoreCase));
+
+                if (asset is null)
+                {
+                    App.Logger.WriteLine(LOG_IDENT, "No .exe asset on the latest release — cannot auto-update.");
+                    return false;
+                }
 
                 string downloadLocation = Path.Combine(Paths.TempUpdates, asset.Name);
 
