@@ -130,6 +130,17 @@ namespace MrExStrap
             if (Dialog is null)
                 return;
 
+            // Parallel downloads call this from worker threads — bounce to the WPF dispatcher
+            // before touching dialog properties (especially TaskbarItemProgressState, which is
+            // strictly UI-thread-only). BeginInvoke is fire-and-forget so the download loop
+            // doesn't block on the UI.
+            var dispatcher = System.Windows.Application.Current?.Dispatcher;
+            if (dispatcher is not null && !dispatcher.CheckAccess())
+            {
+                dispatcher.BeginInvoke((Action)UpdateProgressBar);
+                return;
+            }
+
             // UI progress
             int progressValue = (int)Math.Floor(_progressIncrement * _totalDownloadedBytes);
 
@@ -1256,22 +1267,51 @@ namespace MrExStrap
                 _taskbarProgressIncrement = _taskbarProgressMaximum / (double)totalPackedSize;
             }
 
-            var extractionTasks = new List<Task>();
+            // MrExStrap fork: parallelize package downloads. Upstream Bloxstrap downloads
+            // packages one at a time, which is the dominant install bottleneck (~30-50 packages,
+            // ~200 MB). With a small concurrency window the same install completes in a fraction
+            // of the wall time on any reasonable connection. 6 is a sweet spot — enough to
+            // saturate residential bandwidth, not so many that we hammer the CDN or starve the
+            // disk on slower drives.
+            const int maxConcurrentDownloads = 6;
+            using var downloadSemaphore = new SemaphoreSlim(maxConcurrentDownloads);
 
-            foreach (var package in _versionPackageManifest)
+            var pipelineTasks = _versionPackageManifest.Select(async package =>
             {
-                if (_cancelTokenSource.IsCancellationRequested)
-                    return;
+                await downloadSemaphore.WaitAsync(_cancelTokenSource.Token);
+                try
+                {
+                    if (_cancelTokenSource.IsCancellationRequested)
+                        return;
 
-                // download all the packages synchronously
-                await DownloadPackage(package);
+                    await DownloadPackage(package);
 
-                // we'll extract the runtime installer later if we need to
-                if (package.Name == "WebView2RuntimeInstaller.zip")
-                    continue;
+                    if (_cancelTokenSource.IsCancellationRequested)
+                        return;
 
-                // extract the package async immediately after download
-                extractionTasks.Add(Task.Run(() => ExtractPackage(package), _cancelTokenSource.Token));
+                    // WebView2 runtime is unpacked separately later (its installer needs a
+                    // dedicated flow), so leave it on disk for now.
+                    if (package.Name == "WebView2RuntimeInstaller.zip")
+                        return;
+
+                    // Extract on a background thread so it overlaps with the next package's
+                    // download — same pipelined behaviour as upstream, just now multiple
+                    // downloads in flight at once.
+                    await Task.Run(() => ExtractPackage(package), _cancelTokenSource.Token);
+                }
+                finally
+                {
+                    downloadSemaphore.Release();
+                }
+            }).ToList();
+
+            try
+            {
+                await Task.WhenAll(pipelineTasks);
+            }
+            catch (OperationCanceledException)
+            {
+                return;
             }
 
             if (_cancelTokenSource.IsCancellationRequested)
@@ -1283,8 +1323,6 @@ namespace MrExStrap
                 Dialog.TaskbarProgressState = TaskbarItemProgressState.Indeterminate;
                 SetStatus(Strings.Bootstrapper_Status_Configuring);
             }
-
-            await Task.WhenAll(extractionTasks);
             
             App.Logger.WriteLine(LOG_IDENT, "Writing AppSettings.xml...");
             await File.WriteAllTextAsync(Path.Combine(_latestVersionDirectory, "AppSettings.xml"), AppSettings);
@@ -1646,7 +1684,7 @@ namespace MrExStrap
                 {
                     App.Logger.WriteLine(LOG_IDENT, $"Package is already downloaded, skipping...");
 
-                    _totalDownloadedBytes += package.PackedSize;
+                    Interlocked.Add(ref _totalDownloadedBytes, package.PackedSize);
                     UpdateProgressBar();
 
                     return;
@@ -1660,7 +1698,7 @@ namespace MrExStrap
                 App.Logger.WriteLine(LOG_IDENT, $"Found existing copy at '{robloxPackageLocation}'! Copying to Downloads folder...");
                 File.Copy(robloxPackageLocation, package.DownloadPath);
 
-                _totalDownloadedBytes += package.PackedSize;
+                Interlocked.Add(ref _totalDownloadedBytes, package.PackedSize);
                 UpdateProgressBar();
 
                 return;
@@ -1706,7 +1744,7 @@ namespace MrExStrap
 
                         await fileStream.WriteAsync(buffer.AsMemory(0, bytesRead), _cancelTokenSource.Token);
 
-                        _totalDownloadedBytes += bytesRead;
+                        Interlocked.Add(ref _totalDownloadedBytes, bytesRead);
                         UpdateProgressBar();
                     }
 
@@ -1742,7 +1780,7 @@ namespace MrExStrap
                     if (File.Exists(package.DownloadPath))
                         File.Delete(package.DownloadPath);
 
-                    _totalDownloadedBytes -= totalBytesRead;
+                    Interlocked.Add(ref _totalDownloadedBytes, -totalBytesRead);
                     UpdateProgressBar();
 
                     // attempt download over HTTP
