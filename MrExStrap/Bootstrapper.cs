@@ -61,6 +61,12 @@ namespace MrExStrap
         private double _taskbarProgressMaximum;
         private long _totalDownloadedBytes = 0;
         private long _totalPackedBytes = 0;
+
+        // Speed/ETA tracking for the loading dialog. Sampled every UpdateProgressBar call;
+        // smoothed via exponential moving average so the rate doesn't whiplash on each chunk.
+        private DateTime? _speedSampleTime = null;
+        private long _speedSampleBytes = 0;
+        private double _smoothedBytesPerSec = 0;
         private bool _packageExtractionSuccess = true;
 
         private bool _mustUpgrade => App.LaunchSettings.ForceFlag.Active || App.State.Prop.ForceReinstall || String.IsNullOrEmpty(AppData.DistributionState.VersionGuid) || !File.Exists(AppData.ExecutablePath);
@@ -139,12 +145,68 @@ namespace MrExStrap
 
             Dialog.TaskbarProgressValue = taskbarProgressValue;
 
-            // MrExStrap fork: show "X MB / Y MB" next to the progress bar
+            // MrExStrap fork: show "X MB / Y MB" next to the progress bar plus a smoothed
+            // speed/ETA line. The speed line is what tells you "this is slow but progressing"
+            // vs "this is genuinely stuck" — the gap that confused users on USB installs.
             if (_totalPackedBytes > 0 && Dialog is UI.Elements.Bootstrapper.FluentDialog fluent)
             {
                 long clampedDownloaded = Math.Clamp(_totalDownloadedBytes, 0, _totalPackedBytes);
                 fluent.DownloadSizeText = $"{FormatBytes(clampedDownloaded)} / {FormatBytes(_totalPackedBytes)}";
+                fluent.DownloadSpeedText = ComputeSpeedAndEtaText(clampedDownloaded, _totalPackedBytes);
             }
+        }
+
+        // Sample bytes-over-time and produce a "3.2 MB/s · ~30s remaining" string.
+        // Uses an exponential moving average (alpha 0.3) so the rate is responsive but not jumpy.
+        private string ComputeSpeedAndEtaText(long downloaded, long total)
+        {
+            DateTime now = DateTime.UtcNow;
+
+            if (_speedSampleTime is null)
+            {
+                _speedSampleTime = now;
+                _speedSampleBytes = downloaded;
+                return ""; // need a second sample before we can show a rate
+            }
+
+            double secs = (now - _speedSampleTime.Value).TotalSeconds;
+            if (secs < 0.25)
+                return FormatSpeedAndEta(_smoothedBytesPerSec, downloaded, total);
+
+            long deltaBytes = downloaded - _speedSampleBytes;
+            if (deltaBytes < 0) deltaBytes = 0;
+
+            double instantBps = deltaBytes / secs;
+            // Seed with the first real reading; smooth thereafter.
+            _smoothedBytesPerSec = _smoothedBytesPerSec == 0
+                ? instantBps
+                : (0.3 * instantBps) + (0.7 * _smoothedBytesPerSec);
+
+            _speedSampleTime = now;
+            _speedSampleBytes = downloaded;
+
+            return FormatSpeedAndEta(_smoothedBytesPerSec, downloaded, total);
+        }
+
+        private static string FormatSpeedAndEta(double bytesPerSec, long downloaded, long total)
+        {
+            if (bytesPerSec <= 0)
+                return ""; // no speed yet, show nothing rather than "0 B/s · forever"
+
+            string speed = $"{FormatBytes((long)bytesPerSec)}/s";
+
+            long remaining = total - downloaded;
+            if (remaining <= 0)
+                return speed;
+
+            double etaSecs = remaining / bytesPerSec;
+            string eta;
+            if (etaSecs < 5) eta = "almost done";
+            else if (etaSecs < 60) eta = $"~{(int)etaSecs}s remaining";
+            else if (etaSecs < 3600) eta = $"~{(int)(etaSecs / 60)}m {(int)(etaSecs % 60)}s remaining";
+            else eta = "over 1 hour remaining";
+
+            return $"{speed}  ·  {eta}";
         }
 
         private static string FormatBytes(long bytes)

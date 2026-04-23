@@ -58,7 +58,8 @@
                 Visibility="{Binding PortableModeVisibility, Mode=OneTime}">
             <TextBlock TextWrapping="Wrap" FontSize="12" Foreground="{DynamicResource TextFillColorPrimaryBrush}">
                 <Run FontWeight="SemiBold">Portable mode is active.</Run>
-                <Run>All settings, logs, and downloaded Roblox versions live next to the exe. No data is written to AppData or the registry. To switch to a normal install, delete portable.txt and relaunch.</Run>
+                <Run Text="{Binding PortableDescription, Mode=OneTime}" />
+                <Run>To switch to a normal install, delete portable.txt and relaunch.</Run>
             </TextBlock>
         </Border>
 

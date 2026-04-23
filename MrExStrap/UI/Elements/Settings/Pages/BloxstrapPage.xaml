@@ -48,7 +48,11 @@
             Visibility="{Binding Path=WebEnvironmentVisibility, Mode=OneTime}"
             Header="Web environment" 
             Description="Site to use for metrics">
-            <ComboBox Width="200" Padding="10,5,10,5" ItemsSource="{Binding WebEnvironments, Mode=OneWay}" SelectedValue="{Binding WebEnvironment, Mode=TwoWay}" />
+            <ComboBox Width="200" Padding="10,5,10,5"
+                      ItemsSource="{Binding WebEnvironments, Mode=OneWay}"
+                      SelectedValue="{Binding WebEnvironment, Mode=TwoWay}"
+                      MaxDropDownHeight="240"
+                      PreviewMouseWheel="ComboBox_PreviewMouseWheel" />
         </controls:OptionControl>
 
         <!-- Privacy mode toggle -->
@@ -77,7 +81,9 @@
             Description="Grid shape for auto tiling. Auto picks rows and columns based on how many windows are open.">
             <ComboBox Width="140" Padding="10,5,10,5"
                       ItemsSource="{Binding WindowTilingLayouts, Mode=OneWay}"
-                      SelectedValue="{Binding WindowTilingLayout, Mode=TwoWay}" />
+                      SelectedValue="{Binding WindowTilingLayout, Mode=TwoWay}"
+                      MaxDropDownHeight="240"
+                      PreviewMouseWheel="ComboBox_PreviewMouseWheel" />
         </controls:OptionControl>
 
         <TextBlock Margin="0,4,0,0" FontSize="11" Foreground="{DynamicResource TextFillColorTertiaryBrush}" TextWrapping="Wrap">

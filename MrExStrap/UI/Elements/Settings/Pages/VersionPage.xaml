@@ -135,7 +135,9 @@
                               ItemsSource="{Binding Exploits, Mode=OneWay}"
                               SelectedItem="{Binding SelectedExploit, Mode=TwoWay}"
                               IsEnabled="{Binding IsNotLoadingExploits, Mode=OneWay}"
-                              HorizontalAlignment="Stretch">
+                              HorizontalAlignment="Stretch"
+                              MaxDropDownHeight="240"
+                              PreviewMouseWheel="ComboBox_PreviewMouseWheel">
                         <ComboBox.ItemTemplate>
                             <DataTemplate>
                                 <Grid>
@@ -202,7 +204,9 @@
                       ItemsSource="{Binding RecentHashes, Mode=OneWay}"
                       SelectedItem="{Binding SelectedRecentHash, Mode=TwoWay}"
                       FontFamily="Consolas" FontSize="12"
-                      HorizontalAlignment="Stretch" />
+                      HorizontalAlignment="Stretch"
+                      MaxDropDownHeight="240"
+                      PreviewMouseWheel="ComboBox_PreviewMouseWheel" />
         </Grid>
 
         <Grid Margin="0,0,0,8">

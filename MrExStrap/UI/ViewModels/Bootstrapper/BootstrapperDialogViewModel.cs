@@ -69,6 +69,22 @@ namespace MrExStrap.UI.ViewModels.Bootstrapper
         public Visibility DownloadSizeVisibility =>
             string.IsNullOrEmpty(_downloadSizeText) ? Visibility.Collapsed : Visibility.Visible;
 
+        // MrExStrap fork: smoothed "X MB/s · ~30s remaining" line under the size text.
+        // Hidden until we have a sample to base a rate on (avoids "0 B/s · forever").
+        private string _downloadSpeedText = "";
+        public string DownloadSpeedText
+        {
+            get => _downloadSpeedText;
+            set
+            {
+                _downloadSpeedText = value ?? "";
+                OnPropertyChanged(nameof(DownloadSpeedText));
+                OnPropertyChanged(nameof(DownloadSpeedVisibility));
+            }
+        }
+        public Visibility DownloadSpeedVisibility =>
+            string.IsNullOrEmpty(_downloadSpeedText) ? Visibility.Collapsed : Visibility.Visible;
+
         private string _placeInfoText = "";
         public string PlaceInfoText
         {

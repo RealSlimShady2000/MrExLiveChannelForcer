@@ -125,6 +125,12 @@ namespace MrExStrap.UI.Elements.Bootstrapper
             set => _viewModel.DownloadSizeText = value;
         }
 
+        public string DownloadSpeedText
+        {
+            get => _viewModel.DownloadSpeedText;
+            set => _viewModel.DownloadSpeedText = value;
+        }
+
         public string PlaceInfoText
         {
             get => _viewModel.PlaceInfoText;

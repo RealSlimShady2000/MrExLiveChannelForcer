@@ -12,7 +12,10 @@ namespace MrExStrap.Utility
         public static async Task<string> BuildAsync()
         {
             var sb = new StringBuilder();
-            sb.AppendLine($"MrExBloxstrap {App.Version}{(App.IsPortableMode ? " (portable)" : "")}");
+            string portableTag = App.IsPortableMode
+                ? (App.IsPortableFastCache ? " (portable, fast-cache)" : " (portable)")
+                : "";
+            sb.AppendLine($"MrExBloxstrap {App.Version}{portableTag}");
             sb.AppendLine($"OS: {RuntimeInformation.OSDescription}");
             sb.AppendLine($"Arch: {RuntimeInformation.OSArchitecture} / Process {RuntimeInformation.ProcessArchitecture}");
             sb.AppendLine($".NET: {RuntimeInformation.FrameworkDescription}");

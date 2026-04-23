@@ -112,15 +112,21 @@
                 Maximum="{Binding ProgressMaximum, Mode=OneWay}"
                 Value="{Binding ProgressValue, Mode=OneWay}" />
 
-            <!-- Row 6: download size (only while downloading) -->
-            <TextBlock
-                Grid.Row="6"
-                Margin="0,0,0,16"
-                HorizontalAlignment="Right"
-                FontSize="11"
-                Foreground="{DynamicResource TextFillColorTertiaryBrush}"
-                Text="{Binding DownloadSizeText, Mode=OneWay}"
-                Visibility="{Binding DownloadSizeVisibility, Mode=OneWay}" />
+            <!-- Row 6: download size + speed/ETA (only while downloading) -->
+            <StackPanel Grid.Row="6" Margin="0,0,0,16" HorizontalAlignment="Right">
+                <TextBlock
+                    HorizontalAlignment="Right"
+                    FontSize="11"
+                    Foreground="{DynamicResource TextFillColorTertiaryBrush}"
+                    Text="{Binding DownloadSizeText, Mode=OneWay}"
+                    Visibility="{Binding DownloadSizeVisibility, Mode=OneWay}" />
+                <TextBlock
+                    HorizontalAlignment="Right"
+                    FontSize="11"
+                    Foreground="{DynamicResource TextFillColorTertiaryBrush}"
+                    Text="{Binding DownloadSpeedText, Mode=OneWay}"
+                    Visibility="{Binding DownloadSpeedVisibility, Mode=OneWay}" />
+            </StackPanel>
 
             <!-- Row 7: cancel -->
             <Button

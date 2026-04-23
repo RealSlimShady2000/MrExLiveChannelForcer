@@ -30,13 +30,24 @@ namespace MrExStrap
 
         public static bool Initialized => !String.IsNullOrEmpty(Base);
 
-        public static void Initialize(string baseDirectory)
+        // When non-null, Versions + Downloads are stored under this directory instead of Base.
+        // Used for fast-portable mode: heavy Roblox binaries cache locally on the host machine
+        // while config (Settings/State/Logs/Modifications/CustomThemes) still travels with the
+        // portable folder.
+        public static string? CacheBase { get; private set; }
+
+        public static void Initialize(string baseDirectory, string? cacheDirectory = null)
         {
             Base = baseDirectory;
-            Downloads = Path.Combine(Base, "Downloads");
+            CacheBase = cacheDirectory;
+
+            string heavyRoot = cacheDirectory ?? baseDirectory;
+
+            Downloads = Path.Combine(heavyRoot, "Downloads");
+            Versions = Path.Combine(heavyRoot, "Versions");
+
             Logs = Path.Combine(Base, "Logs");
             Integrations = Path.Combine(Base, "Integrations");
-            Versions = Path.Combine(Base, "Versions");
             Modifications = Path.Combine(Base, "Modifications");
             CustomThemes = Path.Combine(Base, "CustomThemes");
 

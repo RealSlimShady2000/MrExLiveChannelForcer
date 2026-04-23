@@ -45,6 +45,11 @@ namespace MrExStrap
         // next to the exe, and skip registry writes / Start-menu shortcuts.
         public static bool IsPortableMode { get; private set; } = false;
 
+        // When IsPortableMode is true and portable.txt contains "cache=local", the heavy
+        // Roblox binaries (Versions/, Downloads/) cache to local AppData on the host machine
+        // instead of staying with the portable folder. Config still travels.
+        public static bool IsPortableFastCache { get; private set; } = false;
+
         public static bool IsActionBuild => !String.IsNullOrEmpty(BuildMetadata.CommitRef);
 
         public static bool IsProductionBuild => IsActionBuild && BuildMetadata.CommitRef.StartsWith("tag", StringComparison.Ordinal);
@@ -253,12 +258,33 @@ namespace MrExStrap
             // Portable-mode detection (MrExStrap fork): a "portable.txt" flag next to the exe
             // opts into portable mode. When portable, we skip the installer + registry flow
             // entirely — data lives next to the exe, no LocalAppData, no Start-menu shortcuts.
+            //
+            // If portable.txt contains the line "cache=local" (case-insensitive), the heavy
+            // Roblox binaries cache to %LocalAppData%\MrExBloxstrap-Cache\ on the host machine
+            // instead. Config (settings, state, logs, mods, themes) still travels with the USB.
             string? exeDir = Directory.GetParent(Paths.Process)?.FullName;
-            if (!string.IsNullOrEmpty(exeDir) && File.Exists(Path.Combine(exeDir, "portable.txt")))
+            if (!string.IsNullOrEmpty(exeDir))
             {
-                IsPortableMode = true;
-                installLocation = exeDir;
-                Logger.WriteLine(LOG_IDENT, $"Portable mode enabled (portable.txt found at {exeDir})");
+                string portableFlag = Path.Combine(exeDir, "portable.txt");
+                if (File.Exists(portableFlag))
+                {
+                    IsPortableMode = true;
+                    installLocation = exeDir;
+
+                    try
+                    {
+                        string content = File.ReadAllText(portableFlag);
+                        if (content.Contains("cache=local", StringComparison.OrdinalIgnoreCase))
+                            IsPortableFastCache = true;
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.WriteLine(LOG_IDENT, $"Could not read portable.txt: {ex.Message}");
+                    }
+
+                    Logger.WriteLine(LOG_IDENT,
+                        $"Portable mode enabled (portable.txt at {exeDir}); fast-cache={IsPortableFastCache}");
+                }
             }
 
             if (!IsPortableMode)
@@ -332,7 +358,24 @@ namespace MrExStrap
             }
             else
             {
-                Paths.Initialize(installLocation);
+                string? cacheRoot = null;
+                if (IsPortableFastCache)
+                {
+                    cacheRoot = Path.Combine(Paths.LocalAppData, $"{ProjectName}-Cache");
+                    try
+                    {
+                        Directory.CreateDirectory(cacheRoot);
+                        Logger.WriteLine(LOG_IDENT, $"Fast-portable cache root: {cacheRoot}");
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.WriteLine(LOG_IDENT, $"Could not create fast-portable cache dir, falling back to portable folder: {ex.Message}");
+                        cacheRoot = null;
+                        IsPortableFastCache = false;
+                    }
+                }
+
+                Paths.Initialize(installLocation, cacheRoot);
 
                 Logger.WriteLine(LOG_IDENT, "Entering main logic");
 
