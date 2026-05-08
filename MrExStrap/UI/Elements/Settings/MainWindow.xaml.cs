@@ -16,12 +16,15 @@ namespace MrExStrap.UI.Elements.Settings
     {
         private Models.Persistable.WindowState _state => App.State.Prop.SettingsWindow;
 
+        private bool _launchOnClose;
+
         public MainWindow(bool showAlreadyRunningWarning)
         {
             var viewModel = new MainWindowViewModel();
 
             viewModel.RequestSaveNoticeEvent += (_, _) => SettingsSavedSnackbar.Show();
             viewModel.RequestCloseWindowEvent += (_, _) => Close();
+            viewModel.RequestLaunchAndCloseEvent += (_, _) => { _launchOnClose = true; Close(); };
 
             DataContext = viewModel;
             
@@ -100,7 +103,7 @@ namespace MrExStrap.UI.Elements.Settings
 
         private void WpfUiWindow_Closed(object sender, EventArgs e)
         {
-            if (App.LaunchSettings.TestModeFlag.Active)
+            if (_launchOnClose || App.LaunchSettings.TestModeFlag.Active)
                 LaunchHandler.LaunchRoblox(LaunchMode.Player);
             else
                 App.SoftTerminate();

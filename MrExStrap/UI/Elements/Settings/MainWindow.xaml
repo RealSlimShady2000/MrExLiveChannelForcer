@@ -56,6 +56,7 @@
                     <ui:NavigationItem Content="{x:Static resources:Strings.Menu_Integrations_Title}" PageType="{x:Type pages:IntegrationsPage}" Icon="Add28" Tag="integrations" />
                     <ui:NavigationItem Content="{x:Static resources:Strings.Menu_Behaviour_Title}" PageType="{x:Type pages:BehaviourPage}" Icon="PlaySettings20" Tag="bootstrapper" />
                     <ui:NavigationItem Content="Downgrading" PageType="{x:Type pages:VersionPage}" Icon="History24" Tag="downgrading" />
+                    <ui:NavigationItem Content="VIP Servers" PageType="{x:Type pages:VipServerPage}" Icon="People28" Tag="vipservers" />
                     <ui:NavigationItem Content="{x:Static resources:Strings.Menu_Mods_Title}" PageType="{x:Type pages:ModsPage}" Icon="WrenchScrewdriver20" Tag="mods" />
                     <ui:NavigationItem Content="{x:Static resources:Strings.Menu_FastFlags_Title}" PageType="{x:Type pages:FastFlagsPage}" Icon="Flag24" Tag="fastflags" />
                     <ui:NavigationItem Content="{x:Static resources:Strings.Menu_Appearance_Title}" PageType="{x:Type pages:AppearancePage}" Icon="PaintBrush24" Tag="appearance" />
@@ -91,6 +92,7 @@
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
                     </Grid>
                 </ItemsPanelTemplate>
@@ -102,9 +104,12 @@
                 </StackPanel>
             </StatusBarItem>
             <StatusBarItem Grid.Column="2" Padding="0,0,4,0">
-                <ui:Button Content="{x:Static resources:Strings.Menu_Save}" Appearance="Primary" Command="{Binding SaveSettingsCommand, Mode=OneWay}" />
+                <ui:Button Content="Save and launch Roblox" Appearance="Primary" Icon="Play24" Command="{Binding SaveAndLaunchCommand, Mode=OneWay}" />
             </StatusBarItem>
-            <StatusBarItem Grid.Column="3" Padding="4,0,0,0">
+            <StatusBarItem Grid.Column="3" Padding="4,0,4,0">
+                <ui:Button Content="{x:Static resources:Strings.Menu_Save}" Command="{Binding SaveSettingsCommand, Mode=OneWay}" />
+            </StatusBarItem>
+            <StatusBarItem Grid.Column="4" Padding="4,0,0,0">
                 <ui:Button Content="{x:Static resources:Strings.Common_Close}" Command="{Binding CloseWindowCommand, Mode=OneWay}" />
             </StatusBarItem>
         </StatusBar>

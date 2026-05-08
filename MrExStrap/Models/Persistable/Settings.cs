@@ -53,5 +53,9 @@ namespace MrExStrap.Models.Persistable
 
         // user-visible debug mode — reveals the Run health check button (MrExStrap fork feature)
         public bool DebugModeEnabled { get; set; } = false;
+
+        // VIP server picker — pop a WebView2 dialog before player launches and offer a free
+        // shared VIP server pulled from rbxservers.xyz. Off by default. (MrExStrap fork feature)
+        public bool EnableVipServerPrompt { get; set; } = false;
     }
 }

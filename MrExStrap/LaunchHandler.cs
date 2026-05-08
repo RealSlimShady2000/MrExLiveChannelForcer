@@ -238,6 +238,8 @@ namespace MrExStrap
                 }
             }
 
+            MaybeShowVipServerPicker(launchMode);
+
             // start bootstrapper and show the bootstrapper modal if we're not running silently
             App.Logger.WriteLine(LOG_IDENT, "Initializing bootstrapper");
             App.Bootstrapper = new Bootstrapper(launchMode);
@@ -269,6 +271,76 @@ namespace MrExStrap
             dialog?.ShowBootstrapper();
 
             App.Logger.WriteLine(LOG_IDENT, "Exiting");
+        }
+
+        // Pre-launch hook: when the user has VIP server picker enabled, show a small
+        // WebView2 dialog over the rbxservers.xyz embed for the place being launched.
+        // If the user picks a server, append its accessCode to the launch args before
+        // the bootstrapper snapshots them. Skip when conditions aren't met (Studio,
+        // quiet/silent launches, no place ID, accessCode already specified, etc.).
+        private static void MaybeShowVipServerPicker(LaunchMode launchMode)
+        {
+            const string LOG_IDENT = "LaunchHandler::MaybeShowVipServerPicker";
+
+            if (!App.Settings.Prop.EnableVipServerPrompt)
+            {
+                App.Logger.WriteLine(LOG_IDENT, "Skipping VIP picker: EnableVipServerPrompt is off.");
+                return;
+            }
+
+            if (launchMode != LaunchMode.Player)
+            {
+                App.Logger.WriteLine(LOG_IDENT, $"Skipping VIP picker: launch mode is {launchMode}, not Player.");
+                return;
+            }
+
+            if (App.LaunchSettings.QuietFlag.Active)
+            {
+                App.Logger.WriteLine(LOG_IDENT, "Skipping VIP picker: quiet flag active (silent/background launch).");
+                return;
+            }
+
+            string args = App.LaunchSettings.RobloxLaunchArgs;
+            long? placeId = Utility.LaunchArgsUtility.TryExtractPlaceId(args);
+            if (!placeId.HasValue)
+            {
+                // Log a truncated preview so the user can see the actual args shape if extraction fails.
+                string preview = string.IsNullOrEmpty(args)
+                    ? "<empty>"
+                    : args.Substring(0, Math.Min(args.Length, 200));
+                App.Logger.WriteLine(LOG_IDENT, $"Skipping VIP picker: no placeId found in launch args. Args preview: {preview}");
+                return;
+            }
+
+            if (Utility.LaunchArgsUtility.TryExtractAccessCode(args) is not null)
+            {
+                App.Logger.WriteLine(LOG_IDENT, $"Skipping VIP picker: launch args already include an accessCode (joining a specific server, place {placeId.Value}).");
+                return;
+            }
+
+            string argsPreview = args.Length > 200 ? args.Substring(0, 200) + "..." : args;
+            App.Logger.WriteLine(LOG_IDENT, $"Showing VIP server picker for place {placeId.Value}. Args: {argsPreview}");
+
+            try
+            {
+                var dialog = new UI.Elements.Dialogs.VipServerDialog(placeId.Value);
+                dialog.ShowDialog();
+
+                if (!string.IsNullOrEmpty(dialog.PickedAccessCode))
+                {
+                    App.LaunchSettings.RobloxLaunchArgs = Utility.LaunchArgsUtility.AppendAccessCode(args, dialog.PickedAccessCode);
+                    App.Logger.WriteLine(LOG_IDENT, "VIP server picked; appended accessCode to launch args.");
+                }
+                else
+                {
+                    App.Logger.WriteLine(LOG_IDENT, "VIP picker closed without a selection; launching normally.");
+                }
+            }
+            catch (Exception ex)
+            {
+                App.Logger.WriteLine(LOG_IDENT, "VIP picker failed; falling back to normal launch.");
+                App.Logger.WriteException(LOG_IDENT, ex);
+            }
         }
 
         public static void LaunchWatcher()

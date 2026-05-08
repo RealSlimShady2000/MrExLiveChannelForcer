@@ -230,25 +230,6 @@ namespace MrExStrap
             return $"{n:0.#} {units[u]}";
         }
 
-        private static long? TryExtractPlaceId(string commandLine)
-        {
-            if (string.IsNullOrWhiteSpace(commandLine))
-                return null;
-
-            // Deep-links surface placeId in many shapes:
-            //   placeId=13700835620   placeId:13700835620   placeId%3D13700835620
-            // Match "placeid" followed by any non-digit separators, then capture the first digit run.
-            var match = System.Text.RegularExpressions.Regex.Match(
-                commandLine,
-                @"placeid[^0-9]+(\d{1,19})",
-                System.Text.RegularExpressions.RegexOptions.IgnoreCase | System.Text.RegularExpressions.RegexOptions.CultureInvariant);
-
-            if (!match.Success)
-                return null;
-
-            return long.TryParse(match.Groups[1].Value, out long placeId) ? placeId : null;
-        }
-
         private void HandleConnectionError(Exception exception)
         {
             const string LOG_IDENT = "Bootstrapper::HandleConnectionError";
@@ -480,6 +461,7 @@ namespace MrExStrap
             }
 
             App.Logger.WriteLine(LOG_IDENT, "WARNING: Channel lock could not be verified after retry. Roblox will still launch.");
+            Utility.LiveChannelToast.ShowChannelLockFailed();
         }
 
         /// <summary>
@@ -508,6 +490,13 @@ namespace MrExStrap
             bool cliVersion = App.LaunchSettings.VersionFlag.Active && !string.IsNullOrEmpty(App.LaunchSettings.VersionFlag.Data);
             bool pinnedVersion = App.Settings.Prop.UseCustomVersion
                 && Utility.VersionGuidValidator.IsWellFormed(App.Settings.Prop.CustomVersionGuid);
+
+            // Captured for the downgrade-badge comparison further down. In the no-pin/no-CLI
+            // branch we already fetch LIVE via Deployment.GetInfo and reuse that result; in
+            // the pin/CLI branches we fetch separately so we can tell whether the pinned hash
+            // is genuinely older than LIVE. If the comparison fetch fails we leave this null
+            // and the badge stays hidden — better than misclaiming a downgrade.
+            string? liveVersionGuid = null;
 
             if (cliVersion)
             {
@@ -541,6 +530,22 @@ namespace MrExStrap
 
                 newVersionGuid = clientVersion.VersionGuid;
                 newVersion = Utilities.ParseVersionSafe(clientVersion.Version);
+                liveVersionGuid = clientVersion.VersionGuid;
+            }
+
+            if (liveVersionGuid is null && (cliVersion || pinnedVersion))
+            {
+                try
+                {
+                    var liveInfo = await Deployment.GetInfo();
+                    liveVersionGuid = liveInfo.VersionGuid;
+                    App.Logger.WriteLine(LOG_IDENT, $"LIVE comparison hash: {liveVersionGuid}");
+                }
+                catch (Exception ex)
+                {
+                    App.Logger.WriteLine(LOG_IDENT, "Could not fetch LIVE hash for downgrade comparison; badge will stay hidden.");
+                    App.Logger.WriteException(LOG_IDENT, ex);
+                }
             }
 
             if (newVersionGuid != _latestVersionGuid)
@@ -563,14 +568,22 @@ namespace MrExStrap
                     ? $"Roblox v{_latestVersion} \u00B7 {_latestVersionGuid}"
                     : _latestVersionGuid;
                 fluent.VersionInfoText = versionLabel;
-                fluent.IsDowngraded = cliVersion || pinnedVersion;
+
+                // Only flag as downgraded when we can prove it: there's a CLI/pinned override,
+                // we fetched a LIVE hash to compare against, and the launching hash differs.
+                // Pinning to the actual LIVE hash (e.g. via "Pin this version" or picking an
+                // up-to-date executor) intentionally hides the badge.
+                bool launchingOverride = cliVersion || pinnedVersion;
+                bool launchingDiffersFromLive = !string.IsNullOrEmpty(liveVersionGuid)
+                    && !string.Equals(_latestVersionGuid, liveVersionGuid, StringComparison.OrdinalIgnoreCase);
+                fluent.IsDowngraded = launchingOverride && launchingDiffersFromLive;
 
                 // Place info (player launches only): parse placeId from the raw launch args.
                 // We don't know the game name without a network call — just show the place id so
                 // the user can confirm they're joining the right experience.
                 if (!IsStudioLaunch)
                 {
-                    long? placeId = TryExtractPlaceId(_launchCommandLine);
+                    long? placeId = Utility.LaunchArgsUtility.TryExtractPlaceId(_launchCommandLine);
                     if (placeId.HasValue)
                         fluent.PlaceInfoText = $"Joining Roblox place #{placeId.Value}";
                 }
@@ -961,8 +974,11 @@ namespace MrExStrap
                 return false;
             }
 
-            // check if we aren't using a deployed build, so we can update to one if a new version comes out
-            if (App.IsProductionBuild && versionComparison == VersionComparison.Equal || versionComparison == VersionComparison.GreaterThan)
+            // Skip update if our local version is already at or ahead of GitHub's latest.
+            // The previous condition gated Equal on IsProductionBuild, which meant
+            // locally-published builds with the same version as GitHub got force-replaced
+            // by the GitHub release on every launch — making iterative dev impossible.
+            if (versionComparison == VersionComparison.Equal || versionComparison == VersionComparison.GreaterThan)
             {
                 App.Logger.WriteLine(LOG_IDENT, "No updates found");
                 return false;
@@ -1008,7 +1024,7 @@ namespace MrExStrap
                 
                 if (!File.Exists(downloadLocation))
                 {
-                    var response = await App.HttpClient.GetAsync(asset.BrowserDownloadUrl);
+                    using var response = await App.HttpClient.GetAsync(asset.BrowserDownloadUrl);
 
                     await using var fileStream = new FileStream(downloadLocation, FileMode.OpenOrCreate, FileAccess.Write);
                     await response.Content.CopyToAsync(fileStream);
@@ -1733,9 +1749,9 @@ namespace MrExStrap
 
                 try
                 {
-                    var response = await App.HttpClient.GetAsync(packageUrl, HttpCompletionOption.ResponseHeadersRead, _cancelTokenSource.Token);
+                    using var response = await App.HttpClient.GetAsync(packageUrl, HttpCompletionOption.ResponseHeadersRead, _cancelTokenSource.Token);
                     await using var stream = await response.Content.ReadAsStreamAsync(_cancelTokenSource.Token);
-                    await using var fileStream = new FileStream(package.DownloadPath, FileMode.CreateNew, FileAccess.ReadWrite, FileShare.Delete);
+                    await using var fileStream = new FileStream(package.DownloadPath, FileMode.Create, FileAccess.ReadWrite, FileShare.Delete);
 
                     while (true)
                     {

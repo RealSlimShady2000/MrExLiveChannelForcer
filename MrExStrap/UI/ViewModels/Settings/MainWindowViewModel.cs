@@ -8,14 +8,18 @@ namespace MrExStrap.UI.ViewModels.Settings
     public class MainWindowViewModel : NotifyPropertyChangedViewModel
     {
         public ICommand OpenAboutCommand => new RelayCommand(OpenAbout);
-        
+
         public ICommand SaveSettingsCommand => new RelayCommand(SaveSettings);
-        
+
+        public ICommand SaveAndLaunchCommand => new RelayCommand(SaveAndLaunch);
+
         public ICommand CloseWindowCommand => new RelayCommand(CloseWindow);
 
         public EventHandler? RequestSaveNoticeEvent;
-        
+
         public EventHandler? RequestCloseWindowEvent;
+
+        public EventHandler? RequestLaunchAndCloseEvent;
 
         public bool TestModeEnabled
         {
@@ -60,6 +64,12 @@ namespace MrExStrap.UI.ViewModels.Settings
             App.PendingSettingTasks.Clear();
 
             RequestSaveNoticeEvent?.Invoke(this, EventArgs.Empty);
+        }
+
+        private void SaveAndLaunch()
+        {
+            SaveSettings();
+            RequestLaunchAndCloseEvent?.Invoke(this, EventArgs.Empty);
         }
     }
 }

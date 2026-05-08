@@ -105,6 +105,24 @@ jobs:
           EOF
           cd portable-build && zip -r ../MrExBloxstrap-${{ github.ref_name }}-Portable.zip MrExBloxstrap-Portable
 
+      - name: Verify portable ZIP integrity
+        run: |
+          set -e
+          zip_name="MrExBloxstrap-${{ github.ref_name }}-Portable.zip"
+          unzip -t "$zip_name"
+          listing=$(unzip -Z1 "$zip_name")
+          echo "$listing" | grep -q "MrExBloxstrap-Portable/MrExBloxstrap.exe" || { echo "::error::Portable zip is missing MrExBloxstrap.exe"; exit 1; }
+          echo "$listing" | grep -q "MrExBloxstrap-Portable/portable.txt"      || { echo "::error::Portable zip is missing portable.txt"; exit 1; }
+
+      - name: Generate SHA256SUMS
+        run: |
+          set -e
+          sha256sum \
+            MrExBloxstrap-${{ github.ref_name }}.exe \
+            MrExBloxstrap-${{ github.ref_name }}-Portable.zip \
+            > SHA256SUMS
+          cat SHA256SUMS
+
       - name: Create release
         uses: softprops/action-gh-release@v2
         with:
@@ -112,4 +130,5 @@ jobs:
           files: |
             MrExBloxstrap-${{ github.ref_name }}.exe
             MrExBloxstrap-${{ github.ref_name }}-Portable.zip
+            SHA256SUMS
           name: MrExBloxstrap ${{ github.ref_name }}

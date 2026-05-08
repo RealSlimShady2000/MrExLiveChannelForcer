@@ -12,8 +12,8 @@
     <Product>MrExBloxstrap</Product>
     <AssemblyTitle>MrExploit Live Channel Forcer</AssemblyTitle>
     <Company>MrExploit</Company>
-    <Version>420.4.0</Version>
-    <FileVersion>420.4.0.0</FileVersion>
+    <Version>420.5.0</Version>
+    <FileVersion>420.5.0.0</FileVersion>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
@@ -64,6 +64,7 @@
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
     <PackageReference Include="DiscordRichPresence" Version="1.2.1.24" />
     <PackageReference Include="Markdig" Version="0.40.0" />
+    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.2792.45" />
     <PackageReference Include="Microsoft.Windows.CsWin32" Version="0.3.183">
       <!--<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>-->
       <PrivateAssets>all</PrivateAssets>
@@ -78,10 +79,16 @@
     <ProjectReference Include="..\wpfui\src\Wpf.Ui\Wpf.Ui.csproj" />
   </ItemGroup>
 
+  <PropertyGroup>
+    <!-- On CI, hide the dev machine name. Local debug builds keep it for diagnostics. -->
+    <BuildMachineId Condition="'$(GITHUB_ACTIONS)' == 'true'">github-actions</BuildMachineId>
+    <BuildMachineId Condition="'$(BuildMachineId)' == ''">$(COMPUTERNAME)\$(USERNAME)</BuildMachineId>
+  </PropertyGroup>
+
   <ItemGroup>
     <AssemblyAttribute Include="MrExStrap.Models.Attributes.BuildMetadataAttribute">
       <_Parameter1>$([System.DateTime]::UtcNow.ToString("s"))Z</_Parameter1>
-      <_Parameter2>$(COMPUTERNAME)\$(USERNAME)</_Parameter2>
+      <_Parameter2>$(BuildMachineId)</_Parameter2>
       <_Parameter3>$(CommitHash)</_Parameter3>
       <_Parameter4>$(CommitRef)</_Parameter4>
     </AssemblyAttribute>

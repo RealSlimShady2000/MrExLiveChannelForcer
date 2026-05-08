@@ -34,6 +34,8 @@ namespace MrExStrap.UI.ViewModels.Settings
                 App.Settings.Prop.UseCustomVersion = value;
                 OnPropertyChanged(nameof(UseCustomVersion));
                 OnPropertyChanged(nameof(ShowLiveUpdateBanner));
+                OnPropertyChanged(nameof(ShowResetAction));
+                OnPropertyChanged(nameof(ShowDowngradeActiveBanner));
                 RefreshStatusFromCurrentInput();
             }
         }
@@ -137,8 +139,13 @@ namespace MrExStrap.UI.ViewModels.Settings
         public Brush StatusColor
         {
             get => _statusColor;
-            private set { _statusColor = value; OnPropertyChanged(nameof(StatusColor)); }
+            private set { _statusColor = value; OnPropertyChanged(nameof(StatusColor)); OnPropertyChanged(nameof(ShowResetAction)); }
         }
+
+        // Inline "Reset to latest" appears next to the status only when the pinned hash is the
+        // problem (bad format, purged from CDN). Transient issues like network errors don't show
+        // it because retrying is the right action, not resetting.
+        public bool ShowResetAction => ReferenceEquals(_statusColor, ErrorBrush) && UseCustomVersion;
 
         public ICommand FetchLiveCommand { get; }
         public ICommand PinLiveCommand { get; }
@@ -175,6 +182,11 @@ namespace MrExStrap.UI.ViewModels.Settings
             && !string.IsNullOrEmpty(App.Settings.Prop.CustomVersionGuid)
             && LiveHash != App.Settings.Prop.CustomVersionGuid
             && LiveHash != App.State.Prop.DismissedLiveHash;
+
+        // Always-visible banner shown whenever a custom version is in effect, so users can
+        // get back to auto-updating LIVE in one click without scrolling to the version-hash
+        // textbox at the bottom. Hidden once Reset is invoked (UseCustomVersion flips false).
+        public bool ShowDowngradeActiveBanner => App.Settings.Prop.UseCustomVersion;
 
         public ICommand UpdatePinToLiveCommand { get; }
         public ICommand DismissLiveBannerCommand { get; }

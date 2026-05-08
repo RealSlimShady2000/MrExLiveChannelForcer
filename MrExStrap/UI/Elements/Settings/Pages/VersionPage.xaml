@@ -21,6 +21,28 @@
                    Text="Pin the Roblox client to a specific build instead of downloading the latest. The channel is always forced to LIVE regardless of the build you pin."
                    FontSize="14" TextWrapping="Wrap" Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
 
+        <!-- Always-visible "switch back to latest" banner — shown whenever a custom version is in effect -->
+        <Border Margin="0,0,0,12" Padding="14,12" CornerRadius="6"
+                Background="#403B82F6" BorderBrush="#3B82F6" BorderThickness="0,0,0,2"
+                Visibility="{Binding ShowDowngradeActiveBanner, Converter={StaticResource BooleanToVisibilityConverter}, Mode=OneWay}">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                    <TextBlock FontWeight="SemiBold" FontSize="14" Text="You're using a custom Roblox build" />
+                    <TextBlock TextWrapping="Wrap" FontSize="12" Margin="0,3,0,0"
+                               Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                               Text="Roblox launches will use the version pinned below instead of the latest. Switch back any time to auto-track LIVE updates again." />
+                </StackPanel>
+                <ui:Button Grid.Column="1" Margin="12,0,0,0" MinWidth="180"
+                           Content="Switch back to latest" Icon="ArrowReset24"
+                           Appearance="Primary"
+                           Command="{Binding ResetCommand, Mode=OneTime}" />
+            </Grid>
+        </Border>
+
         <!-- New-LIVE-version banner: shown when user is pinned and Roblox has a newer LIVE hash they haven't dismissed -->
         <Border Margin="0,0,0,12" Padding="12,10" CornerRadius="4"
                 Background="#402EA84A" BorderBrush="#2EA84A" BorderThickness="0,0,0,2"
@@ -228,10 +250,25 @@
         </Grid>
 
         <Border Padding="10,6" CornerRadius="4" Background="{DynamicResource ControlFillColorDefaultBrush}">
-            <TextBlock Text="{Binding StatusMessage, Mode=OneWay}"
-                       Foreground="{Binding StatusColor, Mode=OneWay}"
-                       FontSize="12"
-                       TextWrapping="Wrap" />
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Column="0"
+                           Text="{Binding StatusMessage, Mode=OneWay}"
+                           Foreground="{Binding StatusColor, Mode=OneWay}"
+                           FontSize="12"
+                           TextWrapping="Wrap"
+                           VerticalAlignment="Center" />
+                <ui:Hyperlink Grid.Column="1"
+                              Margin="12,0,0,0"
+                              Content="Reset to latest"
+                              FontSize="12"
+                              VerticalAlignment="Center"
+                              Visibility="{Binding ShowResetAction, Converter={StaticResource BooleanToVisibilityConverter}, Mode=OneWay}"
+                              Command="{Binding ResetCommand, Mode=OneTime}" />
+            </Grid>
         </Border>
     </StackPanel>
 </ui:UiPage>
