@@ -33,10 +33,18 @@ namespace MrExStrap
 
         public static string Version = FormatAssemblyVersion(Assembly.GetExecutingAssembly().GetName().Version!);
 
-        // Fork uses single-integer major versions ("420"), with an optional minor when we
-        // ship point releases ("420.1"). Build + revision are ignored at display time.
-        private static string FormatAssemblyVersion(System.Version v) =>
-            v.Minor == 0 ? v.Major.ToString() : $"{v.Major}.{v.Minor}";
+        // Fork versioning: single-integer major ("420"), optional minor for point releases
+        // ("420.6"), optional build for patch releases ("420.6.1"). Trailing zero segments are
+        // hidden — but a non-zero build MUST be shown, otherwise the auto-updater compares the
+        // displayed version against the GitHub tag and loops forever re-installing itself.
+        private static string FormatAssemblyVersion(System.Version v)
+        {
+            if (v.Build > 0)
+                return $"{v.Major}.{v.Minor}.{v.Build}";
+            if (v.Minor > 0)
+                return $"{v.Major}.{v.Minor}";
+            return v.Major.ToString();
+        }
 
         public static Bootstrapper? Bootstrapper { get; set; } = null!;
 
