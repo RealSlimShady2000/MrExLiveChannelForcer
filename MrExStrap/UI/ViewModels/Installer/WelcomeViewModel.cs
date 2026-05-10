@@ -21,10 +21,20 @@ namespace MrExStrap.UI.ViewModels.Installer
 
             if (releaseInfo is not null)
             {
-                if (Utilities.CompareVersions(App.Version, releaseInfo.TagName) == VersionComparison.LessThan)
+                try
                 {
-                    VersionNotice = String.Format(Strings.Installer_Welcome_UpdateNotice, App.Version, releaseInfo.TagName.Replace("v", ""));
-                    OnPropertyChanged(nameof(VersionNotice));
+                    if (Utilities.CompareVersions(App.Version, releaseInfo.TagName) == VersionComparison.LessThan)
+                    {
+                        VersionNotice = String.Format(Strings.Installer_Welcome_UpdateNotice, App.Version, releaseInfo.TagName.Replace("v", ""));
+                        OnPropertyChanged(nameof(VersionNotice));
+                    }
+                }
+                catch (Exception ex)
+                {
+                    // GitHub can return placeholder tags like "untagged-<sha>" when a release
+                    // isn't attached to a real git tag. Don't let that crash the installer —
+                    // just skip the "update available" notice and let setup proceed.
+                    App.Logger.WriteException("WelcomeViewModel::DoChecks", ex);
                 }
             }
 
