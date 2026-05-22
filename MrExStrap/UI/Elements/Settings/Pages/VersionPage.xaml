@@ -194,6 +194,24 @@
                                IsEnabled="{Binding IsNotLoadingExploits, Mode=OneWay}" />
                 </Grid>
 
+                <!-- Inline failure banner — surfaces WHY the dropdown is empty so users on
+                     blocked networks (school/corp/ISP/DNS filter/AV TLS) know what to do
+                     instead of staring at an empty list. -->
+                <Border Margin="0,10,0,0" Padding="12,10" CornerRadius="4"
+                        Background="#40E0A322" BorderBrush="#E0A322" BorderThickness="0,0,0,2"
+                        Visibility="{Binding HasExploitsLoadError, Converter={StaticResource BooleanToVisibilityConverter}, Mode=OneWay}">
+                    <StackPanel>
+                        <TextBlock FontWeight="SemiBold" FontSize="13" Text="Executor list couldn't load" />
+                        <TextBlock Margin="0,4,0,0" TextWrapping="Wrap" FontSize="12"
+                                   Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                                   Text="{Binding ExploitsLoadError, Mode=OneWay}" />
+                        <ui:Button Margin="0,10,0,0" Icon="Clipboard24" Content="Copy diagnostic info"
+                                   HorizontalAlignment="Left"
+                                   Command="{Binding CopyDiagnosticsCommand, Mode=OneTime}"
+                                   ToolTip="Builds a short report (app version, OS, fresh weao.xyz probe result) and puts it on your clipboard so you can paste it into a bug report." />
+                    </StackPanel>
+                </Border>
+
                 <TextBlock Margin="0,8,0,0" FontSize="11" Foreground="{DynamicResource TextFillColorTertiaryBrush}"
                            Text="Green dot = executor is up to date for the Roblox version it reports. Amber = the executor is behind the latest Roblox — pinning to its version still works, but the executor itself may be unstable." TextWrapping="Wrap" />
             </StackPanel>

@@ -1,4 +1,7 @@
 using System.Collections.ObjectModel;
+using System.Net.Http;
+using System.Runtime.InteropServices;
+using System.Security.Principal;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -190,6 +193,7 @@ namespace MrExStrap.UI.ViewModels.Settings
 
         public ICommand UpdatePinToLiveCommand { get; }
         public ICommand DismissLiveBannerCommand { get; }
+        public ICommand CopyDiagnosticsCommand { get; }
 
         public VersionViewModel()
         {
@@ -201,6 +205,7 @@ namespace MrExStrap.UI.ViewModels.Settings
             RefreshExploitsCommand = new AsyncRelayCommand(LoadExploitsAsync);
             UpdatePinToLiveCommand = new RelayCommand(UpdatePinToLive);
             DismissLiveBannerCommand = new RelayCommand(DismissLiveBanner);
+            CopyDiagnosticsCommand = new AsyncRelayCommand(CopyDiagnosticsAsync);
 
             LoadRecentHashesFromState();
             RefreshStatusFromCurrentInput();
@@ -310,26 +315,55 @@ namespace MrExStrap.UI.ViewModels.Settings
             }
         }
 
+        private string _exploitsLoadError = "";
+        public string ExploitsLoadError
+        {
+            get => _exploitsLoadError;
+            private set
+            {
+                _exploitsLoadError = value;
+                OnPropertyChanged(nameof(ExploitsLoadError));
+                OnPropertyChanged(nameof(HasExploitsLoadError));
+            }
+        }
+
+        public bool HasExploitsLoadError => !string.IsNullOrEmpty(_exploitsLoadError);
+
         private async Task LoadExploitsAsync()
         {
             if (IsLoadingExploits)
                 return;
 
             IsLoadingExploits = true;
+            ExploitsLoadError = "";
             try
             {
-                var list = await WeaoClient.GetWindowsExploitsAsync();
+                var result = await WeaoClient.GetWindowsExploitsAsync();
                 Exploits.Clear();
-                foreach (var e in list)
+
+                if (!result.Success)
+                {
+                    ExploitsLoadError = result.Error!;
+                    return;
+                }
+
+                foreach (var e in result.Exploits)
                     Exploits.Add(e);
+
+                if (Exploits.Count == 0)
+                {
+                    ExploitsLoadError =
+                        "weao.xyz returned no Windows executors. This is unusual — the list may be temporarily empty " +
+                        "or every entry was hidden. You can still paste a version hash manually below.";
+                }
             }
             catch (Exception ex)
             {
-                // WeaoClient already returns an empty list on its own failures; this only catches
-                // a surprise regression. Don't surface a status — the dropdown being empty is
-                // already the visible signal, and we don't want to stomp on FetchLive's message.
+                // WeaoClient catches its own failures. This only fires on a surprise regression.
                 App.Logger.WriteException("VersionViewModel::LoadExploitsAsync", ex);
                 Exploits.Clear();
+                ExploitsLoadError = $"Unexpected error loading executor list ({ex.GetType().Name}). " +
+                                    "Check the log file for details. You can still paste a version hash manually below.";
             }
             finally
             {
@@ -529,6 +563,88 @@ namespace MrExStrap.UI.ViewModels.Settings
 
             foreach (var k in drop)
                 dict.Remove(k);
+        }
+
+        // Bundles static environment info + a fresh probe of weao.xyz into a single block
+        // the user can paste into a bug report. The probe re-runs the same request the
+        // dropdown does so the report carries the exact failure mode they're seeing right now,
+        // not a cached or stale one.
+        private async Task CopyDiagnosticsAsync()
+        {
+            var sb = new StringBuilder();
+            sb.AppendLine($"{App.ProjectName} diagnostic info");
+            sb.AppendLine($"Generated: {DateTime.UtcNow:yyyy-MM-dd HH:mm:ss} UTC");
+            sb.AppendLine("=====================================");
+            sb.AppendLine($"App version      : v{App.Version}");
+            try
+            {
+                sb.AppendLine($"Build commit     : {App.BuildMetadata.CommitHash} ({App.BuildMetadata.CommitRef})");
+                sb.AppendLine($"Build timestamp  : {App.BuildMetadata.Timestamp:yyyy-MM-dd HH:mm:ss} UTC");
+            }
+            catch { sb.AppendLine("Build commit     : (unavailable)"); }
+            sb.AppendLine($"OS               : {Environment.OSVersion}");
+            sb.AppendLine($"OS architecture  : {RuntimeInformation.OSArchitecture}");
+            sb.AppendLine($"Process arch     : {RuntimeInformation.ProcessArchitecture}");
+            sb.AppendLine($"Runtime          : {RuntimeInformation.FrameworkDescription}");
+            sb.AppendLine($"Locale           : {CultureInfo.CurrentCulture.Name}");
+            sb.AppendLine($"UI culture       : {CultureInfo.CurrentUICulture.Name}");
+            try
+            {
+                using var id = WindowsIdentity.GetCurrent();
+                sb.AppendLine($"Elevated         : {new WindowsPrincipal(id).IsInRole(WindowsBuiltInRole.Administrator)}");
+            }
+            catch { sb.AppendLine("Elevated         : (unknown)"); }
+            sb.AppendLine();
+            sb.AppendLine("WEAO state");
+            sb.AppendLine($"  Loaded count   : {Exploits.Count}");
+            sb.AppendLine($"  Last error     : {(string.IsNullOrEmpty(ExploitsLoadError) ? "(none)" : ExploitsLoadError)}");
+            sb.AppendLine($"  Live hash      : {(HasLiveHash ? LiveHash : "(not fetched)")}");
+            sb.AppendLine();
+            sb.AppendLine("WEAO live probe (re-run just now)");
+
+            string endpoint = "https://weao.xyz/api/status/exploits";
+            sb.AppendLine($"  Endpoint       : {endpoint}");
+
+            var stopwatch = Stopwatch.StartNew();
+            try
+            {
+                using var req = new HttpRequestMessage(HttpMethod.Get, endpoint);
+                req.Headers.UserAgent.ParseAdd("WEAO-3PService");
+                using var resp = await App.HttpClient.SendAsync(req, HttpCompletionOption.ResponseHeadersRead);
+                stopwatch.Stop();
+                sb.AppendLine($"  Status         : {(int)resp.StatusCode} {resp.ReasonPhrase}");
+                sb.AppendLine($"  Elapsed        : {stopwatch.ElapsedMilliseconds} ms");
+                if (resp.Headers.TryGetValues("cf-ray", out var cfRay))
+                    sb.AppendLine($"  cf-ray         : {string.Join(",", cfRay)}");
+                if (resp.Headers.TryGetValues("server", out var server))
+                    sb.AppendLine($"  server         : {string.Join(",", server)}");
+                if (resp.Content.Headers.ContentLength is long len)
+                    sb.AppendLine($"  Content-Length : {len}");
+            }
+            catch (Exception ex)
+            {
+                stopwatch.Stop();
+                sb.AppendLine($"  Status         : (exception after {stopwatch.ElapsedMilliseconds} ms)");
+                sb.AppendLine($"  Error class    : {ex.GetType().FullName}");
+                sb.AppendLine($"  Error message  : {ex.Message}");
+                if (ex.InnerException != null)
+                {
+                    sb.AppendLine($"  Inner class    : {ex.InnerException.GetType().FullName}");
+                    sb.AppendLine($"  Inner message  : {ex.InnerException.Message}");
+                }
+            }
+
+            string text = sb.ToString();
+            try
+            {
+                Clipboard.SetDataObject(text, copy: true);
+                SetStatus("Diagnostic info copied to clipboard. Paste it into your bug report.", OkBrush);
+            }
+            catch (Exception ex)
+            {
+                App.Logger.WriteException("VersionViewModel::CopyDiagnosticsAsync", ex);
+                SetStatus("Couldn't copy — clipboard was busy. Try again.", WarnBrush);
+            }
         }
     }
 }

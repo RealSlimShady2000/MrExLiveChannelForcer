@@ -57,5 +57,16 @@ namespace MrExStrap.Models.Persistable
         // VIP server picker — pop a WebView2 dialog before player launches and offer a free
         // shared VIP server pulled from rbxservers.xyz. Off by default. (MrExStrap fork feature)
         public bool EnableVipServerPrompt { get; set; } = false;
+
+        // BanAsync tab — trace cleaner + MAC/MachineGuid spoofer. (MrExStrap fork feature)
+        public bool BanAsyncPreserveInGameSettings { get; set; } = true;
+        public bool BanAsyncPreserveFastFlags { get; set; } = true;
+        public bool BanAsyncIncludeStudioFolders { get; set; } = false;
+        public bool BanAsyncDhcpRefreshAfterSpoof { get; set; } = true;
+        public bool BanAsyncAdvancedMode { get; set; } = false;
+        public bool BanAsyncOuiMirror { get; set; } = true;
+        public bool BanAsyncMachineGuidAcknowledged { get; set; } = false;
+        public string BanAsyncOriginalMachineGuid { get; set; } = "";
+        public ObservableCollection<string> BanAsyncSpoofedAdapterGuids { get; set; } = new();
     }
 }
