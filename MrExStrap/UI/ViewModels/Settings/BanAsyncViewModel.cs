@@ -70,6 +70,12 @@ namespace MrExStrap.UI.ViewModels.Settings
             set { App.Settings.Prop.BanAsyncIncludeStudioFolders = value; OnPropertyChanged(nameof(IncludeStudioFolders)); }
         }
 
+        public bool ClearBrowserCookies
+        {
+            get => App.Settings.Prop.BanAsyncClearBrowserCookies;
+            set { App.Settings.Prop.BanAsyncClearBrowserCookies = value; OnPropertyChanged(nameof(ClearBrowserCookies)); }
+        }
+
         public bool DhcpRefreshAfterSpoof
         {
             get => App.Settings.Prop.BanAsyncDhcpRefreshAfterSpoof;
@@ -188,9 +194,12 @@ namespace MrExStrap.UI.ViewModels.Settings
                 "  • %ProgramData%\\Roblox\n" +
                 "  • %Temp%\\Roblox*\n" +
                 "  • Prefetch entries for Roblox (admin only)\n" +
-                "  • HKCU\\Software\\ROBLOX Corporation\n\n" +
+                "  • HKCU\\Software\\ROBLOX Corporation\n" +
+                (ClearBrowserCookies ? "  • Roblox cookies in any installed browsers (Chrome, Edge, Firefox, Brave, Opera, Vivaldi)\n" : "") +
+                "\n" +
                 (PreserveInGameSettings ? "In-game settings (GlobalBasicSettings_*.xml) will be preserved.\n" : "") +
                 (PreserveFastFlags ? "Vanilla Roblox FastFlags JSON will be preserved.\n" : "") +
+                (ClearBrowserCookies ? "Close any open browsers first or their cookie files will be locked and skipped.\n" : "") +
                 "\nMrExBloxstrap's own settings, FastFlags, and themes are NOT touched.\n\nContinue?";
 
             var confirm = Frontend.ShowMessageBox(prompt, MessageBoxImage.Warning,
@@ -212,6 +221,13 @@ namespace MrExStrap.UI.ViewModels.Settings
             CleanupEngine.CleanupResult result = await Task.Run(() => CleanupEngine.RunCleanup(options, Log));
 
             Log($"Cleanup done. Removed {result.DeletedDirectories} dir(s), {result.DeletedFiles} file(s), {result.RegistryKeysRemoved} registry key(s). Preserved {result.PreservedFiles} file(s). Skipped {result.Skipped.Count}.");
+
+            if (ClearBrowserCookies)
+            {
+                Log("Clearing Roblox cookies from installed browsers…");
+                var cookieResult = await Task.Run(() => BrowserCookieCleaner.ClearRobloxCookies(Log));
+                Log($"Browser cookies: cleared {cookieResult.CookiesDeleted} across {cookieResult.BrowsersScanned} browser(s), checked {cookieResult.FilesScanned} profile file(s), skipped {cookieResult.Skipped.Count}.");
+            }
         }
 
         private async Task SpoofAsync()

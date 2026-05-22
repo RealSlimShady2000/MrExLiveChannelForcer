@@ -62,6 +62,7 @@ namespace MrExStrap.Models.Persistable
         public bool BanAsyncPreserveInGameSettings { get; set; } = true;
         public bool BanAsyncPreserveFastFlags { get; set; } = true;
         public bool BanAsyncIncludeStudioFolders { get; set; } = false;
+        public bool BanAsyncClearBrowserCookies { get; set; } = false;
         // Off by default in v420.11+: the netsh adapter cycle already releases the old DHCP
         // lease, so the extra ipconfig /release+/renew tends to do nothing useful and can
         // interrupt VPNs, voice chat, or captive-portal sessions. Existing users keep their
