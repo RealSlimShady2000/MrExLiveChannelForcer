@@ -106,8 +106,8 @@
             </controls:OptionControl>
 
             <controls:OptionControl Margin="0,8,0,0"
-                Header="Refresh DHCP after spoof"
-                Description="Run ipconfig /release and /renew on the adapter once the new MAC is applied. Usually NOT needed — the disable/enable cycle MrExBloxstrap already does releases the old lease cleanly on most networks. Turn ON only if your router refuses to assign an IP to the new MAC. Side effects: brief network outage, dropped VPN/voice calls, possible captive-portal re-trigger.">
+                Header="Refresh DHCP after spoof (optional)"
+                Description="Not required for BanAsync. The disable/enable cycle MrExBloxstrap already runs on the adapter releases your DHCP lease cleanly, so this is purely an optional belt-and-suspenders pass for overly paranoid users. Side effects if you turn it on: brief network outage, dropped VPN/voice calls, possible captive-portal re-trigger.">
                 <ui:ToggleSwitch IsChecked="{Binding DhcpRefreshAfterSpoof, Mode=TwoWay}" />
             </controls:OptionControl>
 
