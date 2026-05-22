@@ -8,15 +8,29 @@ A fork of [Bloxstrap](https://github.com/bloxstraplabs/bloxstrap) hardened again
 
 ## At a glance
 
-✅ **LIVE channel lock** — forces Roblox onto production every launch. Fixes most "my executor broke after a Roblox update" cases on its own. If it doesn't, the downgrade tab below handles it.
-✅ **One-click downgrading** with CDN verification + auto-match-your-executor dropdown (weao.xyz)
-✅ **BanAsync tab** — clean Roblox traces, spoof MAC, randomize MachineGuid, optional Roblox-only browser cookie wipe (Chrome / Edge / Firefox / Brave / Opera / Vivaldi)
-✅ **Multi-instance + auto window tiling** — run several Roblox clients at once in a tidy grid
-✅ **VIP server picker** before launch (rbxservers.xyz)
-✅ **Auto-update with a real progress bar** — fires both on Roblox launch and on menu open
-✅ **One-click diagnostic snapshot** zip for bug reports
-✅ **Privacy first** — Roblox tracking cookies wiped before every launch, analytics hardcoded off
-✅ **Detailed error messages** — reasons shown inline, not buried in logs
+- ✅ **LIVE channel lock**
+  - Forces Roblox onto production every launch. Fixes most "my executor broke after a Roblox update" cases on its own. If it doesn't, the downgrade tab below handles it.
+- ✅ **One-click downgrading**
+  - Verify any historical Roblox build still exists on the CDN, with deployment timestamp and exact download size.
+  - "Match your executor" dropdown driven by weao.xyz — pick your tool, the matching Roblox build gets pinned automatically.
+- ✅ **BanAsync tab**
+  - Clean Roblox traces, spoof your network MAC, randomize MachineGuid.
+  - Optional toggle to wipe ONLY `roblox.com` / `rbxcdn.com` cookies from Chrome, Edge, Firefox, Brave, Opera, Vivaldi. Your other site cookies are never touched.
+- ✅ **Multi-instance with auto window tiling**
+  - Run several Roblox clients at the same time.
+  - Auto-arrange every open client into a tidy grid on your primary monitor.
+- ✅ **VIP server picker**
+  - Pick a free shared VIP server before launch, straight from rbxservers.xyz.
+- ✅ **Auto-update with a real progress bar**
+  - Fires both when launching Roblox AND when opening the menu directly.
+  - Determinate progress bar with byte-by-byte counter so you know it's actually working.
+- ✅ **One-click diagnostic snapshot**
+  - One button in Debug mode zips your logs, settings, environment, network adapters, running processes, health check, and a fresh GitHub probe into a single file for bug reports.
+- ✅ **Privacy by default**
+  - Roblox tracking cookies wiped before every launch.
+  - Analytics permanently disabled (hardcoded off, no toggle).
+- ✅ **Detailed error messages**
+  - Failures show the actual reason (DNS, TLS, rate limit, disk full, partial download, etc.) instead of "something went wrong".
 
 ---
 
@@ -26,35 +40,46 @@ A fork of [Bloxstrap](https://github.com/bloxstraplabs/bloxstrap) hardened again
 
 **Pros of MrExBloxstrap**
 
-✅ LIVE channel lock — vanilla Bloxstrap leaves channel routing alone
-✅ Built-in BanAsync tab (trace cleanup, MAC spoofing, MachineGuid, cookie cleanup) — not in vanilla
-✅ Match-your-executor dropdown driven by weao.xyz — not in vanilla
-✅ Per-version pin with CDN verification + deployment timestamp — vanilla has version downgrading but the UX is less detailed
-✅ Auto-update prompt also fires when opening the menu directly — vanilla only checks on Roblox launch
-✅ Diagnostic-snapshot zip for bug reports — not in vanilla
-✅ Analytics permanently off (no toggle, hardcoded)
+- ✅ **LIVE channel lock**
+  - Vanilla leaves channel routing alone, so Roblox can A/B-route you onto a test build any time.
+- ✅ **Built-in BanAsync tab**
+  - Trace cleanup, MAC spoofing, MachineGuid randomize, selective cookie cleaning — not in vanilla.
+- ✅ **Match-your-executor dropdown**
+  - Powered by weao.xyz — not in vanilla.
+- ✅ **Per-version pin with CDN verification**
+  - Vanilla has downgrading too, but the UX is less detailed (no deployment timestamp, no package-count preview).
+- ✅ **Auto-update on menu open**
+  - Vanilla only checks on Roblox launch — open the settings menu and you never see new releases.
+- ✅ **Diagnostic-snapshot zip for bug reports**
+  - Not in vanilla.
+- ✅ **Analytics permanently off**
+  - Hardcoded, no toggle.
 
 **Cons of MrExBloxstrap**
 
-- Smaller user base, less battle-tested than vanilla / normal Bloxstrap
-- Releases are unsigned, so Windows SmartScreen warns on first run
-- Stripped some of vanilla's polish (custom translator credits, broader theming options) to keep the surface focused
-- Built specifically for exploit/executor users — if you only play vanilla Roblox, you don't need most of this
+- Smaller user base, less battle-tested than vanilla / normal Bloxstrap.
+- Releases are unsigned, so Windows SmartScreen warns on first run.
+- Stripped some of vanilla's polish (custom translator credits, broader theming options) to keep the surface focused.
+- Built specifically for exploit / executor users — if you only play vanilla Roblox, you don't need most of this.
 
 ### vs Fishstrap (another popular Bloxstrap fork)
 
 **Pros of MrExBloxstrap**
 
-✅ Exploit-first focus — channel lock and executor version matching are the headline features
-✅ BanAsync tab combines trace cleanup, MAC spoofing, MachineGuid randomize, and selective cookie wiping in one place
-✅ Diagnostic snapshot built in for easier troubleshooting
-✅ Auto-update on menu open with a determinate progress bar
+- ✅ **Exploit-first focus**
+  - Channel lock and executor version matching are the headline features.
+- ✅ **BanAsync tab**
+  - Trace cleanup, MAC spoofing, MachineGuid randomize, and selective Roblox-only cookie wiping all in one place.
+- ✅ **Diagnostic snapshot**
+  - Built in for easier troubleshooting.
+- ✅ **Auto-update on menu open**
+  - With a determinate progress bar.
 
 **Cons of MrExBloxstrap**
 
-- Fishstrap is aimed at the broader Roblox community and ships polish for general players (themes, custom assets) that MrExBloxstrap doesn't bother with
-- Fishstrap has a larger user base and faster issue feedback
-- If you're not running an executor, Fishstrap is probably a better fit
+- Fishstrap is aimed at the broader Roblox community and ships polish for general players (themes, custom assets) that MrExBloxstrap doesn't bother with.
+- Fishstrap has a larger user base and faster issue feedback.
+- If you're not running an executor, Fishstrap is probably a better fit.
 
 ### TL;DR
 
