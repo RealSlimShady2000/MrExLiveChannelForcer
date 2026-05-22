@@ -1,38 +1,134 @@
-# Bloxstrap - Mr Exploit edition
+# MrExBloxstrap
 
-A hardened fork of [Bloxstrap](https://github.com/bloxstraplabs/bloxstrap) built for the Roblox exploit community.
+**The Roblox launcher built for executor and exploit users.**
 
-## Why a fork?
+A fork of [Bloxstrap](https://github.com/bloxstraplabs/bloxstrap) hardened against the things that usually break executors — surprise channel routing, version updates that ship before your tool catches up, and ban traces left on your machine — plus a load of quality-of-life extras.
 
-Vanilla Bloxstrap lets Roblox's A/B routing sometimes push you onto test channels (`zlive`, `zintegration`) without warning. When that happens, every popular executor/external stops working until they update for that test build — or you have to wait for Roblox to roll you back to the LIVE channel.
+---
 
-**Bloxstrap - Mr Exploit edition forces the Roblox client to always run on the LIVE (`production`) channel.** Every launch rewrites the Roblox-side channel registry key with retry/verify logic, so you can't accidentally get routed onto a beta build your tools don't support yet.
+## At a glance
 
-## What it has that upstream Bloxstrap doesn't
+✅ **Forces Roblox onto the LIVE channel** every launch — no more surprise `zlive` / `zintegration` test builds breaking your executor
 
-- **LIVE channel lock.** Roblox's A/B test-channel routing is physically blocked. A "CHANNEL: LIVE (locked)" badge appears on every launch so you know it worked.
-- **First-class downgrading UX.**
-  - Auto-detects the current LIVE version hash from Roblox's own CDN on open — no third-party services required.
-  - One-click "Pin this version" to lock to the current build.
-  - Paste any version hash and **Verify** against the CDN — shows exact download size, package count, and the deployment date/time.
-  - "Match your executor/exploit" dropdown (via weao.xyz) — if your executor is behind the latest Roblox, pick it from the list and the matching historical build is pinned automatically.
-- **Richer loading screen.** Version hash + Roblox version number + live "X MB / Y MB" download progress + a `DOWNGRADED` badge when you're on a custom version + the place ID when joining a specific experience.
-- **Analytics permanently disabled.** Nothing is ever sent to Bloxstrap upstream or anywhere else. Hardcoded off, not a toggle.
-- **Toggleable post-launch "Channel: LIVE" tray notification** confirming the channel lock actually applied.
-- **Cleaner surface.** Stripped bootstrapper theming / title overrides / translator lists, and the upstream wiki links that pointed to docs this fork doesn't share.
+✅ **Pin any older Roblox version** with one click — full downgrade UX with CDN verification
 
-## Who made this
+✅ **Match your executor automatically** — pick it from a dropdown and the matching Roblox build gets pinned
 
-vibe pasted by **MrExploit** (aka **Sir Meme**):
-- Active in the Roblox community since 2017.
-- Formerly associated with **Synapse Softworks LLC**.
-- Currently runs **[robloxscripts.com](https://robloxscripts.com)** and **[rsware.store](https://rsware.store)**.
+✅ **Built-in BanAsync tab** — clean Roblox traces, spoof your network MAC, randomize MachineGuid, all in one place
+
+✅ **Roblox-only browser-cookie cleaner** — wipes only `roblox.com` / `rbxcdn.com` cookies, leaves Gmail and everything else alone
+
+✅ **Multi-instance support** — run more than one Roblox client at the same time
+
+✅ **Auto-window tiling** — tidy grid layout when running multiple clients
+
+✅ **VIP server picker** — pick a free shared VIP server before launch, straight from rbxservers.xyz
+
+✅ **Auto-update with a real progress bar** — both when launching Roblox and when opening the menu
+
+✅ **One-click diagnostic snapshot** — bundle logs + settings + environment for support in one zip
+
+✅ **Analytics permanently disabled** — hardcoded off, not a toggle
+
+✅ **Privacy mode** — wipes Roblox tracking cookies before every launch
+
+✅ **Detailed error messages** — failures tell you the actual reason, not "something went wrong"
+
+---
+
+## How it compares
+
+### vs vanilla Bloxstrap (the upstream project)
+
+**Pros of MrExBloxstrap**
+
+✅ LIVE channel lock — vanilla Bloxstrap leaves channel routing alone
+✅ Built-in BanAsync tab (trace cleanup, MAC spoofing, MachineGuid, cookie cleanup) — not in vanilla
+✅ Match-your-executor dropdown driven by weao.xyz — not in vanilla
+✅ Per-version pin with CDN verification + deployment timestamp — vanilla has version downgrading but the UX is less detailed
+✅ Auto-update prompt also fires when opening the menu directly — vanilla only checks on Roblox launch
+✅ Diagnostic-snapshot zip for bug reports — not in vanilla
+✅ Analytics permanently off (no toggle, hardcoded)
+
+**Cons of MrExBloxstrap**
+
+- Smaller user base, less battle-tested than upstream
+- Releases are unsigned, so Windows SmartScreen warns on first run
+- Stripped some of vanilla's polish (custom translator credits, broader theming options) to keep the surface focused
+- Built specifically for exploit/executor users — if you only play vanilla Roblox, you don't need most of this
+
+### vs Fishstrap (another popular Bloxstrap fork)
+
+**Pros of MrExBloxstrap**
+
+✅ Exploit-first focus — channel lock and executor version matching are the headline features
+✅ BanAsync tab combines trace cleanup, MAC spoofing, MachineGuid randomize, and selective cookie wiping in one place
+✅ Diagnostic snapshot built in for easier troubleshooting
+✅ Auto-update on menu open with a determinate progress bar
+
+**Cons of MrExBloxstrap**
+
+- Fishstrap is aimed at the broader Roblox community and ships polish for general players (themes, custom assets) that MrExBloxstrap doesn't bother with
+- Fishstrap has a larger user base and faster issue feedback
+- If you're not running an executor, Fishstrap is probably a better fit
+
+### TL;DR
+
+| Pick this if you… | Use |
+| --- | --- |
+| Run executors/externals and want them to keep working | **MrExBloxstrap** |
+| Want a polished player launcher with broad theme support | Fishstrap |
+| Want the official upstream with the largest user base | Bloxstrap |
+
+---
+
+## Features in detail
+
+### LIVE channel lock
+Roblox sometimes A/B-routes your account onto a test channel like `zlive` or `zintegration` without warning. When that happens, every popular executor stops working until they catch up to that build, or until Roblox rolls you back. MrExBloxstrap rewrites the Roblox-side channel registry key on every launch and verifies the write took. A `CHANNEL: LIVE (locked)` badge appears on the bootstrapper so you know it worked.
+
+### Downgrading
+Pin Roblox to any historical build by version hash. The Downgrading tab:
+- Auto-detects the current LIVE hash from Roblox's CDN on open (no third-party services)
+- Lets you paste any hash and verify it still exists on the CDN
+- Shows exact download size, package count, and deployment date
+- Has a **Match your executor** dropdown powered by weao.xyz — if your executor is behind, pick it and we pin the right historical Roblox build for you
+
+### BanAsync tab
+Optional cleanup + spoofing tools inspired by Technitium MAC Address Changer and similar utilities. Everything is opt-in via toggles, and the Activity log shows you exactly what got changed:
+- Clean Roblox traces (caches, logs, prefetch, HKCU registry)
+- Optional clearing of `roblox.com` cookies from Chrome, Edge, Firefox, Brave, Opera, Vivaldi (other site cookies are NEVER touched — surgical SQL DELETE by host)
+- MAC address spoofing across all detected adapters with OUI mirror, DHCP refresh, and per-adapter Revert
+- MachineGuid randomize, gated behind an "I understand the risk" toggle
+
+### Debug mode
+Toggle in Settings → Bloxstrap → Debug mode. Exposes:
+- Run health check (sanity test of every subsystem)
+- Open log folder (jump straight to the log directory)
+- **Save diagnostic snapshot** — builds a timestamped zip containing your settings, every log file, environment info, detected network adapters, running Roblox processes, a health check, and a fresh GitHub update probe. Hand the one zip to whoever's helping you debug.
+- Open debug folder (where snapshots land)
+
+### Auto-update
+Checks GitHub for new releases when you launch Roblox AND when you open the menu directly. Shows a determinate progress bar during the download, classifies failures so the dialog tells you *why* it failed (DNS, TLS, rate limit, disk full, etc.) instead of a generic "something went wrong".
+
+---
+
+## Install
+
+1. Download the latest `MrExBloxstrap-vX.Y.exe` from the [Releases page](https://github.com/RealSlimShady2000/MrExLiveChannelForcer/releases).
+2. Run it. The installer handles the rest.
+
+The release binary is self-contained — no .NET runtime install required. Install location is `%localappdata%\MrExBloxstrap`.
+
+To uninstall: Windows **Settings → Apps → Installed apps**, search for "Bloxstrap", or run `MrExBloxstrap.exe --uninstall`.
+
+---
 
 ## About the unsigned binary
 
-Releases ship as an **unsigned `.exe`**. Windows SmartScreen (and some AV products) will flag it as "Publisher unknown" or similar on first run — that's just how Windows treats any unsigned binary. It's safe to run on any machine. Just click through the warning.
+Releases ship as an **unsigned `.exe`**. Windows SmartScreen (and some antivirus) flag unsigned binaries as "Publisher unknown" on first run — that's just how Windows treats any unsigned program. Click through the warning. The binary is safe.
 
-This is a legitimate fork, 100% for the Roblox exploit community. If you'd rather not take my word for it, **clone the repo and build it yourself** — it's a stock .NET 6 WPF project with no obfuscation:
+Don't want to take my word for it? **Build it yourself** — it's a stock .NET 6 WPF project with no obfuscation:
 
 ```
 git clone --recurse-submodules https://github.com/RealSlimShady2000/MrExLiveChannelForcer.git
@@ -42,16 +138,18 @@ dotnet publish MrExStrap/MrExStrap.csproj -p:PublishSingleFile=true -r win-x64 -
 
 Output lands at `MrExStrap/bin/Release/net6.0-windows/win-x64/publish/MrExBloxstrap.exe`.
 
-## Install
+You can also compare the `SHA256SUMS` attached to every release against the exe you build yourself.
 
-1. Download the latest `MrExBloxstrap.exe` from the [Releases](https://github.com/RealSlimShady2000/MrExLiveChannelForcer/releases) page.
-2. Run it — the installer wizard handles the rest.
+---
 
-The release binary is self-contained — no .NET runtime install required. Install location is `%localappdata%\MrExBloxstrap`.
+## Who made this
 
-## Uninstall
+vibe pasted by **MrExploit** (aka **Sir Meme**):
+- Active in the Roblox community since 2017
+- Formerly associated with **Synapse Softworks LLC**
+- Currently runs **[robloxscripts.com](https://robloxscripts.com)** and **[rsware.store](https://rsware.store)**
 
-Windows `Settings → Apps → Installed apps` (search for "Bloxstrap"), or run `MrExBloxstrap.exe --uninstall`.
+---
 
 ## Development notes
 
