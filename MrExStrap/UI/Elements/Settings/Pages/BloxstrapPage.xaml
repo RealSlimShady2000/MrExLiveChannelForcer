@@ -104,22 +104,31 @@
         <!-- Debug mode toggle -->
         <controls:OptionControl Margin="0,8,0,0"
             Header="Debug mode"
-            Description="Reveals a 'Run health check' button and 'Open log folder' shortcut below. Use when something isn't working right — the health check output is useful to attach to a support message.">
+            Description="Reveals diagnostic tools below: run a health check, jump to the log folder, or build a one-click diagnostic snapshot (zip) you can hand the maintainer to debug a problem. None of these change MrExBloxstrap's behaviour — they only surface information.">
             <ui:ToggleSwitch IsChecked="{Binding DebugModeEnabled, Mode=TwoWay}" />
         </controls:OptionControl>
 
         <!-- Debug actions (visible only when debug mode is on) -->
-        <Grid Margin="0,8,0,0" Visibility="{Binding DebugModeVisibility, Mode=OneWay}">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto" />
-                <ColumnDefinition Width="Auto" />
-            </Grid.ColumnDefinitions>
-            <ui:Button Grid.Column="0" Icon="Heart24" Content="Run health check"
-                       Appearance="Primary"
-                       Command="{Binding RunHealthCheckCommand, Mode=OneTime}" />
-            <ui:Button Grid.Column="1" Margin="8,0,0,0" Icon="FolderOpen24" Content="Open log folder"
-                       Command="{Binding OpenLogFolderCommand, Mode=OneTime}" />
-        </Grid>
+        <StackPanel Margin="0,8,0,0" Visibility="{Binding DebugModeVisibility, Mode=OneWay}">
+            <WrapPanel>
+                <ui:Button Icon="Heart24" Content="Run health check"
+                           Appearance="Primary"
+                           Margin="0,0,8,8"
+                           Command="{Binding RunHealthCheckCommand, Mode=OneTime}" />
+                <ui:Button Icon="FolderOpen24" Content="Open log folder"
+                           Margin="0,0,8,8"
+                           Command="{Binding OpenLogFolderCommand, Mode=OneTime}" />
+                <ui:Button Icon="DocumentBulletList24" Content="Save diagnostic snapshot"
+                           Margin="0,0,8,8"
+                           Command="{Binding SaveDiagnosticSnapshotCommand, Mode=OneTime}" />
+                <ui:Button Icon="FolderArrowRight24" Content="Open debug folder"
+                           Margin="0,0,8,8"
+                           Command="{Binding OpenDebugFolderCommand, Mode=OneTime}" />
+            </WrapPanel>
+            <TextBlock FontSize="11" Margin="0,2,0,0" TextWrapping="Wrap"
+                       Foreground="{DynamicResource TextFillColorTertiaryBrush}"
+                       Text="Save diagnostic snapshot builds a zip in the debug folder containing your settings, every log file, environment info, detected network adapters, running Roblox processes, a health check, and a fresh GitHub probe. Send that one file to the maintainer when reporting a bug." />
+        </StackPanel>
 
         <!-- Running Roblox instances panel -->
         <ui:CardExpander Margin="0,8,0,0" IsExpanded="False">

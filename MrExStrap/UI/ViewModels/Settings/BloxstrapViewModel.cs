@@ -72,6 +72,10 @@ namespace MrExStrap.UI.ViewModels.Settings
 
         public ICommand OpenLogFolderCommand => new RelayCommand(OpenLogFolder);
 
+        public ICommand OpenDebugFolderCommand => new RelayCommand(OpenDebugFolder);
+
+        public ICommand SaveDiagnosticSnapshotCommand => new AsyncRelayCommand(SaveDiagnosticSnapshotAsync);
+
         private void RunHealthCheck()
         {
             var dialog = new UI.Elements.Dialogs.HealthCheckDialog();
@@ -88,6 +92,51 @@ namespace MrExStrap.UI.ViewModels.Settings
             catch (Exception ex)
             {
                 App.Logger.WriteException("BloxstrapViewModel::OpenLogFolder", ex);
+            }
+        }
+
+        private void OpenDebugFolder()
+        {
+            try
+            {
+                Directory.CreateDirectory(Paths.DebugOutput);
+                Process.Start(new ProcessStartInfo { FileName = Paths.DebugOutput, UseShellExecute = true });
+            }
+            catch (Exception ex)
+            {
+                App.Logger.WriteException("BloxstrapViewModel::OpenDebugFolder", ex);
+                Frontend.ShowMessageBox(
+                    $"Couldn't open the debug folder at {Paths.DebugOutput}.\n\nReason: {ex.GetType().Name}: {ex.Message}",
+                    MessageBoxImage.Warning);
+            }
+        }
+
+        private async Task SaveDiagnosticSnapshotAsync()
+        {
+            const string LOG_IDENT = "BloxstrapViewModel::SaveDiagnosticSnapshotAsync";
+            try
+            {
+                string zipPath = await DiagnosticBundle.CreateAsync();
+                App.Logger.WriteLine(LOG_IDENT, $"Snapshot ready at {zipPath}");
+
+                var result = Frontend.ShowMessageBox(
+                    $"Diagnostic snapshot saved to:\n\n{zipPath}\n\n" +
+                    "It contains your settings, recent logs, environment info, network adapters, " +
+                    "running Roblox processes, a health check, and a fresh GitHub probe — exactly what " +
+                    "the maintainer needs to debug a problem.\n\nOpen the folder now?",
+                    MessageBoxImage.Information,
+                    MessageBoxButton.YesNo,
+                    MessageBoxResult.Yes);
+
+                if (result == MessageBoxResult.Yes)
+                    Process.Start(new ProcessStartInfo { FileName = "explorer.exe", Arguments = $"/select,\"{zipPath}\"" });
+            }
+            catch (Exception ex)
+            {
+                App.Logger.WriteException(LOG_IDENT, ex);
+                Frontend.ShowMessageBox(
+                    $"Couldn't build the diagnostic snapshot.\n\nReason: {ex.GetType().Name}: {ex.Message}",
+                    MessageBoxImage.Error);
             }
         }
 

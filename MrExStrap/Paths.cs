@@ -23,6 +23,7 @@ namespace MrExStrap
         public static string Versions { get; private set; } = "";
         public static string Modifications { get; private set; } = "";
         public static string CustomThemes { get; private set; } = "";
+        public static string DebugOutput { get; private set; } = "";
 
         public static string Application { get; private set; } = "";
 
@@ -50,6 +51,12 @@ namespace MrExStrap
             Integrations = Path.Combine(Base, "Integrations");
             Modifications = Path.Combine(Base, "Modifications");
             CustomThemes = Path.Combine(Base, "CustomThemes");
+
+            // Debug-mode artifacts: diagnostic snapshots, captured stack dumps, anything the
+            // user generates from the "Save diagnostic snapshot" button in Settings → Debug mode.
+            // Distinct from Logs/ so users can hand the maintainer a single folder without
+            // accidentally including every routine log file.
+            DebugOutput = Path.Combine(Base, "Debug");
 
             Application = Path.Combine(Base, $"{App.ProjectName}.exe");
         }
