@@ -200,10 +200,77 @@ namespace MrExStrap
 
         public static void LaunchMenu()
         {
+            // Auto-update check on menu open. The Bootstrapper has its own check on the Roblox
+            // launch path, but users who open MrExBloxstrap directly (Start menu shortcut, etc.)
+            // used to never see new releases. This adds the same flow as a Roblox launch: prompt
+            // first, then download + relaunch silently with the menu re-opened on the new exe.
+            if (TryMenuAutoUpgrade())
+                return;
+
             var dialog = new LaunchMenuDialog();
             dialog.ShowDialog();
 
             ProcessNextAction(dialog.CloseAction);
+        }
+
+        private static bool TryMenuAutoUpgrade()
+        {
+            const string LOG_IDENT = "LaunchHandler::TryMenuAutoUpgrade";
+
+            if (!AppUpdater.IsAutoUpdateEligible())
+                return false;
+
+            try
+            {
+                var release = Task.Run(App.GetLatestRelease).GetAwaiter().GetResult();
+                if (release is null)
+                    return false;
+
+                VersionComparison cmp;
+                try
+                {
+                    cmp = Utilities.CompareVersions(App.Version, release.TagName);
+                }
+                catch (Exception ex)
+                {
+                    App.Logger.WriteException(LOG_IDENT + "::Compare", ex);
+                    return false;
+                }
+
+                if (cmp != VersionComparison.LessThan)
+                    return false;
+
+                var prompt = Frontend.ShowMessageBox(
+                    $"A new version of MrExBloxstrap is available.\n\nYou're on v{App.Version}. Latest is {release.TagName}.\n\n" +
+                    "Install now? MrExBloxstrap will download the update and reopen the menu on the new version.",
+                    MessageBoxImage.Question,
+                    MessageBoxButton.YesNo,
+                    MessageBoxResult.Yes);
+
+                if (prompt != MessageBoxResult.Yes)
+                {
+                    App.Logger.WriteLine(LOG_IDENT, $"User declined update to {release.TagName}");
+                    return false;
+                }
+
+                bool started = Task.Run(() =>
+                    AppUpdater.DownloadAndRelaunchAsync(release, new[] { "-menu" })).GetAwaiter().GetResult();
+
+                if (!started)
+                {
+                    Frontend.ShowMessageBox(
+                        $"Couldn't download {release.TagName}. Opening the menu on your current version — you can grab the update manually from the GitHub releases page.",
+                        MessageBoxImage.Warning);
+                    return false;
+                }
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                App.Logger.WriteException(LOG_IDENT, ex);
+                return false;
+            }
         }
 
         public static void LaunchRoblox(LaunchMode launchMode)
