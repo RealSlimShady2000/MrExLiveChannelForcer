@@ -8,31 +8,15 @@ A fork of [Bloxstrap](https://github.com/bloxstraplabs/bloxstrap) hardened again
 
 ## At a glance
 
-✅ **Forces Roblox onto the LIVE channel** every launch — no more surprise `zlive` / `zintegration` test builds breaking your executor
-
-✅ **Pin any older Roblox version** with one click — full downgrade UX with CDN verification
-
-✅ **Match your executor automatically** — pick it from a dropdown and the matching Roblox build gets pinned
-
-✅ **Built-in BanAsync tab** — clean Roblox traces, spoof your network MAC, randomize MachineGuid, all in one place
-
-✅ **Roblox-only browser-cookie cleaner** — wipes only `roblox.com` / `rbxcdn.com` cookies, leaves Gmail and everything else alone
-
-✅ **Multi-instance support** — run more than one Roblox client at the same time
-
-✅ **Auto-window tiling** — tidy grid layout when running multiple clients
-
-✅ **VIP server picker** — pick a free shared VIP server before launch, straight from rbxservers.xyz
-
-✅ **Auto-update with a real progress bar** — both when launching Roblox and when opening the menu
-
-✅ **One-click diagnostic snapshot** — bundle logs + settings + environment for support in one zip
-
-✅ **Analytics permanently disabled** — hardcoded off, not a toggle
-
-✅ **Privacy mode** — wipes Roblox tracking cookies before every launch
-
-✅ **Detailed error messages** — failures tell you the actual reason, not "something went wrong"
+✅ **LIVE channel lock** — forces Roblox onto production every launch. Fixes most "my executor broke after a Roblox update" cases on its own. If it doesn't, the downgrade tab below handles it.
+✅ **One-click downgrading** with CDN verification + auto-match-your-executor dropdown (weao.xyz)
+✅ **BanAsync tab** — clean Roblox traces, spoof MAC, randomize MachineGuid, optional Roblox-only browser cookie wipe (Chrome / Edge / Firefox / Brave / Opera / Vivaldi)
+✅ **Multi-instance + auto window tiling** — run several Roblox clients at once in a tidy grid
+✅ **VIP server picker** before launch (rbxservers.xyz)
+✅ **Auto-update with a real progress bar** — fires both on Roblox launch and on menu open
+✅ **One-click diagnostic snapshot** zip for bug reports
+✅ **Privacy first** — Roblox tracking cookies wiped before every launch, analytics hardcoded off
+✅ **Detailed error messages** — reasons shown inline, not buried in logs
 
 ---
 
