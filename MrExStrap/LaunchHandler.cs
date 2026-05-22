@@ -203,9 +203,20 @@ namespace MrExStrap
             // Auto-update check on menu open. The Bootstrapper has its own check on the Roblox
             // launch path, but users who open MrExBloxstrap directly (Start menu shortcut, etc.)
             // used to never see new releases. This adds the same flow as a Roblox launch: prompt
-            // first, then download + relaunch silently with the menu re-opened on the new exe.
+            // first, then download with a progress dialog, relaunch with the menu reopened on
+            // the new exe. App.Terminate is mandatory on the success path because the App-level
+            // ShutdownMode is OnExplicitShutdown — without it the old process would hang as a
+            // ghost with no visible window after the new exe takes over.
+            //
+            // The gate matches Bootstrapper.CheckForUpdates so dev/QA builds don't overwrite
+            // themselves with a release exe mid-iteration.
+#if (!DEBUG || DEBUG_UPDATER) && !QA_BUILD
             if (TryMenuAutoUpgrade())
+            {
+                App.Terminate();
                 return;
+            }
+#endif
 
             var dialog = new LaunchMenuDialog();
             dialog.ShowDialog();
@@ -253,10 +264,12 @@ namespace MrExStrap
                     return false;
                 }
 
-                bool started = Task.Run(() =>
-                    AppUpdater.DownloadAndRelaunchAsync(release, new[] { "-menu" })).GetAwaiter().GetResult();
+                // Show the progress dialog modally. It kicks off the download in its Loaded
+                // handler and closes itself when done — ShowDialog returns once the bar fills.
+                var progressDialog = new UI.Elements.Dialogs.UpdateProgressDialog(release, new[] { "-menu" });
+                progressDialog.ShowDialog();
 
-                if (!started)
+                if (!progressDialog.UpdateStarted)
                 {
                     Frontend.ShowMessageBox(
                         $"Couldn't download {release.TagName}. Opening the menu on your current version — you can grab the update manually from the GitHub releases page.",
