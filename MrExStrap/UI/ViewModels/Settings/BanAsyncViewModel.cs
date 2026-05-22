@@ -76,6 +76,12 @@ namespace MrExStrap.UI.ViewModels.Settings
             set { App.Settings.Prop.BanAsyncDhcpRefreshAfterSpoof = value; OnPropertyChanged(nameof(DhcpRefreshAfterSpoof)); }
         }
 
+        public bool Persistent
+        {
+            get => App.Settings.Prop.BanAsyncPersistent;
+            set { App.Settings.Prop.BanAsyncPersistent = value; OnPropertyChanged(nameof(Persistent)); }
+        }
+
         public bool AdvancedMode
         {
             get => App.Settings.Prop.BanAsyncAdvancedMode;

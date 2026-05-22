@@ -246,6 +246,29 @@ namespace MrExStrap
 
             Logger.WriteLine(LOG_IDENT, $"OSVersion: {Environment.OSVersion}");
 
+            // BanAsync: when the user opted out of persistent MAC spoofing, clear the registry
+            // overrides on process exit. Registered once at startup so it fires for any exit
+            // path, including Environment.Exit via App.Terminate.
+            AppDomain.CurrentDomain.ProcessExit += (_, _) =>
+            {
+                try
+                {
+                    if (!Settings.Loaded || Settings.Prop.BanAsyncPersistent)
+                        return;
+                    if (Settings.Prop.BanAsyncSpoofedAdapterGuids.Count == 0)
+                        return;
+
+                    foreach (var guid in Settings.Prop.BanAsyncSpoofedAdapterGuids.ToList())
+                        Utility.BanAsync.MacSpoofer.DeleteNetworkAddressByGuid(guid);
+
+                    Logger.WriteLine("App::ProcessExit", $"BanAsync: cleared {Settings.Prop.BanAsyncSpoofedAdapterGuids.Count} spoof override(s) (Persistent=off)");
+                }
+                catch (Exception ex)
+                {
+                    Logger.WriteException("App::ProcessExit::BanAsync", ex);
+                }
+            };
+
             Logger.WriteLine(LOG_IDENT, $"Loaded from {Paths.Process}");
             Logger.WriteLine(LOG_IDENT, $"Temp path is {Paths.Temp}");
             Logger.WriteLine(LOG_IDENT, $"WindowsStartMenu path is {Paths.WindowsStartMenu}");

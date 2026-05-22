@@ -107,8 +107,14 @@
 
             <controls:OptionControl Margin="0,8,0,0"
                 Header="Refresh DHCP after spoof"
-                Description="Run ipconfig /release and /renew on the adapter once the new MAC is applied. Speeds up getting a new IP from your router.">
+                Description="Run ipconfig /release and /renew on the adapter once the new MAC is applied. Usually NOT needed — the disable/enable cycle MrExBloxstrap already does releases the old lease cleanly on most networks. Turn ON only if your router refuses to assign an IP to the new MAC. Side effects: brief network outage, dropped VPN/voice calls, possible captive-portal re-trigger.">
                 <ui:ToggleSwitch IsChecked="{Binding DhcpRefreshAfterSpoof, Mode=TwoWay}" />
+            </controls:OptionControl>
+
+            <controls:OptionControl Margin="0,8,0,0"
+                Header="Persistent (keep MAC change after MrExBloxstrap closes)"
+                Description="Default ON. The spoofed MAC is written to the Windows registry under HKLM and stays applied across MrExBloxstrap closing, being uninstalled, AND reboots — the same way Technitium MAC Address Changer does it. Turn OFF if you want MrExBloxstrap to clear the registry override on its own exit (the MAC still stays active for the current Windows session and reverts on next reboot). Either way, the Revert MAC button works.">
+                <ui:ToggleSwitch IsChecked="{Binding Persistent, Mode=TwoWay}" />
             </controls:OptionControl>
 
             <!-- Advanced-only controls -->

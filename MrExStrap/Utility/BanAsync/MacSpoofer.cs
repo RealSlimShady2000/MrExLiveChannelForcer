@@ -15,6 +15,11 @@ namespace MrExStrap.Utility.BanAsync
 
         // Keywords in adapter description that mark it as virtual/tunneling and not worth spoofing.
         // Spoofing these usually does nothing useful and can break VPNs.
+        //
+        // Bluetooth and Wi-Fi Direct (the real ones, not Microsoft's virtual variants) are
+        // INTENTIONALLY allowed through — TMAC and other tools show them, users expect to see
+        // them, and spoofing a Bluetooth PAN adapter is a legitimate operation. Microsoft's
+        // synthetic "Wi-Fi Direct Virtual Adapter" still falls out via the "virtual" keyword.
         private static readonly string[] VirtualKeywords =
         {
             "vpn", "warp", "tailscale", "wireguard", "openvpn",
@@ -22,9 +27,7 @@ namespace MrExStrap.Utility.BanAsync
             "teredo", "isatap", "6to4",
             "miniport", "wan ",
             "virtual", "hyper-v", "vmware", "virtualbox", "vbox", "wsl",
-            "loopback", "pseudo", "qemu",
-            "wi-fi direct", "wifi direct",
-            "bluetooth"
+            "loopback", "pseudo", "qemu"
         };
 
         public static IReadOnlyList<NetworkAdapter> EnumeratePhysicalAdapters()
@@ -145,6 +148,50 @@ namespace MrExStrap.Utility.BanAsync
             }
 
             return RestartAdapter(adapter.Name, log);
+        }
+
+        // Best-effort registry-only revert. Used by the ProcessExit handler when the user
+        // has the "Persistent" toggle off — we delete the NetworkAddress value without
+        // restarting the adapter (too slow inside ProcessExit's ~3s budget). The spoofed
+        // MAC stays active for the current session and the hardware MAC returns on next
+        // driver reload or reboot.
+        public static void DeleteNetworkAddressByGuid(string adapterGuid)
+        {
+            try
+            {
+                using var classKey = Registry.LocalMachine.OpenSubKey(NetworkClassKeyPath, writable: false);
+                if (classKey == null) return;
+
+                foreach (string sub in classKey.GetSubKeyNames())
+                {
+                    if (sub.Length != 4 || !int.TryParse(sub, out _)) continue;
+
+                    try
+                    {
+                        using var subKey = classKey.OpenSubKey(sub, writable: true);
+                        if (subKey == null) continue;
+
+                        string? id = subKey.GetValue("NetCfgInstanceId") as string;
+                        if (!string.Equals(id, adapterGuid, StringComparison.OrdinalIgnoreCase))
+                            continue;
+
+                        if (subKey.GetValue("NetworkAddress") != null)
+                        {
+                            subKey.DeleteValue("NetworkAddress", throwOnMissingValue: false);
+                            App.Logger.WriteLine(LOG_IDENT, $"ProcessExit: cleared NetworkAddress for {adapterGuid}");
+                        }
+                        return;
+                    }
+                    catch (Exception ex)
+                    {
+                        App.Logger.WriteException(LOG_IDENT + "::DeleteNetworkAddressByGuid::SubKey", ex);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                App.Logger.WriteException(LOG_IDENT + "::DeleteNetworkAddressByGuid", ex);
+            }
         }
 
         public static bool RestartAdapter(string friendlyName, Action<string> log)

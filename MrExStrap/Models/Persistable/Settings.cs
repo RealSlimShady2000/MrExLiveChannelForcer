@@ -62,7 +62,18 @@ namespace MrExStrap.Models.Persistable
         public bool BanAsyncPreserveInGameSettings { get; set; } = true;
         public bool BanAsyncPreserveFastFlags { get; set; } = true;
         public bool BanAsyncIncludeStudioFolders { get; set; } = false;
-        public bool BanAsyncDhcpRefreshAfterSpoof { get; set; } = true;
+        // Off by default in v420.11+: the netsh adapter cycle already releases the old DHCP
+        // lease, so the extra ipconfig /release+/renew tends to do nothing useful and can
+        // interrupt VPNs, voice chat, or captive-portal sessions. Existing users keep their
+        // saved value — only the initial default changed.
+        public bool BanAsyncDhcpRefreshAfterSpoof { get; set; } = false;
+
+        // Default on. Spoofed MACs are written to HKLM\SYSTEM\...\NetworkAddress which the
+        // Windows driver reads at every load, so the change naturally outlives MrExBloxstrap
+        // closing, being uninstalled, or the machine rebooting. Toggle off if you want
+        // MrExBloxstrap to clear the registry override on its own exit (the MAC stays applied
+        // for the current Windows session and reverts on next reboot).
+        public bool BanAsyncPersistent { get; set; } = true;
         public bool BanAsyncAdvancedMode { get; set; } = false;
         public bool BanAsyncOuiMirror { get; set; } = true;
         public bool BanAsyncMachineGuidAcknowledged { get; set; } = false;
