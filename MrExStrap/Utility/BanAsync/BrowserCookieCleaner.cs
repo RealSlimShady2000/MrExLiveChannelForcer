@@ -63,7 +63,7 @@ namespace MrExStrap.Utility.BanAsync
                 foreach (string cookieFile in EnumerateChromiumCookieFiles(userDataDir))
                 {
                     result.FilesScanned++;
-                    var (deleted, error) = TryDeleteFromDb(cookieFile, ChromiumDeleteSql);
+                    var (deleted, hosts, error) = TryDeleteFromDb(cookieFile, ChromiumSelectSql, ChromiumDeleteSql);
                     if (error != null)
                     {
                         string msg = $"{name}: skipped {Path.GetFileName(Path.GetDirectoryName(cookieFile) ?? cookieFile)} — {error}";
@@ -71,12 +71,12 @@ namespace MrExStrap.Utility.BanAsync
                         log(msg);
                         continue;
                     }
+                    if (deleted > 0)
+                        log($"{name}: cleared {deleted} cookie(s) for {hosts.Count} host(s) — {string.Join(", ", hosts)}");
                     browserTotal += deleted;
                 }
 
-                if (browserTotal > 0)
-                    log($"{name}: cleared {browserTotal} Roblox cookie(s)");
-                else if (!result.Skipped.Any(s => s.StartsWith(name)))
+                if (browserTotal == 0 && !result.Skipped.Any(s => s.StartsWith(name)))
                     log($"{name}: no Roblox cookies to clear");
 
                 result.CookiesDeleted += browserTotal;
@@ -97,7 +97,7 @@ namespace MrExStrap.Utility.BanAsync
                         continue;
 
                     result.FilesScanned++;
-                    var (deleted, error) = TryDeleteFromDb(cookieFile, FirefoxDeleteSql);
+                    var (deleted, hosts, error) = TryDeleteFromDb(cookieFile, FirefoxSelectSql, FirefoxDeleteSql);
                     if (error != null)
                     {
                         string msg = $"Firefox: skipped {Path.GetFileName(profileDir)} — {error}";
@@ -105,12 +105,12 @@ namespace MrExStrap.Utility.BanAsync
                         log(msg);
                         continue;
                     }
+                    if (deleted > 0)
+                        log($"Firefox: cleared {deleted} cookie(s) for {hosts.Count} host(s) — {string.Join(", ", hosts)}");
                     ffTotal += deleted;
                 }
 
-                if (ffTotal > 0)
-                    log($"Firefox: cleared {ffTotal} Roblox cookie(s)");
-                else if (!result.Skipped.Any(s => s.StartsWith("Firefox")))
+                if (ffTotal == 0 && !result.Skipped.Any(s => s.StartsWith("Firefox")))
                     log("Firefox: no Roblox cookies to clear");
 
                 result.CookiesDeleted += ffTotal;
@@ -173,21 +173,40 @@ namespace MrExStrap.Utility.BanAsync
             }
         }
 
+        // Patterns are anchored on purpose — the previous version used LIKE '%roblox.com%'
+        // on both sides which would also match unrelated hosts like notroblox.com,
+        // myroblox.com, or a phishing subdomain such as roblox.com.evil.net. The new
+        // shape requires either exact equality with the apex OR ending in
+        // ".roblox.com" — which is the actual cookie-host convention browsers use for
+        // subdomains and Domain-attribute cookies. False positives are not possible.
+        //
         // Chromium-family schema: table is `cookies`, hostname column is `host_key`.
-        private const string ChromiumDeleteSql =
-            "DELETE FROM cookies WHERE " +
-            "host_key LIKE '%roblox.com%' OR " +
-            "host_key LIKE '%rbxcdn.com%' OR " +
-            "host_key LIKE '%robloxlabs.com%';";
+        // host_key values look like "roblox.com" (host-only on apex) or ".roblox.com"
+        // (Domain= cookie) or "www.roblox.com" (host-only on a subdomain). All three
+        // shapes are covered by "= apex OR LIKE '%.apex'".
+        private const string ChromiumMatchClause =
+            "host_key = 'roblox.com'     OR host_key LIKE '%.roblox.com'     OR " +
+            "host_key = 'rbxcdn.com'     OR host_key LIKE '%.rbxcdn.com'     OR " +
+            "host_key = 'robloxlabs.com' OR host_key LIKE '%.robloxlabs.com'";
 
-        // Firefox schema: table is `moz_cookies`, hostname column is `host`.
-        private const string FirefoxDeleteSql =
-            "DELETE FROM moz_cookies WHERE " +
-            "host LIKE '%roblox.com%' OR " +
-            "host LIKE '%rbxcdn.com%' OR " +
-            "host LIKE '%robloxlabs.com%';";
+        private static readonly string ChromiumSelectSql =
+            $"SELECT DISTINCT host_key FROM cookies WHERE {ChromiumMatchClause};";
+        private static readonly string ChromiumDeleteSql =
+            $"DELETE FROM cookies WHERE {ChromiumMatchClause};";
 
-        private static (int Deleted, string? Error) TryDeleteFromDb(string dbPath, string sql)
+        // Firefox schema: table is `moz_cookies`, hostname column is `host`. Same
+        // host-string conventions as Chromium so we apply the same anchored pattern.
+        private const string FirefoxMatchClause =
+            "host = 'roblox.com'     OR host LIKE '%.roblox.com'     OR " +
+            "host = 'rbxcdn.com'     OR host LIKE '%.rbxcdn.com'     OR " +
+            "host = 'robloxlabs.com' OR host LIKE '%.robloxlabs.com'";
+
+        private static readonly string FirefoxSelectSql =
+            $"SELECT DISTINCT host FROM moz_cookies WHERE {FirefoxMatchClause};";
+        private static readonly string FirefoxDeleteSql =
+            $"DELETE FROM moz_cookies WHERE {FirefoxMatchClause};";
+
+        private static (int Deleted, IReadOnlyList<string> Hosts, string? Error) TryDeleteFromDb(string dbPath, string selectSql, string deleteSql)
         {
             try
             {
@@ -201,24 +220,44 @@ namespace MrExStrap.Utility.BanAsync
                 using var connection = new SqliteConnection(csb.ConnectionString);
                 connection.Open();
 
-                using var cmd = connection.CreateCommand();
-                cmd.CommandText = sql;
-                int deleted = cmd.ExecuteNonQuery();
-                return (deleted, null);
+                // 1. Pre-flight: gather the distinct hosts that the WHERE clause would match.
+                //    This is the "show me exactly what you're about to delete" pass so we can
+                //    log it before the destructive step. Same WHERE shape as the DELETE so
+                //    there's no chance of the two queries disagreeing on what matches.
+                var hosts = new List<string>();
+                using (var selectCmd = connection.CreateCommand())
+                {
+                    selectCmd.CommandText = selectSql;
+                    using var reader = selectCmd.ExecuteReader();
+                    while (reader.Read())
+                    {
+                        if (!reader.IsDBNull(0))
+                            hosts.Add(reader.GetString(0));
+                    }
+                }
+
+                if (hosts.Count == 0)
+                    return (0, hosts, null);
+
+                // 2. Destructive pass.
+                using var deleteCmd = connection.CreateCommand();
+                deleteCmd.CommandText = deleteSql;
+                int deleted = deleteCmd.ExecuteNonQuery();
+                return (deleted, hosts, null);
             }
             catch (SqliteException ex) when (ex.SqliteErrorCode == SQLITE_BUSY || ex.SqliteErrorCode == SQLITE_LOCKED)
             {
-                return (0, "browser is open, cookie file is locked. Close the browser and run again.");
+                return (0, Array.Empty<string>(), "browser is open, cookie file is locked. Close the browser and run again.");
             }
             catch (SqliteException ex) when (ex.Message.Contains("no such table", StringComparison.OrdinalIgnoreCase))
             {
                 // Profile dir exists but cookies table isn't there — likely a fresh/empty profile.
-                return (0, null);
+                return (0, Array.Empty<string>(), null);
             }
             catch (Exception ex)
             {
                 App.Logger.WriteException(LOG_IDENT + "::Delete", ex);
-                return (0, ex.Message);
+                return (0, Array.Empty<string>(), ex.Message);
             }
         }
     }
