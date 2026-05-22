@@ -67,60 +67,10 @@ jobs:
       - name: Rename binary
         run: mv release/MrExBloxstrap.exe MrExBloxstrap-${{ github.ref_name }}.exe
 
-      - name: Build portable ZIP
-        run: |
-          mkdir -p portable-build/MrExBloxstrap-Portable
-          cp MrExBloxstrap-${{ github.ref_name }}.exe portable-build/MrExBloxstrap-Portable/MrExBloxstrap.exe
-          cat > portable-build/MrExBloxstrap-Portable/portable.txt <<'EOF'
-          # MrExBloxstrap portable-mode flag.
-          #
-          # The presence of this file (named "portable.txt") is what enables portable mode.
-          # Delete this file to run as a normal install instead.
-          #
-          # By default, EVERYTHING stays in this folder — including the ~200 MB Roblox
-          # client binaries. That works but is slow on USB sticks.
-          #
-          # Optional: uncomment the line below to keep config portable (it still travels with
-          # the USB) while caching the heavy Roblox binaries to local AppData on whatever
-          # machine you plug into. Installs become much faster, at the cost of having to
-          # re-download once per new machine.
-          #
-          # cache=local
-          EOF
-          cat > portable-build/MrExBloxstrap-Portable/README.txt <<'EOF'
-          MrExBloxstrap — portable edition
-
-          This folder runs in portable mode. Keep portable.txt next to the exe
-          and all settings, logs, and downloaded Roblox versions stay in this
-          folder. Move the folder (USB stick, another PC) and your setup moves
-          with it.
-
-          OPTIONAL FAST MODE
-          Open portable.txt and uncomment the "cache=local" line. With that on,
-          settings/logs/mods/themes still travel with the folder, but the heavy
-          Roblox binaries (~200 MB per build) cache to local AppData on whatever
-          machine you plug into. Installs are MUCH faster on USB.
-
-          To switch back to a normal install, delete portable.txt and relaunch.
-          EOF
-          cd portable-build && zip -r ../MrExBloxstrap-${{ github.ref_name }}-Portable.zip MrExBloxstrap-Portable
-
-      - name: Verify portable ZIP integrity
-        run: |
-          set -e
-          zip_name="MrExBloxstrap-${{ github.ref_name }}-Portable.zip"
-          unzip -t "$zip_name"
-          listing=$(unzip -Z1 "$zip_name")
-          echo "$listing" | grep -q "MrExBloxstrap-Portable/MrExBloxstrap.exe" || { echo "::error::Portable zip is missing MrExBloxstrap.exe"; exit 1; }
-          echo "$listing" | grep -q "MrExBloxstrap-Portable/portable.txt"      || { echo "::error::Portable zip is missing portable.txt"; exit 1; }
-
       - name: Generate SHA256SUMS
         run: |
           set -e
-          sha256sum \
-            MrExBloxstrap-${{ github.ref_name }}.exe \
-            MrExBloxstrap-${{ github.ref_name }}-Portable.zip \
-            > SHA256SUMS
+          sha256sum MrExBloxstrap-${{ github.ref_name }}.exe > SHA256SUMS
           cat SHA256SUMS
 
       - name: Create release
@@ -129,6 +79,5 @@ jobs:
           draft: true
           files: |
             MrExBloxstrap-${{ github.ref_name }}.exe
-            MrExBloxstrap-${{ github.ref_name }}-Portable.zip
             SHA256SUMS
           name: MrExBloxstrap ${{ github.ref_name }}
