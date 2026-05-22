@@ -1,4 +1,6 @@
 using System.Net.Http;
+using System.Net.Sockets;
+using System.Security.Authentication;
 
 namespace MrExStrap.Utility
 {
@@ -11,6 +13,16 @@ namespace MrExStrap.Utility
 
         // Reported as (bytes downloaded so far, total bytes if known else 0).
         public readonly record struct DownloadProgress(long Downloaded, long Total);
+
+        // Outcome of an auto-update attempt. On success Started is true and Reason is null.
+        // On failure Started is false and Reason carries a human-readable explanation that the
+        // caller can drop straight into a user-facing dialog. The reason is also written to
+        // App.Logger so a support log already contains the same string the user saw.
+        public readonly record struct UpgradeResult(bool Started, string? Reason)
+        {
+            public static UpgradeResult Success() => new(true, null);
+            public static UpgradeResult Fail(string reason) => new(false, reason);
+        }
 
         // Common gate. Returns false if the auto-update path is disabled for this session:
         //   - the user turned off CheckForUpdates,
@@ -37,26 +49,37 @@ namespace MrExStrap.Utility
             release.Assets?.FirstOrDefault(a => a.Name.EndsWith(".exe", StringComparison.OrdinalIgnoreCase));
 
         // Downloads the .exe asset of the release to Paths.TempUpdates and starts it with the
-        // given args ("-upgrade" is prepended automatically). Returns true if the new process
-        // was started — the caller MUST exit on true so the new exe can take over.
-        // Returns false on any failure (already logged); caller falls through to its normal flow.
-        public static async Task<bool> DownloadAndRelaunchAsync(
+        // given args ("-upgrade" is prepended automatically). On success the new process is
+        // launched and the caller MUST exit so it can take over. On failure the result carries
+        // a human-readable Reason that callers can drop straight into a user dialog.
+        public static async Task<UpgradeResult> DownloadAndRelaunchAsync(
             GithubRelease release,
             IEnumerable<string> extraArgs,
             IProgress<DownloadProgress>? progress = null,
             CancellationToken cancellationToken = default)
         {
+            string downloadLocation = "";
             try
             {
                 var asset = PickExeAsset(release);
                 if (asset is null)
                 {
-                    App.Logger.WriteLine(LOG_IDENT, $"No .exe asset on release {release.TagName} — cannot auto-update.");
-                    return false;
+                    string reason = $"The {release.TagName} release has no .exe asset attached. Grab the installer manually from the GitHub releases page.";
+                    App.Logger.WriteLine(LOG_IDENT, reason);
+                    return UpgradeResult.Fail(reason);
                 }
 
-                string downloadLocation = Path.Combine(Paths.TempUpdates, asset.Name);
-                Directory.CreateDirectory(Paths.TempUpdates);
+                downloadLocation = Path.Combine(Paths.TempUpdates, asset.Name);
+
+                try
+                {
+                    Directory.CreateDirectory(Paths.TempUpdates);
+                }
+                catch (Exception ex)
+                {
+                    App.Logger.WriteException(LOG_IDENT + "::CreateTempDir", ex);
+                    return UpgradeResult.Fail($"Couldn't create the update folder at {Paths.TempUpdates}. {ex.GetType().Name}: {ex.Message}");
+                }
 
                 // Always truncate. The previous behaviour was to skip when the file existed,
                 // which silently ran a partial exe if a previous download was interrupted.
@@ -72,7 +95,21 @@ namespace MrExStrap.Utility
                     asset.BrowserDownloadUrl,
                     HttpCompletionOption.ResponseHeadersRead,
                     cancellationToken);
-                response.EnsureSuccessStatusCode();
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    int code = (int)response.StatusCode;
+                    string reason = code switch
+                    {
+                        403 => $"GitHub returned 403 (forbidden) downloading {asset.Name}. Your network or a firewall may be blocking the request.",
+                        404 => $"GitHub returned 404 (not found) downloading {asset.Name}. The release may have been deleted or renamed.",
+                        429 => $"GitHub returned 429 (rate limited) downloading {asset.Name}. Wait a minute and try again.",
+                        >= 500 and < 600 => $"GitHub returned {code} downloading {asset.Name}. GitHub is having issues — try again shortly.",
+                        _ => $"GitHub returned HTTP {code} downloading {asset.Name}."
+                    };
+                    App.Logger.WriteLine(LOG_IDENT, reason);
+                    return UpgradeResult.Fail(reason);
+                }
 
                 long total = response.Content.Headers.ContentLength ?? 0;
                 progress?.Report(new DownloadProgress(0, total));
@@ -119,10 +156,12 @@ namespace MrExStrap.Utility
                 // we'd App.Terminate this process before the new one fails to start.
                 if (total > 0 && totalRead != total)
                 {
-                    App.Logger.WriteLine(LOG_IDENT,
-                        $"Download size mismatch for {asset.Name}: expected {total}, got {totalRead}. Aborting relaunch.");
+                    string reason =
+                        $"Download was interrupted — got {totalRead:N0} bytes, expected {total:N0}. " +
+                        "Your connection may have dropped mid-download. Try again on a stable network.";
+                    App.Logger.WriteLine(LOG_IDENT, $"Download size mismatch for {asset.Name}: expected {total}, got {totalRead}. Aborting relaunch.");
                     try { File.Delete(downloadLocation); } catch { /* leave the truncated file, next attempt will overwrite */ }
-                    return false;
+                    return UpgradeResult.Fail(reason);
                 }
 
                 App.Logger.WriteLine(LOG_IDENT, $"Starting {release.TagName} from {downloadLocation}");
@@ -139,12 +178,85 @@ namespace MrExStrap.Utility
                 new InterProcessLock("AutoUpdater");
 
                 Process.Start(psi);
-                return true;
+                return UpgradeResult.Success();
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                return UpgradeResult.Fail("Update was cancelled.");
+            }
+            catch (TaskCanceledException ex)
+            {
+                App.Logger.WriteException(LOG_IDENT + "::Timeout", ex);
+                return UpgradeResult.Fail("Download timed out after 30 seconds. Check your connection and try again.");
+            }
+            catch (HttpRequestException ex)
+            {
+                App.Logger.WriteException(LOG_IDENT + "::Http", ex);
+                return UpgradeResult.Fail(ClassifyHttpFailure(ex));
+            }
+            catch (IOException ex)
+            {
+                App.Logger.WriteException(LOG_IDENT + "::IO", ex);
+                long? freeBytes = TryGetFreeDiskSpace(downloadLocation);
+                string diskHint = freeBytes is not null and < 250 * 1024 * 1024
+                    ? $" Only {freeBytes / (1024 * 1024)} MB free on the destination drive — the installer is ~170 MB. Clear some space and retry."
+                    : " Check disk space and whether antivirus is blocking writes to TempUpdates.";
+                return UpgradeResult.Fail($"Couldn't write the installer to disk. {ex.GetType().Name}: {ex.Message}.{diskHint}");
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                App.Logger.WriteException(LOG_IDENT + "::Access", ex);
+                return UpgradeResult.Fail($"Access denied writing to {Paths.TempUpdates}. Antivirus or folder permissions may be blocking it.");
             }
             catch (Exception ex)
             {
                 App.Logger.WriteException(LOG_IDENT + "::DownloadAndRelaunchAsync", ex);
-                return false;
+                return UpgradeResult.Fail($"{ex.GetType().Name}: {ex.Message}");
+            }
+        }
+
+        // Map common transport failures to language pointing at the cause. Mirrors the
+        // classification we do in WeaoClient for consistency.
+        private static string ClassifyHttpFailure(HttpRequestException ex)
+        {
+            var inner = ex.InnerException;
+            if (inner is AuthenticationException)
+            {
+                return "TLS handshake with GitHub failed. Antivirus HTTPS inspection or missing Windows TLS updates is the usual culprit.";
+            }
+            if (inner is SocketException sock)
+            {
+                return sock.SocketErrorCode switch
+                {
+                    SocketError.HostNotFound =>
+                        "Couldn't resolve github.com. Your DNS server may be blocking it — try switching DNS to 1.1.1.1 or 8.8.8.8.",
+                    SocketError.ConnectionRefused or SocketError.NetworkUnreachable or SocketError.HostUnreachable =>
+                        "Couldn't reach GitHub. A firewall or VPN may be blocking outbound HTTPS to github.com.",
+                    SocketError.TimedOut =>
+                        "Connection to GitHub timed out. Network is slow or being filtered silently.",
+                    _ => $"Network error contacting GitHub (socket: {sock.SocketErrorCode}). Check your connection and retry."
+                };
+            }
+            string msg = (inner?.Message ?? ex.Message).Trim();
+            return string.IsNullOrEmpty(msg)
+                ? "Network error contacting GitHub."
+                : $"Network error contacting GitHub: {msg}.";
+        }
+
+        private static long? TryGetFreeDiskSpace(string anyPathOnDrive)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(anyPathOnDrive))
+                    return null;
+                string? root = Path.GetPathRoot(Path.GetFullPath(anyPathOnDrive));
+                if (string.IsNullOrEmpty(root))
+                    return null;
+                return new DriveInfo(root).AvailableFreeSpace;
+            }
+            catch
+            {
+                return null;
             }
         }
     }

@@ -31,7 +31,12 @@ namespace MrExStrap.Utility
 
                 _loadStatus = GenericTriState.Failed;
 
-                Frontend.ShowMessageBox(Strings.Dialog_CannotCreateShortcuts, MessageBoxImage.Warning);
+                // Surface the first-time failure with the actual reason so users have
+                // something to act on. Subsequent failures in the same session stay silent
+                // (the _loadStatus guard above) to avoid spam.
+                Frontend.ShowMessageBox(
+                    $"{Strings.Dialog_CannotCreateShortcuts}\n\nReason: {ex.GetType().Name}: {ex.Message}",
+                    MessageBoxImage.Warning);
             }
         }
     }

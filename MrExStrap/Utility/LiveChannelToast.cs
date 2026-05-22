@@ -23,12 +23,19 @@ namespace MrExStrap.Utility
 
         // Failure path: the registry write or read-back didn't agree on LIVE. Always shown,
         // even if the success toast is disabled, because the user needs to know the lock
-        // promise wasn't kept this launch.
-        public static void ShowChannelLockFailed()
+        // promise wasn't kept this launch. The optional reason argument carries through the
+        // last exception/mismatch detail so the user has something to act on instead of a
+        // blanket "check the log".
+        public static void ShowChannelLockFailed(string? reason = null)
         {
+            string baseMessage = "Roblox may have launched on a non-LIVE channel. Antivirus, a Roblox manager app, or another tool may be overwriting the channel registry key.";
+            string fullMessage = string.IsNullOrEmpty(reason)
+                ? baseMessage + " Check the log for details."
+                : baseMessage + $" Reason: {reason}";
+
             ShowToast(
                 title: "Channel lock could not be verified",
-                message: "Roblox may have launched on a non-LIVE channel. Antivirus, a Roblox manager app, or another tool may be overwriting the channel registry key. Check the log for details.",
+                message: fullMessage,
                 icon: WinForms.ToolTipIcon.Warning);
         }
 

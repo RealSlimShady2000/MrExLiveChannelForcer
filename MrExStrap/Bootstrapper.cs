@@ -427,6 +427,10 @@ namespace MrExStrap
             string subKeyPath = $"SOFTWARE\\ROBLOX Corporation\\Environments\\{AppData.RegistryName}\\Channel";
             const string valueName = "www.roblox.com";
 
+            // Captured so we can forward the most informative failure to the toast instead
+            // of the user only seeing "couldn't be verified" with no detail.
+            string? lastReason = null;
+
             for (int attempt = 1; attempt <= 2; attempt++)
             {
                 try
@@ -452,16 +456,18 @@ namespace MrExStrap
                     }
 
                     App.Logger.WriteLine(LOG_IDENT, $"Verification MISMATCH on attempt {attempt}: read back '{readBack}', expected empty or '{Deployment.DefaultChannel}'");
+                    lastReason = $"another process wrote '{readBack}' back into the key";
                 }
                 catch (Exception ex)
                 {
                     App.Logger.WriteLine(LOG_IDENT, $"Registry access failed on attempt {attempt}");
                     App.Logger.WriteException(LOG_IDENT, ex);
+                    lastReason = $"{ex.GetType().Name}: {ex.Message}";
                 }
             }
 
             App.Logger.WriteLine(LOG_IDENT, "WARNING: Channel lock could not be verified after retry. Roblox will still launch.");
-            Utility.LiveChannelToast.ShowChannelLockFailed();
+            Utility.LiveChannelToast.ShowChannelLockFailed(lastReason);
         }
 
         /// <summary>
@@ -921,7 +927,13 @@ namespace MrExStrap
                     using var process = Process.GetProcessById(_appPid);
                     process.Kill();
                 }
-                catch (Exception) { }
+                catch (Exception ex)
+                {
+                    // Best-effort kill of the Roblox process we spawned. Failures here are
+                    // usually "process already exited" (ArgumentException) — benign but log
+                    // them so a real Kill failure stops being invisible during diagnostics.
+                    App.Logger.WriteException("Bootstrapper::CancelKill", ex);
+                }
             }
 
             Dialog?.CloseBootstrapper();
@@ -1061,8 +1073,14 @@ namespace MrExStrap
                 App.Logger.WriteLine(LOG_IDENT, "An exception occurred when running the auto-updater");
                 App.Logger.WriteException(LOG_IDENT, ex);
 
+                // Same idea as the menu-open update path — include the actual reason so the
+                // user has something to act on instead of "auto-update failed, sorry".
+                string reasonLine = $"Reason: {ex.GetType().Name}: {ex.Message}";
+
                 Frontend.ShowMessageBox(
-                    string.Format(Strings.Bootstrapper_AutoUpdateFailed, version),
+                    string.Format(Strings.Bootstrapper_AutoUpdateFailed, version)
+                        + "\n\n" + reasonLine
+                        + "\n\nOpening the GitHub releases page so you can grab the installer manually.",
                     MessageBoxImage.Information
                 );
 

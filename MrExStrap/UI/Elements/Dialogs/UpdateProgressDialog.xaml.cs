@@ -17,6 +17,10 @@ namespace MrExStrap.UI.Elements.Dialogs
         // the current process (App.Terminate) so the new exe takes over.
         public bool UpdateStarted { get; private set; }
 
+        // Set when UpdateStarted is false. Human-readable reason the download failed, suitable
+        // for showing directly to the user.
+        public string? FailureReason { get; private set; }
+
         public UpdateProgressDialog(GithubRelease release, IEnumerable<string> relaunchArgs)
         {
             _release = release;
@@ -33,12 +37,15 @@ namespace MrExStrap.UI.Elements.Dialogs
             try
             {
                 var progress = new Progress<AppUpdater.DownloadProgress>(ApplyProgress);
-                UpdateStarted = await AppUpdater.DownloadAndRelaunchAsync(_release, _relaunchArgs, progress);
+                var result = await AppUpdater.DownloadAndRelaunchAsync(_release, _relaunchArgs, progress);
+                UpdateStarted = result.Started;
+                FailureReason = result.Reason;
             }
             catch (Exception ex)
             {
                 App.Logger.WriteException(LOG_IDENT, ex);
                 UpdateStarted = false;
+                FailureReason = $"{ex.GetType().Name}: {ex.Message}";
             }
             finally
             {

@@ -271,8 +271,15 @@ namespace MrExStrap
 
                 if (!progressDialog.UpdateStarted)
                 {
+                    string reason = string.IsNullOrEmpty(progressDialog.FailureReason)
+                        ? "Unknown error."
+                        : progressDialog.FailureReason!;
+
                     Frontend.ShowMessageBox(
-                        $"Couldn't download {release.TagName}. Opening the menu on your current version — you can grab the update manually from the GitHub releases page.",
+                        $"Couldn't download {release.TagName}.\n\n" +
+                        $"Reason: {reason}\n\n" +
+                        "Opening the menu on your current version. You can grab the installer manually from the GitHub releases page, " +
+                        "or open Settings → Debug mode → Open log folder for the full diagnostic log.",
                         MessageBoxImage.Warning);
                     return false;
                 }

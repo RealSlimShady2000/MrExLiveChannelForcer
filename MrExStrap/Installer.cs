@@ -54,10 +54,24 @@ namespace MrExStrap
                 }
                 catch (Exception ex)
                 {
-                    App.Logger.WriteLine(LOG_IDENT, "Could not overwrite executable");
+                    App.Logger.WriteLine(LOG_IDENT, $"Could not overwrite executable at {Paths.Application}");
                     App.Logger.WriteException(LOG_IDENT, ex);
 
-                    Frontend.ShowMessageBox(Strings.Installer_Install_CannotOverwrite, MessageBoxImage.Error);
+                    // Surface the actual reason — "Couldn't overwrite the installed exe" alone
+                    // leaves the user guessing between permission denied, disk full, or path
+                    // issues. The original ex.Message is the most useful single line we can show.
+                    string hint = ex switch
+                    {
+                        UnauthorizedAccessException => "Permission denied. Try running MrExBloxstrap as administrator, or check that no antivirus is locking the install folder.",
+                        IOException io when io.HResult == unchecked((int)0x80070070) => "The target drive is out of space. Free some up and retry.",
+                        IOException => "The installed exe may be in use. Close MrExBloxstrap fully (including any background-updater process) and retry.",
+                        _ => "See the log file for the full stack trace."
+                    };
+
+                    string body = $"{Strings.Installer_Install_CannotOverwrite}\n\n" +
+                                  $"Reason: {ex.GetType().Name}: {ex.Message}\n\n{hint}";
+
+                    Frontend.ShowMessageBox(body, MessageBoxImage.Error);
                     App.Terminate(ErrorCode.ERROR_INSTALL_FAILURE);
                 }
             }
