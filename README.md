@@ -22,7 +22,7 @@ A fork of [Bloxstrap](https://github.com/bloxstraplabs/bloxstrap) hardened again
 
 ## How it compares
 
-### vs vanilla Bloxstrap (the upstream project)
+### vs vanilla / normal Bloxstrap
 
 **Pros of MrExBloxstrap**
 
@@ -36,7 +36,7 @@ A fork of [Bloxstrap](https://github.com/bloxstraplabs/bloxstrap) hardened again
 
 **Cons of MrExBloxstrap**
 
-- Smaller user base, less battle-tested than upstream
+- Smaller user base, less battle-tested than vanilla / normal Bloxstrap
 - Releases are unsigned, so Windows SmartScreen warns on first run
 - Stripped some of vanilla's polish (custom translator credits, broader theming options) to keep the surface focused
 - Built specifically for exploit/executor users — if you only play vanilla Roblox, you don't need most of this
@@ -62,7 +62,7 @@ A fork of [Bloxstrap](https://github.com/bloxstraplabs/bloxstrap) hardened again
 | --- | --- |
 | Run executors/externals and want them to keep working | **MrExBloxstrap** |
 | Want a polished player launcher with broad theme support | Fishstrap |
-| Want the official upstream with the largest user base | Bloxstrap |
+| Want the official vanilla / normal Bloxstrap with the largest user base | Bloxstrap |
 
 ---
 
@@ -141,4 +141,4 @@ vibe coded with claude.
 
 ## License
 
-[MIT](./LICENSE), inherited from [upstream Bloxstrap](https://github.com/bloxstraplabs/bloxstrap) by pizzaboxer et al. This fork's changes are © 2026 RealSlimShady2000.
+[MIT](./LICENSE), inherited from [vanilla Bloxstrap](https://github.com/bloxstraplabs/bloxstrap) by pizzaboxer et al. This fork's changes are © 2026 RealSlimShady2000.
