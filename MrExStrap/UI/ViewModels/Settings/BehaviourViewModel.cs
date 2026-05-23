@@ -8,6 +8,18 @@ namespace MrExStrap.UI.ViewModels.Settings
             set => App.Settings.Prop.ConfirmLaunches = value;
         }
 
+        public bool ShowVersionPickerOnLaunch
+        {
+            get => App.Settings.Prop.ShowVersionPickerOnLaunch;
+            set { App.Settings.Prop.ShowVersionPickerOnLaunch = value; OnPropertyChanged(nameof(ShowVersionPickerOnLaunch)); }
+        }
+
+        public bool ConfirmNonLiveLaunch
+        {
+            get => App.Settings.Prop.ConfirmNonLiveLaunch;
+            set { App.Settings.Prop.ConfirmNonLiveLaunch = value; OnPropertyChanged(nameof(ConfirmNonLiveLaunch)); }
+        }
+
         public bool BackgroundUpdates
         {
             get => App.Settings.Prop.BackgroundUpdatesEnabled;

@@ -45,6 +45,19 @@ namespace MrExStrap.Models.Persistable
         public ObservableCollection<VersionProfile> VersionProfiles { get; set; } = new();
         public string ActiveVersionProfileId { get; set; } = "";
 
+        // v420.22+: when ON, every Roblox launch through MrExBloxstrap pops a small
+        // version-picker dialog right before the bootstrapper starts (and after the
+        // VIP server picker, when that's also enabled). Saves the user a trip to
+        // the Versions Manager tab when they just want to switch executor on a
+        // single launch.
+        public bool ShowVersionPickerOnLaunch { get; set; } = false;
+
+        // v420.22+: companion toggle. When ON and the user picks (or has already
+        // active) a profile pinned to a non-LIVE Roblox build, prompt for explicit
+        // confirmation. LIVE-channel launches never prompt. Default ON because a
+        // downgrade launch is a meaningful event.
+        public bool ConfirmNonLiveLaunch { get; set; } = true;
+
         // post-launch "Channel: LIVE" toast (MrExStrap fork feature)
         public bool ShowLiveChannelToast { get; set; } = true;
 

@@ -327,6 +327,18 @@ namespace MrExStrap
 
             MaybeShowVipServerPicker(launchMode);
 
+            // Version picker (v420.22+). Pops a small "pick a version" dialog AFTER the
+            // VIP server picker so the user can switch profiles without opening the
+            // settings UI. Returns false when the user cancels the dialog — we abort
+            // the launch entirely in that case rather than silently launching whatever
+            // was active before.
+            if (!MaybeShowVersionPicker(launchMode))
+            {
+                App.Logger.WriteLine(LOG_IDENT, "Launch cancelled by user at the version picker.");
+                App.Terminate();
+                return;
+            }
+
             // start bootstrapper and show the bootstrapper modal if we're not running silently
             App.Logger.WriteLine(LOG_IDENT, "Initializing bootstrapper");
             App.Bootstrapper = new Bootstrapper(launchMode);
@@ -428,6 +440,101 @@ namespace MrExStrap
                 App.Logger.WriteLine(LOG_IDENT, "VIP picker failed; falling back to normal launch.");
                 App.Logger.WriteException(LOG_IDENT, ex);
             }
+        }
+
+        // Pre-launch hook (v420.22+): when ShowVersionPickerOnLaunch is on, pop the
+        // Versions Manager tile grid as a small modal so the user can pick which
+        // profile to launch without opening the settings UI. The selected profile
+        // becomes the active one (persisted) so it sticks for subsequent launches.
+        //
+        // Returns true if the launch should proceed (either picker disabled, user
+        // confirmed a selection, or the optional non-LIVE confirmation passed).
+        // Returns false if the user cancelled — caller App.Terminate's the launch.
+        private static bool MaybeShowVersionPicker(LaunchMode launchMode)
+        {
+            const string LOG_IDENT = "LaunchHandler::MaybeShowVersionPicker";
+
+            if (!App.Settings.Prop.ShowVersionPickerOnLaunch)
+                return true;
+
+            if (launchMode != LaunchMode.Player)
+            {
+                App.Logger.WriteLine(LOG_IDENT, $"Skipping version picker: launch mode is {launchMode}, not Player.");
+                return true;
+            }
+
+            if (App.LaunchSettings.QuietFlag.Active)
+            {
+                App.Logger.WriteLine(LOG_IDENT, "Skipping version picker: quiet flag active (silent/background launch).");
+                return true;
+            }
+
+            if (App.Settings.Prop.VersionProfiles.Count == 0)
+            {
+                App.Logger.WriteLine(LOG_IDENT, "Skipping version picker: no profiles configured.");
+                return true;
+            }
+
+            Models.Persistable.VersionProfile? picked;
+            try
+            {
+                var dialog = new UI.Elements.Dialogs.VersionPickerDialog();
+                dialog.ShowDialog();
+                picked = dialog.PickedProfile;
+            }
+            catch (Exception ex)
+            {
+                App.Logger.WriteLine(LOG_IDENT, "Version picker dialog failed; launching with the currently-active profile.");
+                App.Logger.WriteException(LOG_IDENT, ex);
+                return true;
+            }
+
+            if (picked == null)
+            {
+                App.Logger.WriteLine(LOG_IDENT, "User cancelled the version picker — aborting launch.");
+                return false;
+            }
+
+            App.Settings.Prop.ActiveVersionProfileId = picked.Id;
+            // Mirror into the legacy single-pin so downstream readers (logs, third-
+            // party consumers) see a consistent value. Built-in LIVE profile clears
+            // it; pinned profiles set it to their hash.
+            if (picked.IsBuiltIn || string.IsNullOrEmpty(picked.VersionGuid))
+            {
+                App.Settings.Prop.UseCustomVersion = false;
+                App.Settings.Prop.CustomVersionGuid = "";
+            }
+            else
+            {
+                App.Settings.Prop.UseCustomVersion = true;
+                App.Settings.Prop.CustomVersionGuid = picked.VersionGuid;
+            }
+            App.Settings.Save();
+            App.Logger.WriteLine(LOG_IDENT, $"Picker activated profile '{picked.Name}' ({picked.Id})");
+
+            // Non-LIVE confirmation: skip for built-in / empty version (which IS LIVE),
+            // skip when the toggle is off. Otherwise ask the user explicitly so they
+            // know they're launching a downgraded build.
+            if (App.Settings.Prop.ConfirmNonLiveLaunch
+                && !picked.IsBuiltIn
+                && !string.IsNullOrEmpty(picked.VersionGuid))
+            {
+                string body =
+                    $"Launching Roblox on a non-LIVE build:\n\n" +
+                    $"Profile: {picked.Name}\n" +
+                    $"Version: {picked.VersionGuid}\n\n" +
+                    "Older builds may fail to join public games and using them can violate Roblox TOS. Continue?\n\n" +
+                    "(Turn off 'Confirm non-LIVE launches' in Settings → Behaviour if you don't want this prompt next time.)";
+
+                var result = Frontend.ShowMessageBox(body, MessageBoxImage.Warning, MessageBoxButton.YesNo, MessageBoxResult.Yes);
+                if (result != MessageBoxResult.Yes)
+                {
+                    App.Logger.WriteLine(LOG_IDENT, "User declined the non-LIVE confirmation — aborting launch.");
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         public static void LaunchWatcher()

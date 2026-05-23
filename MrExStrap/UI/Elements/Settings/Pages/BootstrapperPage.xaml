@@ -17,10 +17,22 @@
     <StackPanel Margin="0,0,14,14">
         <TextBlock Margin="0,0,0,8" Text="{x:Static resources:Strings.Menu_Behaviour_Description}" FontSize="14" Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
 
-        <controls:OptionControl 
+        <controls:OptionControl
             Header="{x:Static resources:Strings.Menu_Behaviour_ConfirmLaunches_Title}"
             Description="{x:Static resources:Strings.Menu_Behaviour_ConfirmLaunches_Description}">
             <ui:ToggleSwitch IsChecked="{Binding ConfirmLaunches, Mode=TwoWay}" />
+        </controls:OptionControl>
+
+        <controls:OptionControl
+            Header="Prompt for version when launching"
+            Description="When on, every Roblox launch pops a small picker so you can choose a Versions Manager profile right before the bootstrapper starts — no trip back into the settings menu. Comes after the VIP server picker when that's enabled. Picker is skipped on quiet/silent launches and on Studio.">
+            <ui:ToggleSwitch IsChecked="{Binding ShowVersionPickerOnLaunch, Mode=TwoWay}" />
+        </controls:OptionControl>
+
+        <controls:OptionControl
+            Header="Confirm non-LIVE launches"
+            Description="When on (default), launching Roblox via a profile pinned to an older build pops a yes/no confirmation first. LIVE-channel launches never prompt. Turn this off if you're constantly switching to downgraded builds and don't want the extra click.">
+            <ui:ToggleSwitch IsChecked="{Binding ConfirmNonLiveLaunch, Mode=TwoWay}" />
         </controls:OptionControl>
 
         <controls:OptionControl 
