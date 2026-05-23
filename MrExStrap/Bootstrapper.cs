@@ -55,6 +55,74 @@ namespace MrExStrap
         private PackageManifest _versionPackageManifest = null!;
         private bool _channelFetched = false;
 
+        // Versions Manager profile that drives this launch, if any. Resolved against
+        // Settings on demand so we don't go stale if the user activates a different
+        // profile mid-launch (shouldn't happen, but cheap to re-read).
+        // Studio launches deliberately bypass profile mode — the profile system only
+        // applies to LaunchMode.Player.
+        private VersionProfile? GetActiveProfileForBootstrap()
+        {
+            if (_launchMode != LaunchMode.Player)
+                return null;
+            if (string.IsNullOrEmpty(App.Settings.Prop.ActiveVersionProfileId))
+                return null;
+            return App.Settings.Prop.VersionProfiles
+                .FirstOrDefault(p => p.Id == App.Settings.Prop.ActiveVersionProfileId);
+        }
+
+        // Profile-keyed install dir name when a profile is active, else fall back to
+        // the legacy version-hash-keyed name for Studio launches and users who never
+        // touched the Versions Manager tab.
+        private string ComputeInstallDirName()
+        {
+            var profile = GetActiveProfileForBootstrap();
+            if (profile != null)
+                return "profile-" + profile.Id;
+            return _latestVersionGuid;
+        }
+
+        // First-launch upgrade helper. If the active profile has no per-profile dir
+        // yet but the legacy version-hash-keyed dir from v420.19 still has the right
+        // version installed, MOVE it into the profile dir (zero copy, instant). Skips
+        // the move when another profile would also want that exact version, since the
+        // first launch would otherwise steal the dir out from under the second.
+        private void MigrateLegacyVersionDirIfApplicable()
+        {
+            const string LOG_IDENT = "Bootstrapper::MigrateLegacyVersionDirIfApplicable";
+
+            var profile = GetActiveProfileForBootstrap();
+            if (profile == null)
+                return;
+
+            if (Directory.Exists(_latestVersionDirectory))
+                return; // profile dir already exists, nothing to migrate
+
+            string legacyDir = Path.Combine(Paths.Versions, _latestVersionGuid);
+            if (!Directory.Exists(legacyDir))
+                return;
+
+            bool otherProfileWantsSameVersion = App.Settings.Prop.VersionProfiles
+                .Any(p => p.Id != profile.Id
+                       && string.Equals(p.VersionGuid, _latestVersionGuid, StringComparison.OrdinalIgnoreCase));
+            if (otherProfileWantsSameVersion)
+            {
+                App.Logger.WriteLine(LOG_IDENT, $"Not claiming legacy dir {legacyDir} — another profile also wants {_latestVersionGuid}");
+                return;
+            }
+
+            try
+            {
+                Directory.Move(legacyDir, _latestVersionDirectory);
+                profile.InstalledVersionGuid = _latestVersionGuid;
+                App.Settings.Save();
+                App.Logger.WriteLine(LOG_IDENT, $"Moved legacy install {legacyDir} -> {_latestVersionDirectory} (saved a redownload)");
+            }
+            catch (Exception ex)
+            {
+                App.Logger.WriteException(LOG_IDENT, ex);
+            }
+        }
+
         private bool _isInstalling = false;
         private double _progressIncrement;
         private double _taskbarProgressIncrement;
@@ -344,7 +412,15 @@ namespace MrExStrap
 
             if (!_noConnection)
             {
-                if (AppData.DistributionState.VersionGuid != _latestVersionGuid || _mustUpgrade)
+                // v420.20: when a Versions Manager profile is driving this launch, the
+                // "currently installed version" lives on the profile itself rather than
+                // the global DistributionState — that way two profiles whose Roblox
+                // hashes happen to match still install into separate dirs and the
+                // up-to-date check stays accurate per profile.
+                string installedForThisLaunch = GetActiveProfileForBootstrap()?.InstalledVersionGuid
+                                                ?? AppData.DistributionState.VersionGuid;
+
+                if (installedForThisLaunch != _latestVersionGuid || _mustUpgrade)
                 {
                     bool backgroundUpdaterMutexOpen = !App.LaunchSettings.BackgroundUpdaterFlag.Active && Utilities.DoesMutexExist(BackgroundUpdaterMutexName);
 
@@ -583,7 +659,21 @@ namespace MrExStrap
                 _latestVersionGuid = newVersionGuid!;
                 _latestVersion = newVersion;
 
-                _latestVersionDirectory = Path.Combine(Paths.Versions, _latestVersionGuid);
+                // v420.20: install dir is keyed by profile id (when a Versions Manager
+                // profile is active) rather than by Roblox version hash. Reason: two
+                // profiles whose hashes match would have shared one dir under the old
+                // scheme, so any executor DLL / mod dropped into the folder leaked
+                // between them. Per-profile dirs keep each profile's files isolated.
+                _latestVersionDirectory = Path.Combine(Paths.Versions, ComputeInstallDirName());
+
+                // First-launch grace: if the user is upgrading from v420.19 the active
+                // profile probably has no per-profile dir yet, but the legacy version-
+                // hash-keyed dir from before is sitting there with the right bytes.
+                // Rename it into the new layout so we skip a ~700 MB redownload. Only
+                // safe when no OTHER profile would also want that exact same version
+                // hash — otherwise the second profile would steal the first profile's
+                // install on its next launch.
+                MigrateLegacyVersionDirIfApplicable();
 
                 string pkgManifestUrl = Deployment.GetLocation($"/{_latestVersionGuid}-rbxPkgManifest.txt");
                 var pkgManifestData = await App.HttpClient.GetStringAsync(pkgManifestUrl);
@@ -1157,7 +1247,17 @@ namespace MrExStrap
             // v420.19+: keep installs that any Versions Manager profile references. The
             // user explicitly asked for "all my profiles installed at the same time", so
             // we don't want the post-launch cleanup to evict a different profile's build.
-            var profileGuids = new HashSet<string>(
+            //
+            // Two naming schemes to preserve:
+            //   - "profile-<id>"     — v420.20+ per-profile dirs (current scheme)
+            //   - "version-<hash>"   — pre-v420.20 shared dirs that the migration step
+            //                          may not have moved yet (e.g. because another
+            //                          profile also wants that hash and we left it
+            //                          alone)
+            var profileDirNames = new HashSet<string>(
+                App.Settings.Prop.VersionProfiles.Select(p => "profile-" + p.Id),
+                StringComparer.OrdinalIgnoreCase);
+            var profileVersionGuids = new HashSet<string>(
                 App.Settings.Prop.VersionProfiles
                     .Select(p => p.VersionGuid)
                     .Where(g => !string.IsNullOrEmpty(g)),
@@ -1167,7 +1267,7 @@ namespace MrExStrap
             {
                 string dirName = Path.GetFileName(dir);
 
-                bool referencedByProfile = profileGuids.Contains(dirName);
+                bool referencedByProfile = profileDirNames.Contains(dirName) || profileVersionGuids.Contains(dirName);
 
                 if (dirName != App.PlayerState.Prop.VersionGuid
                     && dirName != App.StudioState.Prop.VersionGuid
@@ -1473,6 +1573,18 @@ namespace MrExStrap
             MigrateCompatibilityFlags();
 
             AppData.DistributionState.VersionGuid = _latestVersionGuid;
+
+            // v420.20: mirror the installed version onto the active Versions Manager
+            // profile so the per-launch up-to-date check stays accurate per profile.
+            // Without this the next launch would compare the global state against the
+            // wanted version and skip the install even though THIS profile's dir is
+            // empty / stale.
+            var bootstrapProfile = GetActiveProfileForBootstrap();
+            if (bootstrapProfile != null)
+            {
+                bootstrapProfile.InstalledVersionGuid = _latestVersionGuid;
+                App.Settings.Save();
+            }
 
             AppData.DistributionState.PackageHashes.Clear();
 

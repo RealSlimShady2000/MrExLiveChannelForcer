@@ -29,6 +29,13 @@ namespace MrExStrap.Models.Persistable
         // so users can't accidentally remove the always-LIVE fallback.
         public bool IsBuiltIn { get; set; }
 
+        // Version hash currently materialised on disk inside Versions/profile-&lt;Id&gt;.
+        // Distinct from VersionGuid above: VersionGuid is what the user WANTS (empty
+        // for "always LIVE"), InstalledVersionGuid is what's actually present in the
+        // profile's install dir. Used so the launch path knows whether to redownload
+        // when the active profile changes or LIVE moves under the built-in profile.
+        public string InstalledVersionGuid { get; set; } = "";
+
         public DateTime CreatedUtc { get; set; } = DateTime.UtcNow;
     }
 }
