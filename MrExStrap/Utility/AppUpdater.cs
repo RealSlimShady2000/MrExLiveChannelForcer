@@ -114,41 +114,51 @@ namespace MrExStrap.Utility
                 long total = response.Content.Headers.ContentLength ?? 0;
                 progress?.Report(new DownloadProgress(0, total));
 
-                await using var fileStream = new FileStream(downloadLocation, FileMode.Create, FileAccess.Write);
-                await using var contentStream = await response.Content.ReadAsStreamAsync(cancellationToken);
-
-                byte[] buffer = new byte[81920];
                 long totalRead = 0;
-                int lastReportedPercent = -1;
 
-                while (true)
+                // IMPORTANT: write the download inside its own scope so the FileStream is
+                // disposed BEFORE the Process.Start call below. Without this scope the
+                // `await using var fileStream` lives until the end of the try block, so
+                // when we try to launch the freshly-written exe, Windows refuses with
+                // ERROR_SHARING_VIOLATION (Win32 32) because our handle is still open and
+                // FileStream's default sharing mode is None. Took out v420.15→v420.16
+                // auto-updates until this scoping fix landed in v420.17.
                 {
-                    int read = await contentStream.ReadAsync(buffer.AsMemory(0, buffer.Length), cancellationToken);
-                    if (read == 0)
-                        break;
+                    await using var fileStream = new FileStream(downloadLocation, FileMode.Create, FileAccess.Write);
+                    await using var contentStream = await response.Content.ReadAsStreamAsync(cancellationToken);
 
-                    await fileStream.WriteAsync(buffer.AsMemory(0, read), cancellationToken);
-                    totalRead += read;
+                    byte[] buffer = new byte[81920];
+                    int lastReportedPercent = -1;
 
-                    if (progress != null)
+                    while (true)
                     {
-                        // Throttle: only report when the integer percent changes (or every chunk if
-                        // total is unknown). Avoids hammering the UI dispatcher on a fast LAN.
-                        if (total > 0)
+                        int read = await contentStream.ReadAsync(buffer.AsMemory(0, buffer.Length), cancellationToken);
+                        if (read == 0)
+                            break;
+
+                        await fileStream.WriteAsync(buffer.AsMemory(0, read), cancellationToken);
+                        totalRead += read;
+
+                        if (progress != null)
                         {
-                            int pct = (int)(totalRead * 100 / total);
-                            if (pct != lastReportedPercent)
+                            // Throttle: only report when the integer percent changes (or every chunk if
+                            // total is unknown). Avoids hammering the UI dispatcher on a fast LAN.
+                            if (total > 0)
                             {
-                                progress.Report(new DownloadProgress(totalRead, total));
-                                lastReportedPercent = pct;
+                                int pct = (int)(totalRead * 100 / total);
+                                if (pct != lastReportedPercent)
+                                {
+                                    progress.Report(new DownloadProgress(totalRead, total));
+                                    lastReportedPercent = pct;
+                                }
+                            }
+                            else
+                            {
+                                progress.Report(new DownloadProgress(totalRead, 0));
                             }
                         }
-                        else
-                        {
-                            progress.Report(new DownloadProgress(totalRead, 0));
-                        }
                     }
-                }
+                } // <-- fileStream + contentStream are now disposed, handle released
 
                 // Verify the downloaded bytes match the advertised Content-Length. A partial
                 // response that ends cleanly (bad proxy, dropped connection that the stream
