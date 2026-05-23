@@ -20,18 +20,30 @@
                    Foreground="{DynamicResource TextFillColorSecondaryBrush}"
                    Text="Trace cleanup, network adapter MAC spoofing, and MachineGuid randomization. Aimed at the same surface Roblox's BanAsync detection looks at. Use at your own risk on your own machine." />
 
-        <!-- Elevation banner -->
+        <!-- Elevation banner — visible when MrExBloxstrap is NOT running as administrator.
+             The "Relaunch as administrator" button re-spawns the current exe with the
+             runas verb so Windows pops the UAC prompt for the user. -->
         <Border Margin="0,0,0,8" Padding="12,10" CornerRadius="4"
                 Background="{DynamicResource SystemFillColorCautionBackgroundBrush}"
                 BorderBrush="{DynamicResource SystemFillColorCautionBrush}"
                 BorderThickness="0,0,0,2"
                 Visibility="{Binding ElevationWarningVisibility, Mode=OneTime}">
-            <StackPanel Orientation="Horizontal">
-                <ui:SymbolIcon Symbol="Warning24" FontSize="20" Margin="0,0,10,0" VerticalAlignment="Center" />
-                <TextBlock TextWrapping="Wrap" VerticalAlignment="Center"
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <ui:SymbolIcon Grid.Column="0" Symbol="Warning24" FontSize="20"
+                               Margin="0,0,10,0" VerticalAlignment="Center" />
+                <TextBlock Grid.Column="1" TextWrapping="Wrap" VerticalAlignment="Center"
                            Text="{Binding ElevationStatusText, Mode=OneTime}"
                            Foreground="{DynamicResource TextFillColorPrimaryBrush}" FontSize="12" />
-            </StackPanel>
+                <ui:Button Grid.Column="2" Margin="12,0,0,0" MinWidth="200"
+                           Icon="ShieldKeyhole24" Content="Relaunch as administrator"
+                           Appearance="Primary"
+                           Command="{Binding RelaunchAsAdminCommand, Mode=OneTime}" />
+            </Grid>
         </Border>
 
         <Border Margin="0,0,0,8" Padding="12,10" CornerRadius="4"
@@ -160,15 +172,21 @@
                            Text="Simple mode will randomize every detected adapter's MAC in one pass. Toggle Advanced mode above to pick a specific adapter or type a MAC yourself." />
             </Border>
 
-            <!-- Action buttons — admin-only -->
+            <!-- Action buttons — admin-only. ToolTipService.ShowOnDisabled keeps the
+                 tooltip visible when greyed out so the user understands WHY they can't
+                 click instead of staring at a dead button. -->
             <StackPanel Orientation="Horizontal" Margin="0,12,0,0"
                         IsEnabled="{Binding IsElevated, Mode=OneTime}">
                 <ui:Button MinWidth="140" Icon="Connector24" Content="Spoof MAC"
                            Appearance="Primary"
-                           Command="{Binding SpoofCommand, Mode=OneTime}" />
+                           Command="{Binding SpoofCommand, Mode=OneTime}"
+                           ToolTipService.ShowOnDisabled="True"
+                           ToolTip="Writes the new MAC to the adapter's NetworkAddress registry value. Requires administrator privileges — use the 'Relaunch as administrator' button at the top of this page if disabled." />
                 <ui:Button MinWidth="140" Margin="8,0,0,0" Icon="ArrowUndo24" Content="Revert MAC"
                            Appearance="Danger"
-                           Command="{Binding RevertCommand, Mode=OneTime}" />
+                           Command="{Binding RevertCommand, Mode=OneTime}"
+                           ToolTipService.ShowOnDisabled="True"
+                           ToolTip="Clears the registry MAC override so Windows uses the hardware MAC again. Requires administrator privileges." />
             </StackPanel>
 
         </StackPanel>
@@ -215,9 +233,13 @@
                     IsEnabled="{Binding MachineGuidActionsEnabled, Mode=OneWay}">
             <ui:Button MinWidth="180" Icon="Sparkle24" Content="Randomize MachineGuid"
                        Appearance="Primary"
-                       Command="{Binding RandomizeMachineGuidCommand, Mode=OneTime}" />
+                       Command="{Binding RandomizeMachineGuidCommand, Mode=OneTime}"
+                       ToolTipService.ShowOnDisabled="True"
+                       ToolTip="Writes a new random GUID to HKLM\SOFTWARE\Microsoft\Cryptography\MachineGuid. Requires administrator privileges AND the 'I understand the risk' toggle above." />
             <ui:Button MinWidth="180" Margin="8,0,0,0" Icon="ArrowUndo24" Content="Restore original"
-                       Command="{Binding RestoreMachineGuidCommand, Mode=OneTime}" />
+                       Command="{Binding RestoreMachineGuidCommand, Mode=OneTime}"
+                       ToolTipService.ShowOnDisabled="True"
+                       ToolTip="Writes the original MachineGuid (saved on the first randomize) back to the registry. Requires administrator privileges AND the 'I understand the risk' toggle above." />
         </StackPanel>
 
         <!-- ===== Activity log ===== -->

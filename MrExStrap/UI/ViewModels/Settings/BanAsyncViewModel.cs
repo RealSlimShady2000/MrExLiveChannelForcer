@@ -163,6 +163,8 @@ namespace MrExStrap.UI.ViewModels.Settings
 
         // ---- commands -----------------------------------------------------------------
 
+        public ICommand RelaunchAsAdminCommand => new RelayCommand(RelaunchAsAdmin);
+
         public ICommand RefreshAdaptersCommand => new RelayCommand(RefreshAdapters);
         public ICommand CleanTracesCommand => new AsyncRelayCommand(CleanTracesAsync);
         public ICommand SpoofCommand => new AsyncRelayCommand(SpoofAsync);
@@ -427,6 +429,43 @@ namespace MrExStrap.UI.ViewModels.Settings
             catch
             {
                 return false;
+            }
+        }
+
+        // Re-launch the current MrExBloxstrap exe with the "runas" verb so Windows pops a
+        // UAC prompt. The new elevated process opens the menu directly (-menu) and the
+        // current one exits, so the user can go straight to BanAsync with full privileges
+        // instead of being told to "close MrExBloxstrap and right-click the exe yourself".
+        private void RelaunchAsAdmin()
+        {
+            const string LOG_IDENT = "BanAsyncViewModel::RelaunchAsAdmin";
+            try
+            {
+                var psi = new ProcessStartInfo
+                {
+                    FileName = Paths.Process,
+                    UseShellExecute = true,
+                    Verb = "runas",
+                    Arguments = "-menu",
+                };
+                Process.Start(psi);
+                App.Logger.WriteLine(LOG_IDENT, "Spawned elevated instance, terminating current process.");
+                App.Terminate();
+            }
+            catch (System.ComponentModel.Win32Exception ex) when (ex.NativeErrorCode == 1223)
+            {
+                // 1223 = ERROR_CANCELLED. User dismissed the UAC prompt — stay on the
+                // current non-elevated page instead of exiting on their behalf.
+                App.Logger.WriteLine(LOG_IDENT, "UAC prompt was cancelled — staying on current process.");
+            }
+            catch (Exception ex)
+            {
+                App.Logger.WriteException(LOG_IDENT, ex);
+                Frontend.ShowMessageBox(
+                    $"Couldn't relaunch as administrator.\n\n" +
+                    $"Reason: {ex.GetType().Name}: {ex.Message}\n\n" +
+                    "Close MrExBloxstrap and right-click the exe → 'Run as administrator' instead.",
+                    MessageBoxImage.Warning);
             }
         }
     }
