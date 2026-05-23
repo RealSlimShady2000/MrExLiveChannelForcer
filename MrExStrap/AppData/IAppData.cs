@@ -16,6 +16,13 @@ namespace MrExStrap.AppData
 
         string ExecutablePath { get; }
 
+        // When set to a non-empty path, Directory returns this verbatim instead of
+        // building one from Paths.Versions + DistributionState.VersionGuid. Used by
+        // the Versions Manager (v420.20+) to point AppData at a per-profile install
+        // dir without rewriting DistributionState (which still holds the actual
+        // Roblox version hash).
+        string? InstallDirectoryOverride { get; set; }
+
         JsonManager<DistributionState> DistributionStateManager { get; }
 
         DistributionState DistributionState { get; }

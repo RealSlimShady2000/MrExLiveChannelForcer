@@ -43,7 +43,16 @@ namespace MrExStrap.AppData
 
         public virtual string ExecutableName { get; } = null!;
 
-        public string Directory => Path.Combine(Paths.Versions, DistributionState.VersionGuid);
+        // Override set by Bootstrapper when a Versions Manager profile is active:
+        // Versions\profile-<id>\ instead of the legacy Versions\version-<hash>\.
+        // Without this, Process.Start / File operations would still target the old
+        // dir while the actual install lives in the per-profile dir, crashing the
+        // launch at StartRoblox.
+        public string? InstallDirectoryOverride { get; set; }
+
+        public string Directory => !string.IsNullOrEmpty(InstallDirectoryOverride)
+            ? InstallDirectoryOverride!
+            : Path.Combine(Paths.Versions, DistributionState.VersionGuid);
 
         public string ExecutablePath => Path.Combine(Directory, ExecutableName);
 

@@ -666,6 +666,14 @@ namespace MrExStrap
                 // between them. Per-profile dirs keep each profile's files isolated.
                 _latestVersionDirectory = Path.Combine(Paths.Versions, ComputeInstallDirName());
 
+                // v420.21 fix: also push the chosen dir into AppData so every consumer
+                // that reads AppData.ExecutablePath / AppData.Directory sees the same
+                // path as _latestVersionDirectory. Without this, AppData kept using
+                // Versions\<version-guid>\ and Process.Start in StartRoblox crashed
+                // with DirectoryNotFoundException because the install actually lived
+                // in Versions\profile-<id>\.
+                AppData.InstallDirectoryOverride = _latestVersionDirectory;
+
                 // First-launch grace: if the user is upgrading from v420.19 the active
                 // profile probably has no per-profile dir yet, but the legacy version-
                 // hash-keyed dir from before is sitting there with the right bytes.
@@ -887,8 +895,20 @@ namespace MrExStrap
             }
             catch (Exception)
             {
-                // attempt a reinstall on next launch
-                File.Delete(AppData.ExecutablePath);
+                // Attempt a reinstall on next launch by deleting the exe so the package
+                // pass redownloads it. Defensive try/catch so a missing exe (or parent
+                // dir) doesn't replace the original Process.Start exception with a
+                // misleading DirectoryNotFoundException — the user needs to see WHY
+                // the launch actually failed.
+                try
+                {
+                    if (File.Exists(AppData.ExecutablePath))
+                        File.Delete(AppData.ExecutablePath);
+                }
+                catch (Exception cleanupEx)
+                {
+                    App.Logger.WriteException("Bootstrapper::StartRoblox::CleanupDelete", cleanupEx);
+                }
                 throw;
             }
 
