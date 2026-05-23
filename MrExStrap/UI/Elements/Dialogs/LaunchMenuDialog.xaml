@@ -59,6 +59,41 @@
                     <ui:Hyperlink Icon="QuestionCircle48" Content="{x:Static resources:Strings.About_Title}" Command="{Binding LaunchAboutCommand, Mode=OneTime}" HorizontalAlignment="Center" />
                     <ui:Hyperlink Icon="PeopleCommunity28" Content="Roblox Exploit Community" NavigateUri="https://robloxscripts.com/" HorizontalAlignment="Center" />
                     <ui:Hyperlink Icon="PlayCircle28" Content="Mr Exploit's YouTube" NavigateUri="https://www.youtube.com/@RealMrExploit-f5h" HorizontalAlignment="Center" />
+
+                    <!-- RSWARE.STORE CTA banner. Clickable area is the whole border via the
+                         MouseBinding below — Cursor=Hand gives the visual cue. Style trigger
+                         brightens the background on hover. -->
+                    <Border Margin="12,16,12,4" Padding="14,12" CornerRadius="6"
+                            BorderBrush="#3B82F6" BorderThickness="1"
+                            Cursor="Hand">
+                        <Border.Style>
+                            <Style TargetType="Border">
+                                <Setter Property="Background" Value="#143B82F6" />
+                                <Style.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter Property="Background" Value="#2A3B82F6" />
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Border.Style>
+                        <Border.InputBindings>
+                            <MouseBinding MouseAction="LeftClick"
+                                          Command="models:GlobalViewModel.OpenWebpageCommand"
+                                          CommandParameter="https://rsware.store/" />
+                        </Border.InputBindings>
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center"
+                                    ToolTip="https://rsware.store/">
+                            <ui:SymbolIcon Symbol="ShoppingBag24" FontSize="22"
+                                           Foreground="#3B82F6"
+                                           Margin="0,0,10,0" VerticalAlignment="Center" />
+                            <TextBlock VerticalAlignment="Center" TextAlignment="Center"
+                                       Foreground="#3B82F6" TextWrapping="Wrap" MaxWidth="200">
+                                <Run FontSize="15" FontWeight="Bold">RSWARE.STORE</Run>
+                                <LineBreak />
+                                <Run FontSize="11" FontWeight="SemiBold">BUY ROBLOX EXECUTORS &amp; EXTERNALS HERE</Run>
+                            </TextBlock>
+                        </StackPanel>
+                    </Border>
                 </StackPanel>
             </Grid>
 
