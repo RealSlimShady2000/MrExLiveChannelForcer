@@ -38,6 +38,13 @@ namespace MrExStrap.Models.Persistable
         public bool UseCustomVersion { get; set; } = false;
         public string CustomVersionGuid { get; set; } = "";
 
+        // Versions Manager (v420.19+). Multiple named profiles each pointing at a
+        // Roblox version hash. ActiveVersionProfileId picks which one applies on
+        // launch — the legacy UseCustomVersion / CustomVersionGuid pair above
+        // remains as a fallback only for users who never touched the new tab.
+        public ObservableCollection<VersionProfile> VersionProfiles { get; set; } = new();
+        public string ActiveVersionProfileId { get; set; } = "";
+
         // post-launch "Channel: LIVE" toast (MrExStrap fork feature)
         public bool ShowLiveChannelToast { get; set; } = true;
 

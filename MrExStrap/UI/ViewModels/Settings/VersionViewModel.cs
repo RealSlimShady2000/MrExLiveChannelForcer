@@ -114,6 +114,7 @@ namespace MrExStrap.UI.ViewModels.Settings
                     CustomVersionGuid = value.RbxVersion;
                     UseCustomVersion = true;
                     RememberHash(value.RbxVersion);
+                    SyncDowngradePinToVersionsManager(value.RbxVersion, value.Title, value.Title, value.Slug?.Logo);
 
                     string upToDate = value.UpdateStatus ? "up-to-date" : "OUT OF DATE";
                     string detection = value.Detected ? "DETECTED" : "undetected";
@@ -172,6 +173,7 @@ namespace MrExStrap.UI.ViewModels.Settings
                 {
                     CustomVersionGuid = value;
                     UseCustomVersion = true;
+                    SyncDowngradePinToVersionsManager(value, "Recent pin", executorTitle: null, logoUrl: null);
                     SetStatus($"Loaded {value} from recent list. Click Verify to confirm it still exists.", NeutralBrush);
                 }
             }
@@ -249,6 +251,7 @@ namespace MrExStrap.UI.ViewModels.Settings
             CustomVersionGuid = LiveHash;
             UseCustomVersion = true;
             RememberHash(LiveHash);
+            SyncDowngradePinToVersionsManager(LiveHash, "Pinned LIVE", executorTitle: null, logoUrl: null);
             OnPropertyChanged(nameof(ShowLiveUpdateBanner));
             SetStatus($"Pin updated to current LIVE: {LiveHash}.", OkBrush);
         }
@@ -379,7 +382,60 @@ namespace MrExStrap.UI.ViewModels.Settings
             CustomVersionGuid = LiveHash;
             UseCustomVersion = true;
             RememberHash(LiveHash);
+            SyncDowngradePinToVersionsManager(LiveHash, "Pinned LIVE", executorTitle: null, logoUrl: null);
             SetStatus($"Pinned to current LIVE: {LiveHash}.", OkBrush);
+        }
+
+        // v420.19+: when the Downgrading tab pins a version, mirror it into Versions Manager
+        // as an auto-named profile and set it active. Keeps the two tabs from getting out of
+        // sync (and from the launch path quietly preferring one over the other).
+        private static void SyncDowngradePinToVersionsManager(string versionGuid, string defaultName, string? executorTitle, string? logoUrl)
+        {
+            try
+            {
+                if (!VersionGuidValidator.IsWellFormed(versionGuid))
+                    return;
+
+                var existing = App.Settings.Prop.VersionProfiles
+                    .FirstOrDefault(p => string.Equals(p.VersionGuid, versionGuid, StringComparison.OrdinalIgnoreCase));
+                if (existing == null)
+                {
+                    existing = new VersionProfile
+                    {
+                        Name = string.IsNullOrEmpty(executorTitle) ? $"{defaultName} ({versionGuid.Substring(0, 12)}…)" : executorTitle!,
+                        VersionGuid = versionGuid,
+                        ExecutorTitle = executorTitle,
+                        ExecutorLogoUrl = logoUrl
+                    };
+                    App.Settings.Prop.VersionProfiles.Add(existing);
+                }
+                else if (!string.IsNullOrEmpty(logoUrl) && string.IsNullOrEmpty(existing.ExecutorLogoUrl))
+                {
+                    existing.ExecutorLogoUrl = logoUrl;
+                    existing.ExecutorTitle ??= executorTitle;
+                }
+
+                App.Settings.Prop.ActiveVersionProfileId = existing.Id;
+                App.Logger.WriteLine("VersionViewModel::SyncDowngradePinToVersionsManager", $"Mirrored Downgrading pin into profile '{existing.Name}' ({existing.Id})");
+            }
+            catch (Exception ex)
+            {
+                App.Logger.WriteException("VersionViewModel::SyncDowngradePinToVersionsManager", ex);
+            }
+        }
+
+        private static void ResetVersionsManagerToLive()
+        {
+            try
+            {
+                var live = App.Settings.Prop.VersionProfiles.FirstOrDefault(p => p.Id == App.LiveBuiltInProfileId);
+                if (live != null)
+                    App.Settings.Prop.ActiveVersionProfileId = live.Id;
+            }
+            catch (Exception ex)
+            {
+                App.Logger.WriteException("VersionViewModel::ResetVersionsManagerToLive", ex);
+            }
         }
 
         private void CopyLiveHash()
@@ -467,6 +523,7 @@ namespace MrExStrap.UI.ViewModels.Settings
             SelectedExploit = null;
             UseCustomVersion = false;
             CustomVersionGuid = "";
+            ResetVersionsManagerToLive();
         }
 
         private void RefreshStatusFromCurrentInput()

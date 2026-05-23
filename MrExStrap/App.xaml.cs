@@ -113,6 +113,52 @@ namespace MrExStrap
             Environment.Exit(exitCodeNum);
         }
 
+        // Built-in Versions Manager profile id used by the seed "Latest LIVE" entry.
+        // Stable string so user state persists across upgrades.
+        public const string LiveBuiltInProfileId = "live-builtin";
+
+        private static void MigrateVersionProfilesIfNeeded()
+        {
+            const string LOG_IDENT = "App::MigrateVersionProfilesIfNeeded";
+            try
+            {
+                if (Settings.Prop.VersionProfiles.Count > 0)
+                    return; // already migrated or user has been here before
+
+                Settings.Prop.VersionProfiles.Add(new VersionProfile
+                {
+                    Id = LiveBuiltInProfileId,
+                    Name = "Latest LIVE",
+                    VersionGuid = "",
+                    IsBuiltIn = true
+                });
+
+                if (Settings.Prop.UseCustomVersion
+                    && Utility.VersionGuidValidator.IsWellFormed(Settings.Prop.CustomVersionGuid))
+                {
+                    var migrated = new VersionProfile
+                    {
+                        Name = "Migrated pin",
+                        VersionGuid = Settings.Prop.CustomVersionGuid
+                    };
+                    Settings.Prop.VersionProfiles.Add(migrated);
+                    Settings.Prop.ActiveVersionProfileId = migrated.Id;
+                    Logger.WriteLine(LOG_IDENT, $"Migrated existing pin {Settings.Prop.CustomVersionGuid} into profile {migrated.Id}");
+                }
+                else
+                {
+                    Settings.Prop.ActiveVersionProfileId = LiveBuiltInProfileId;
+                }
+
+                Settings.Save();
+                Logger.WriteLine(LOG_IDENT, $"Seeded VersionProfiles; active = {Settings.Prop.ActiveVersionProfileId}");
+            }
+            catch (Exception ex)
+            {
+                Logger.WriteException(LOG_IDENT, ex);
+            }
+        }
+
         public static void SoftTerminate(ErrorCode exitCode = ErrorCode.ERROR_SUCCESS)
         {
             int exitCodeNum = (int)exitCode;
@@ -435,6 +481,13 @@ namespace MrExStrap
                     Settings.Prop.Locale = "nil";
                     Settings.Save();
                 }
+
+                // Versions Manager (v420.19+) migration. Run after Settings is loaded.
+                // Seed a built-in "Latest LIVE" profile so the Versions Manager tab is
+                // never empty. If the user previously pinned a custom version via the
+                // Downgrading tab, carry that over as a "Migrated" profile and set it
+                // active so launch behaviour doesn't silently change under their feet.
+                MigrateVersionProfilesIfNeeded();
 
                 Logger.WriteLine(LOG_IDENT, $"Developer mode: {Settings.Prop.DeveloperMode}");
                 Logger.WriteLine(LOG_IDENT, $"Web environment: {Settings.Prop.WebEnvironment}");

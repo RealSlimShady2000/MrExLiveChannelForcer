@@ -488,14 +488,38 @@ namespace MrExStrap
 
             // Version-resolution priority:
             //   1. CLI --version flag (session-scoped override)
-            //   2. Settings.UseCustomVersion + CustomVersionGuid (MrExStrap downgrade feature, persisted)
-            //   3. Fetch latest from clientsettingscdn
+            //   2. Versions Manager active profile (v420.19+) — preferred when set
+            //   3. Settings.UseCustomVersion + CustomVersionGuid (legacy single-pin) — fallback only
+            //   4. Fetch latest from clientsettingscdn
             // UpdateChannelRegistry() is called in every branch — channel lock must stay active
             // regardless of which version we're launching.
 
             bool cliVersion = App.LaunchSettings.VersionFlag.Active && !string.IsNullOrEmpty(App.LaunchSettings.VersionFlag.Data);
-            bool pinnedVersion = App.Settings.Prop.UseCustomVersion
-                && Utility.VersionGuidValidator.IsWellFormed(App.Settings.Prop.CustomVersionGuid);
+
+            // Resolve the active Versions Manager profile, if any.
+            string? activeProfileGuid = null;
+            string? activeProfileName = null;
+            if (!string.IsNullOrEmpty(App.Settings.Prop.ActiveVersionProfileId))
+            {
+                var profile = App.Settings.Prop.VersionProfiles
+                    .FirstOrDefault(p => p.Id == App.Settings.Prop.ActiveVersionProfileId);
+                if (profile != null
+                    && !string.IsNullOrEmpty(profile.VersionGuid)
+                    && Utility.VersionGuidValidator.IsWellFormed(profile.VersionGuid))
+                {
+                    activeProfileGuid = profile.VersionGuid;
+                    activeProfileName = profile.Name;
+                }
+            }
+
+            bool pinnedVersion = activeProfileGuid != null
+                || (App.Settings.Prop.UseCustomVersion
+                    && Utility.VersionGuidValidator.IsWellFormed(App.Settings.Prop.CustomVersionGuid));
+
+            string pinnedGuid = activeProfileGuid ?? App.Settings.Prop.CustomVersionGuid;
+            string pinnedSource = activeProfileGuid != null
+                ? $"Versions Manager profile '{activeProfileName}'"
+                : "Downgrading single-pin";
 
             // Captured for the downgrade-badge comparison further down. In the no-pin/no-CLI
             // branch we already fetch LIVE via Deployment.GetInfo and reuse that result; in
@@ -512,8 +536,8 @@ namespace MrExStrap
             }
             else if (pinnedVersion)
             {
-                App.Logger.WriteLine(LOG_IDENT, $"Version pinned to {App.Settings.Prop.CustomVersionGuid} from settings");
-                newVersionGuid = App.Settings.Prop.CustomVersionGuid;
+                App.Logger.WriteLine(LOG_IDENT, $"Version pinned to {pinnedGuid} via {pinnedSource}");
+                newVersionGuid = pinnedGuid;
                 UpdateChannelRegistry();
             }
             else
@@ -1130,11 +1154,24 @@ namespace MrExStrap
                 return;
             }
 
+            // v420.19+: keep installs that any Versions Manager profile references. The
+            // user explicitly asked for "all my profiles installed at the same time", so
+            // we don't want the post-launch cleanup to evict a different profile's build.
+            var profileGuids = new HashSet<string>(
+                App.Settings.Prop.VersionProfiles
+                    .Select(p => p.VersionGuid)
+                    .Where(g => !string.IsNullOrEmpty(g)),
+                StringComparer.OrdinalIgnoreCase);
+
             foreach (string dir in Directory.GetDirectories(Paths.Versions))
             {
                 string dirName = Path.GetFileName(dir);
 
-                if (dirName != App.PlayerState.Prop.VersionGuid && dirName != App.StudioState.Prop.VersionGuid)
+                bool referencedByProfile = profileGuids.Contains(dirName);
+
+                if (dirName != App.PlayerState.Prop.VersionGuid
+                    && dirName != App.StudioState.Prop.VersionGuid
+                    && !referencedByProfile)
                 {
                     // TODO: this is too expensive
                     //Filesystem.AssertReadOnlyDirectory(dir);
@@ -1153,6 +1190,10 @@ namespace MrExStrap
                         App.Logger.WriteLine(LOG_IDENT, $"Failed to delete {dir}");
                         App.Logger.WriteException(LOG_IDENT, ex);
                     }
+                }
+                else if (referencedByProfile && dirName != App.PlayerState.Prop.VersionGuid && dirName != App.StudioState.Prop.VersionGuid)
+                {
+                    App.Logger.WriteLine(LOG_IDENT, $"Keeping {dirName} (referenced by a Versions Manager profile)");
                 }
             }
         }
