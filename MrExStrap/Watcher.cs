@@ -103,80 +103,21 @@ namespace MrExStrap
 
         public async Task Run()
         {
-            const string LOG_IDENT = "Watcher::Run";
-
             if (!_lock.IsAcquired || _watcherData is null)
                 return;
 
             ActivityWatcher?.Start();
 
-            // v420.23: Roblox sometimes hangs around in Task Manager after the user
-            // closes its window (window destroyed, but the process is wedged on a
-            // network handle / dying renderer / injected DLL refusing to unload).
-            // Pre-v420.23 we just polled the PID forever, which left the zombie
-            // process around indefinitely. Now: once we've seen Roblox's main
-            // window appear, if the window goes away but the process doesn't exit
-            // within a 6s grace period, hard-kill it (process tree included).
-            bool windowAppeared = false;
-            DateTime? windowGoneSince = null;
-            bool forceKilled = false;
-
+            // v420.26: rolled back v420.23's MainWindowHandle-based force-kill. It
+            // was killing live Roblox sessions when the main window briefly went to
+            // IntPtr.Zero mid-game (fullscreen toggles, loading screens, in-game
+            // transitions). flippi's 2026-05-24 report showed Roblox dying after
+            // about a minute of normal gameplay. We're back to passive polling for
+            // PID exit — same behaviour as pre-v420.23. The always-spawn change
+            // from v420.23 stays (so AutoclosePids cleanup runs for everyone even
+            // without EnableActivityTracking).
             while (Utilities.GetProcessesSafe().Any(x => x.Id == _watcherData.ProcessId))
-            {
-                if (!forceKilled)
-                {
-                    try
-                    {
-                        using var process = Process.GetProcessById(_watcherData.ProcessId);
-                        process.Refresh();
-                        IntPtr hwnd = process.MainWindowHandle;
-
-                        if (!windowAppeared && hwnd != IntPtr.Zero)
-                            windowAppeared = true;
-
-                        if (windowAppeared)
-                        {
-                            if (hwnd == IntPtr.Zero)
-                            {
-                                if (windowGoneSince is null)
-                                {
-                                    windowGoneSince = DateTime.UtcNow;
-                                    App.Logger.WriteLine(LOG_IDENT, $"PID {_watcherData.ProcessId}: Roblox window closed but process still alive — 6s grace period before force-kill.");
-                                }
-                                else if ((DateTime.UtcNow - windowGoneSince.Value).TotalSeconds >= 6)
-                                {
-                                    App.Logger.WriteLine(LOG_IDENT, $"PID {_watcherData.ProcessId}: still alive after 6s — force-killing process tree.");
-                                    try
-                                    {
-                                        process.Kill(entireProcessTree: true);
-                                    }
-                                    catch (Exception killEx)
-                                    {
-                                        App.Logger.WriteException(LOG_IDENT, killEx);
-                                    }
-                                    forceKilled = true;
-                                }
-                            }
-                            else if (windowGoneSince is not null)
-                            {
-                                // Window came back (rare — splash screens, alt-tab quirks). Reset.
-                                windowGoneSince = null;
-                            }
-                        }
-                    }
-                    catch (ArgumentException)
-                    {
-                        // PID disappeared between the Any() check above and GetProcessById here —
-                        // next loop iteration will exit naturally.
-                    }
-                    catch (Exception ex)
-                    {
-                        App.Logger.WriteException(LOG_IDENT, ex);
-                    }
-                }
-
                 await Task.Delay(1000);
-            }
 
             if (_watcherData.AutoclosePids is not null)
             {
