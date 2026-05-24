@@ -506,11 +506,15 @@ Would you like to upgrade/overwrite your currently installed version?</value>
     <value>Back</value>
   </data>
   <data name="Menu.FastFlagEditor.BannerText" xml:space="preserve">
-    <value>Misusing this can lead to instability or unexpected things happening.</value>
-    <comment>The element that this string is rendered in *cannot be wrapped* and may be truncated when displayed if too long. If so, try and paraphrase a shortened version.</comment>
+    <value>Only Fast Flags on Roblox's official allowlist actually affect the game. Anything else is silently ignored, so don't be surprised if a flag you set "does nothing".
+
+MrExBloxstrap writes flags to a config file before Roblox starts. Roblox staff has publicly confirmed this method is fine.
+
+Do NOT use tools that set flags by writing to the running Roblox process (Voidstrap and similar). Roblox classes those as exploits and bans the accounts that use them.</value>
+    <comment>InfoBar message body. Multi-line is intentional. No semicolons per project copy style.</comment>
   </data>
   <data name="Menu.FastFlagEditor.BannerTitle" xml:space="preserve">
-    <value>Use with caution.</value>
+    <value>Heads up before you edit</value>
   </data>
   <data name="Menu.FastFlagEditor.ConflictingImport" xml:space="preserve">
     <value>Some of the flags you are attempting to import already have set values. Would you like to overwrite their current values with the ones defined in the import?
@@ -559,7 +563,7 @@ Are you sure you want to continue?</value>
     <value>Fast Flag Editor</value>
   </data>
   <data name="Menu.FastFlags.Description" xml:space="preserve">
-    <value>Control how specific Roblox engine parameters and features are configured.</value>
+    <value>Control how specific Roblox engine parameters and features are configured. Open the Fast Flag Editor for the full picture of which flags Roblox actually honours and which tools to avoid.</value>
   </data>
   <data name="Menu.FastFlags.Editor.Description" xml:space="preserve">
     <value>Manage your own Fast Flags. Use with caution.</value>

@@ -118,5 +118,74 @@ namespace MrExStrap.Utility
                 return false;
             }
         }
+
+        // Tear down whatever's at junctionPath (existing junction or a real dir
+        // that got dropped there outside our control) and lay down a fresh
+        // junction resolving to targetDir. A real dir is preserved by renaming
+        // it to <name>.orphan-<utc> rather than deleted, so user data never
+        // disappears silently. Returns true on success.
+        //
+        // Used by Bootstrapper at launch time and by the Versions Manager's
+        // "Set as install target" button so both paths take the same code.
+        public static bool RepointJunction(string junctionPath, string targetDir)
+        {
+            try
+            {
+                if (Directory.Exists(junctionPath))
+                {
+                    if (IsJunction(junctionPath))
+                    {
+                        DeleteJunction(junctionPath);
+                    }
+                    else
+                    {
+                        // Preserve any real dir we didn't expect — could be the user's
+                        // own work. Rename rather than delete.
+                        string parent = Path.GetDirectoryName(junctionPath)
+                                       ?? throw new InvalidOperationException("junctionPath has no parent directory");
+                        string orphanName = $"{Path.GetFileName(junctionPath)}.orphan-{DateTime.UtcNow:yyyyMMddTHHmmssZ}";
+                        string orphanPath = Path.Combine(parent, orphanName);
+                        try
+                        {
+                            Directory.Move(junctionPath, orphanPath);
+                            App.Logger.WriteLine(LOG_IDENT, $"Set aside real dir {junctionPath} -> {orphanPath} before creating junction.");
+                        }
+                        catch (Exception ex)
+                        {
+                            App.Logger.WriteException(LOG_IDENT + "::RepointJunction", ex);
+                            return false;
+                        }
+                    }
+                }
+
+                return CreateJunction(junctionPath, targetDir);
+            }
+            catch (Exception ex)
+            {
+                App.Logger.WriteException(LOG_IDENT + "::RepointJunction", ex);
+                return false;
+            }
+        }
+
+        // Resolve the immediate junction target. Returns the absolute target
+        // path, or null if junctionPath isn't a junction (or any error). Uses
+        // .NET 6's Directory.ResolveLinkTarget for the actual work — wraps it
+        // in a try/catch so callers can treat the null return as "no junction
+        // here, move on" without having to handle exceptions themselves.
+        public static string? GetJunctionTargetName(string junctionPath)
+        {
+            try
+            {
+                if (!IsJunction(junctionPath))
+                    return null;
+                var target = Directory.ResolveLinkTarget(junctionPath, returnFinalTarget: false);
+                return target?.FullName;
+            }
+            catch (Exception ex)
+            {
+                App.Logger.WriteException(LOG_IDENT + "::GetJunctionTargetName", ex);
+                return null;
+            }
+        }
     }
 }

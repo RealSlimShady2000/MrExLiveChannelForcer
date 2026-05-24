@@ -130,19 +130,31 @@
                                            FontSize="9"
                                            Foreground="#3B82F6"
                                            Visibility="{Binding IsExecutorTracked, Converter={StaticResource BooleanToVisibilityConverter}, Mode=OneTime}" />
+                                <TextBlock Margin="0,3,0,0" HorizontalAlignment="Center"
+                                           Text="Install target"
+                                           FontSize="9" FontWeight="SemiBold"
+                                           Foreground="#3B82F6"
+                                           Visibility="{Binding IsInstallTarget, Converter={StaticResource BooleanToVisibilityConverter}, Mode=OneTime}" />
                             </StackPanel>
 
-                            <!-- Footer: delete + disk size -->
+                            <!-- Footer: install-target button + delete + disk size -->
                             <Grid Grid.Row="4" Margin="8,4,8,8">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
                                     <ColumnDefinition Width="Auto" />
                                 </Grid.ColumnDefinitions>
                                 <TextBlock Grid.Column="0" VerticalAlignment="Center"
                                            Text="{Binding DiskUsageText, Mode=OneTime}"
                                            FontSize="10"
                                            Foreground="{DynamicResource TextFillColorTertiaryBrush}" />
-                                <ui:Button Grid.Column="1" Padding="4,2" Icon="Delete24"
+                                <ui:Button Grid.Column="1" Padding="4,2" Icon="Link24" Margin="0,0,4,0"
+                                           IsEnabled="{Binding CanSetAsInstallTarget, Mode=OneTime}"
+                                           Command="{Binding DataContext.SetAsInstallTargetCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                           CommandParameter="{Binding Id}"
+                                           ToolTipService.ShowOnDisabled="True"
+                                           ToolTip="Set this profile as the install target. Click before running an executor installer (e.g. Synapse Z) so its files land in this profile's folder." />
+                                <ui:Button Grid.Column="2" Padding="4,2" Icon="Delete24"
                                            IsEnabled="{Binding CanDelete, Mode=OneTime}"
                                            Command="{Binding DataContext.DeleteCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
                                            CommandParameter="{Binding Id}"

@@ -25,6 +25,13 @@ namespace MrExStrap.UI.ViewModels.Settings
         public ICommand DeleteCommand => new RelayCommand<string>(DeleteProfile);
         public ICommand AddProfileCommand => new RelayCommand(AddProfile);
         public ICommand OpenVersionsFolderCommand => new RelayCommand(OpenVersionsFolder);
+        // v420.27: explicit "redirect the install-target junction to this profile" action.
+        // Distinct from Activate (which only changes which profile gets launched next).
+        // Use case: you're about to run an executor installer (e.g. Synapse Z) that
+        // writes files into Versions\version-<hash>\ — click this on the destination
+        // profile first so the installer's files land in that profile, not whichever
+        // one you last launched.
+        public ICommand SetAsInstallTargetCommand => new RelayCommand<string>(SetAsInstallTarget);
         // v420.23: Refresh now pulls latest versions from WEAO for executor-tracked
         // profiles before rebuilding the tile list. 5s budget when the user explicitly
         // clicked Refresh (longer than the 3s budget used on the launch hot-path).
@@ -224,6 +231,50 @@ namespace MrExStrap.UI.ViewModels.Settings
             RebuildTiles();
         }
 
+        private void SetAsInstallTarget(string? id)
+        {
+            if (string.IsNullOrEmpty(id)) return;
+            var profile = App.Settings.Prop.VersionProfiles.FirstOrDefault(p => p.Id == id);
+            if (profile == null || string.IsNullOrEmpty(profile.VersionGuid)) return;
+
+            var confirm = Frontend.ShowMessageBox(
+                $"Make '{profile.Name}' the install target?\n\n" +
+                "When you run an executor installer that writes files into the standard Roblox folder, the files will land in this profile.\n\n" +
+                $"Link: Versions\\{profile.VersionGuid}  ->  Versions\\profile-{profile.Id}",
+                MessageBoxImage.Information,
+                MessageBoxButton.YesNo,
+                MessageBoxResult.Yes);
+            if (confirm != MessageBoxResult.Yes) return;
+
+            string profileDir = Path.Combine(Paths.Versions, "profile-" + profile.Id);
+            string junctionPath = Path.Combine(Paths.Versions, profile.VersionGuid);
+
+            try
+            {
+                Directory.CreateDirectory(profileDir);
+            }
+            catch (Exception ex)
+            {
+                App.Logger.WriteException(LOG_IDENT + "::SetAsInstallTarget", ex);
+                Frontend.ShowMessageBox(
+                    $"Couldn't prepare the profile folder: {ex.Message}",
+                    MessageBoxImage.Error);
+                return;
+            }
+
+            if (VersionJunctionManager.RepointJunction(junctionPath, profileDir))
+            {
+                App.Logger.WriteLine(LOG_IDENT, $"Set '{profile.Name}' as install target: {junctionPath} -> {profileDir}");
+                RebuildTiles();
+            }
+            else
+            {
+                Frontend.ShowMessageBox(
+                    "Couldn't update the install link. Check the log for details.",
+                    MessageBoxImage.Error);
+            }
+        }
+
         private void AddProfile()
         {
             var dialog = new UI.Elements.Dialogs.AddVersionProfileDialog();
@@ -273,6 +324,15 @@ namespace MrExStrap.UI.ViewModels.Settings
         public bool IsExecutorTracked { get; }
         public string LastRefreshText { get; }
 
+        // v420.27: "Set as install target" button gating + badge.
+        // CanSetAsInstallTarget is false for the built-in Latest LIVE profile and
+        // any other empty-VersionGuid case — there's no fixed version-<hash>\ name
+        // to junction at. IsInstallTarget is set in the ctor based on whether the
+        // junction at Versions\<this profile's VersionGuid>\ currently resolves to
+        // this profile's per-profile dir.
+        public bool CanSetAsInstallTarget => !string.IsNullOrEmpty(VersionGuid);
+        public bool IsInstallTarget { get; }
+
         private bool _isActive;
         public bool IsActive
         {
@@ -307,6 +367,25 @@ namespace MrExStrap.UI.ViewModels.Settings
             LastRefreshText = IsExecutorTracked
                 ? FormatLastRefresh(profile.LastExecutorRefreshUtc)
                 : "";
+
+            IsInstallTarget = ResolveIsInstallTarget(profile);
+        }
+
+        // True when Versions\<profile.VersionGuid>\ is a junction whose target's
+        // folder name is "profile-<profile.Id>". This is how the Versions Manager
+        // tile knows whether to render the "Install target" badge.
+        private static bool ResolveIsInstallTarget(VersionProfile profile)
+        {
+            if (string.IsNullOrEmpty(profile.VersionGuid))
+                return false;
+
+            string junctionPath = Path.Combine(Paths.Versions, profile.VersionGuid);
+            string? target = VersionJunctionManager.GetJunctionTargetName(junctionPath);
+            if (string.IsNullOrEmpty(target))
+                return false;
+
+            string targetName = Path.GetFileName(target.TrimEnd('\\', '/'));
+            return string.Equals(targetName, "profile-" + profile.Id, StringComparison.OrdinalIgnoreCase);
         }
 
         private static string FormatLastRefresh(DateTime? lastUtc)

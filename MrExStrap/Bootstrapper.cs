@@ -159,40 +159,16 @@ namespace MrExStrap
 
         // Tear down any existing entry at junctionPath (junction or stray real
         // dir we couldn't adopt) and lay down a fresh junction pointing at
-        // profileDir. Defensive: if mklink fails, we don't crash — downstream
-        // file ops will then hit the empty/absent junctionPath and the
-        // standard install path kicks in to populate it.
+        // profileDir. Delegates to VersionJunctionManager so this code path
+        // and the Versions Manager's "Set as install target" button take the
+        // same route. If mklink fails, log and continue — downstream file ops
+        // will hit the absent junctionPath and the standard install path kicks
+        // in to populate it.
         private void RecreateActiveProfileJunction(string junctionPath, string profileDir)
         {
             const string LOG_IDENT = "Bootstrapper::RecreateActiveProfileJunction";
 
-            if (Directory.Exists(junctionPath))
-            {
-                if (VersionJunctionManager.IsJunction(junctionPath))
-                {
-                    VersionJunctionManager.DeleteJunction(junctionPath);
-                }
-                else
-                {
-                    // AdoptOrphanRealDirIfApplicable should have handled this, but
-                    // if a leftover real dir somehow sneaks through, set it aside
-                    // rather than overwrite the user's data.
-                    try
-                    {
-                        string orphanName = $"{Path.GetFileName(junctionPath)}.orphan-{DateTime.UtcNow:yyyyMMddTHHmmssZ}";
-                        string orphanPath = Path.Combine(Paths.Versions, orphanName);
-                        Directory.Move(junctionPath, orphanPath);
-                        App.Logger.WriteLine(LOG_IDENT, $"Set aside unexpected real dir {junctionPath} -> {orphanPath} before creating junction.");
-                    }
-                    catch (Exception ex)
-                    {
-                        App.Logger.WriteException(LOG_IDENT, ex);
-                        return;
-                    }
-                }
-            }
-
-            if (!VersionJunctionManager.CreateJunction(junctionPath, profileDir))
+            if (!VersionJunctionManager.RepointJunction(junctionPath, profileDir))
             {
                 App.Logger.WriteLine(LOG_IDENT, $"Junction creation failed for {junctionPath} -> {profileDir}; falling back to direct profile dir path.");
             }
@@ -1393,10 +1369,11 @@ namespace MrExStrap
             //                             exists), or a real dir (Studio install,
             //                             or the legacy player install for users
             //                             who never opened the Versions Manager).
-            //   - version-<hash>.orphan-<utc>\ : set aside by the launch migration
-            //                             when we couldn't safely adopt a v420.23
-            //                             leftover. Left alone for the user — never
-            //                             auto-deleted.
+            //   - version-<hash>.orphan-<utc>\ : v420.24-era leftover from when
+            //                             a real dir at the version path got
+            //                             set aside instead of adopted. Safe to
+            //                             auto-delete from v420.27 onward —
+            //                             v420.25+ no longer creates new ones.
             var profileIds = new HashSet<string>(
                 App.Settings.Prop.VersionProfiles.Select(p => p.Id),
                 StringComparer.OrdinalIgnoreCase);
@@ -1412,7 +1389,23 @@ namespace MrExStrap
 
                 if (dirName.Contains(".orphan-"))
                 {
-                    // User-visible leftover. Don't touch it.
+                    // v420.27+: auto-delete v420.24's orphan-* leftovers. v420.25+
+                    // no longer creates them, so anything here is from an upgrade
+                    // and is known-safe to remove (documented as such in the
+                    // v420.25 release notes — users can free a few GB).
+                    if (!TryDeleteRobloxInDirectory(dir))
+                        continue;
+
+                    try
+                    {
+                        Directory.Delete(dir, true);
+                        App.Logger.WriteLine(LOG_IDENT, $"Deleted orphan leftover {dirName} (v420.24 cleanup)");
+                    }
+                    catch (Exception ex)
+                    {
+                        App.Logger.WriteLine(LOG_IDENT, $"Failed to delete orphan {dir}");
+                        App.Logger.WriteException(LOG_IDENT, ex);
+                    }
                     continue;
                 }
 
