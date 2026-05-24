@@ -25,7 +25,26 @@ namespace MrExStrap.UI.ViewModels.Settings
         public ICommand DeleteCommand => new RelayCommand<string>(DeleteProfile);
         public ICommand AddProfileCommand => new RelayCommand(AddProfile);
         public ICommand OpenVersionsFolderCommand => new RelayCommand(OpenVersionsFolder);
-        public ICommand RefreshCommand => new RelayCommand(RebuildTiles);
+        // v420.23: Refresh now pulls latest versions from WEAO for executor-tracked
+        // profiles before rebuilding the tile list. 5s budget when the user explicitly
+        // clicked Refresh (longer than the 3s budget used on the launch hot-path).
+        public ICommand RefreshCommand => new AsyncRelayCommand(RefreshAsync);
+
+        private bool _isRefreshing;
+        public bool IsRefreshing
+        {
+            get => _isRefreshing;
+            private set { _isRefreshing = value; OnPropertyChanged(nameof(IsRefreshing)); OnPropertyChanged(nameof(IsNotRefreshing)); }
+        }
+        public bool IsNotRefreshing => !_isRefreshing;
+
+        private string _refreshStatus = "";
+        public string RefreshStatus
+        {
+            get => _refreshStatus;
+            private set { _refreshStatus = value; OnPropertyChanged(nameof(RefreshStatus)); OnPropertyChanged(nameof(HasRefreshStatus)); }
+        }
+        public bool HasRefreshStatus => !string.IsNullOrEmpty(_refreshStatus);
 
         private string _activeName = "";
         public string ActiveName
@@ -59,6 +78,40 @@ namespace MrExStrap.UI.ViewModels.Settings
         public VersionsManagerViewModel()
         {
             RebuildTiles();
+        }
+
+        private async Task RefreshAsync()
+        {
+            if (IsRefreshing) return;
+
+            bool anyExecutorTracked = App.Settings.Prop.VersionProfiles
+                .Any(p => !string.IsNullOrWhiteSpace(p.ExecutorRefreshKey));
+
+            if (!anyExecutorTracked)
+            {
+                // Pure UI refresh — no executor profiles to query for.
+                RebuildTiles();
+                RefreshStatus = "";
+                return;
+            }
+
+            IsRefreshing = true;
+            RefreshStatus = "Refreshing executor versions…";
+            try
+            {
+                await ExecutorProfileRefresher.RefreshAllAsync(TimeSpan.FromSeconds(5));
+                RefreshStatus = $"Refreshed at {DateTime.Now:HH:mm}.";
+            }
+            catch (Exception ex)
+            {
+                App.Logger.WriteException(LOG_IDENT + "::Refresh", ex);
+                RefreshStatus = $"Refresh failed: {ex.Message}";
+            }
+            finally
+            {
+                IsRefreshing = false;
+                RebuildTiles();
+            }
         }
 
         private void RebuildTiles()
@@ -214,6 +267,12 @@ namespace MrExStrap.UI.ViewModels.Settings
         public string? LogoUrl { get; }
         public string DiskUsageText { get; }
 
+        // v420.23: surfaced on tiles for executor-tracked profiles. The badge tells
+        // the user the version will auto-update from WEAO; the timestamp says when
+        // that last happened so they can tell if the refresh is stuck.
+        public bool IsExecutorTracked { get; }
+        public string LastRefreshText { get; }
+
         private bool _isActive;
         public bool IsActive
         {
@@ -243,6 +302,32 @@ namespace MrExStrap.UI.ViewModels.Settings
 
             long bytes = string.IsNullOrEmpty(profile.VersionGuid) ? 0 : VersionsDiskUsage.GetUsageBytes(profile.VersionGuid);
             DiskUsageText = bytes > 0 ? VersionsDiskUsage.FormatBytes(bytes) : "";
+
+            IsExecutorTracked = !string.IsNullOrWhiteSpace(profile.ExecutorRefreshKey);
+            LastRefreshText = IsExecutorTracked
+                ? FormatLastRefresh(profile.LastExecutorRefreshUtc)
+                : "";
+        }
+
+        private static string FormatLastRefresh(DateTime? lastUtc)
+        {
+            if (lastUtc is null)
+                return "Auto-updates from WEAO";
+
+            TimeSpan ago = DateTime.UtcNow - lastUtc.Value;
+            string relative;
+            if (ago.TotalSeconds < 60)
+                relative = "just now";
+            else if (ago.TotalMinutes < 60)
+                relative = $"{(int)ago.TotalMinutes} min ago";
+            else if (ago.TotalHours < 24)
+                relative = $"{(int)ago.TotalHours} h ago";
+            else if (ago.TotalDays < 14)
+                relative = $"{(int)ago.TotalDays} d ago";
+            else
+                relative = lastUtc.Value.ToLocalTime().ToString("yyyy-MM-dd");
+
+            return $"WEAO sync: {relative}";
         }
 
         public async Task LoadLogoAsync()

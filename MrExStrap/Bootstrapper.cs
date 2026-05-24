@@ -70,56 +70,76 @@ namespace MrExStrap
                 .FirstOrDefault(p => p.Id == App.Settings.Prop.ActiveVersionProfileId);
         }
 
-        // Profile-keyed install dir name when a profile is active, else fall back to
-        // the legacy version-hash-keyed name for Studio launches and users who never
-        // touched the Versions Manager tab.
-        private string ComputeInstallDirName()
+        // v420.23 reverse migration: v420.20-v420.22 installed each profile into
+        // Versions\profile-<id>\. That broke executors like Severe which read the
+        // install dir name to detect the Roblox version (they expect version-<hash>).
+        // From v420.23 onward we go back to Versions\version-<hash>\ — profiles
+        // pinning the same Roblox hash share one install dir (same Roblox build
+        // really IS the same; executor compatibility requires this).
+        //
+        // This helper renames each leftover Versions\profile-<id>\ dir back into the
+        // version-hash layout using profile.InstalledVersionGuid as the target name.
+        // If the target already exists (another profile already has that hash on
+        // disk), the now-redundant profile dir is deleted. Runs best-effort — any
+        // failure logs + skips, never crashes launch.
+        private void MigrateProfileDirsBackToVersionHash()
         {
-            var profile = GetActiveProfileForBootstrap();
-            if (profile != null)
-                return "profile-" + profile.Id;
-            return _latestVersionGuid;
-        }
+            const string LOG_IDENT = "Bootstrapper::MigrateProfileDirsBackToVersionHash";
 
-        // First-launch upgrade helper. If the active profile has no per-profile dir
-        // yet but the legacy version-hash-keyed dir from v420.19 still has the right
-        // version installed, MOVE it into the profile dir (zero copy, instant). Skips
-        // the move when another profile would also want that exact version, since the
-        // first launch would otherwise steal the dir out from under the second.
-        private void MigrateLegacyVersionDirIfApplicable()
-        {
-            const string LOG_IDENT = "Bootstrapper::MigrateLegacyVersionDirIfApplicable";
-
-            var profile = GetActiveProfileForBootstrap();
-            if (profile == null)
+            if (!Directory.Exists(Paths.Versions))
                 return;
 
-            if (Directory.Exists(_latestVersionDirectory))
-                return; // profile dir already exists, nothing to migrate
-
-            string legacyDir = Path.Combine(Paths.Versions, _latestVersionGuid);
-            if (!Directory.Exists(legacyDir))
-                return;
-
-            bool otherProfileWantsSameVersion = App.Settings.Prop.VersionProfiles
-                .Any(p => p.Id != profile.Id
-                       && string.Equals(p.VersionGuid, _latestVersionGuid, StringComparison.OrdinalIgnoreCase));
-            if (otherProfileWantsSameVersion)
-            {
-                App.Logger.WriteLine(LOG_IDENT, $"Not claiming legacy dir {legacyDir} — another profile also wants {_latestVersionGuid}");
-                return;
-            }
-
+            string[] profileDirs;
             try
             {
-                Directory.Move(legacyDir, _latestVersionDirectory);
-                profile.InstalledVersionGuid = _latestVersionGuid;
-                App.Settings.Save();
-                App.Logger.WriteLine(LOG_IDENT, $"Moved legacy install {legacyDir} -> {_latestVersionDirectory} (saved a redownload)");
+                profileDirs = Directory.GetDirectories(Paths.Versions, "profile-*");
             }
             catch (Exception ex)
             {
                 App.Logger.WriteException(LOG_IDENT, ex);
+                return;
+            }
+
+            if (profileDirs.Length == 0)
+                return;
+
+            foreach (string profileDir in profileDirs)
+            {
+                string dirName = Path.GetFileName(profileDir);
+                string profileId = dirName.Substring("profile-".Length);
+
+                var profile = App.Settings.Prop.VersionProfiles
+                    .FirstOrDefault(p => p.Id == profileId);
+
+                string? targetHash = profile?.InstalledVersionGuid;
+                if (string.IsNullOrEmpty(targetHash) || !Utility.VersionGuidValidator.IsWellFormed(targetHash))
+                {
+                    // No idea what Roblox version is in there. Safest move is to leave it
+                    // alone — the cleanup pass at end-of-launch will evict it eventually
+                    // since it's not referenced by any profile-<id> entry anymore.
+                    App.Logger.WriteLine(LOG_IDENT, $"Skipping {dirName}: no InstalledVersionGuid recorded — cleanup will handle it.");
+                    continue;
+                }
+
+                string target = Path.Combine(Paths.Versions, targetHash);
+                try
+                {
+                    if (Directory.Exists(target))
+                    {
+                        Directory.Delete(profileDir, true);
+                        App.Logger.WriteLine(LOG_IDENT, $"Removed redundant {dirName} (target {targetHash} already present).");
+                    }
+                    else
+                    {
+                        Directory.Move(profileDir, target);
+                        App.Logger.WriteLine(LOG_IDENT, $"Moved {dirName} -> {targetHash} (saved a redownload).");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    App.Logger.WriteLine(LOG_IDENT, $"Migration failed for {dirName} -> {targetHash}");
+                    App.Logger.WriteException(LOG_IDENT, ex);
+                }
             }
         }
 
@@ -572,6 +592,13 @@ namespace MrExStrap
 
             bool cliVersion = App.LaunchSettings.VersionFlag.Active && !string.IsNullOrEmpty(App.LaunchSettings.VersionFlag.Data);
 
+            // v420.23: if the active profile is executor-tracked (came from the WEAO
+            // dropdown), refresh its VersionGuid from WEAO before resolving. Bounded
+            // to 3s so a slow/dead WEAO never blocks launch — we just fall through to
+            // the cached value.
+            if (_launchMode == LaunchMode.Player && !cliVersion)
+                await ExecutorProfileRefresher.RefreshActiveAsync(TimeSpan.FromSeconds(3));
+
             // Resolve the active Versions Manager profile, if any.
             string? activeProfileGuid = null;
             string? activeProfileName = null;
@@ -659,29 +686,26 @@ namespace MrExStrap
                 _latestVersionGuid = newVersionGuid!;
                 _latestVersion = newVersion;
 
-                // v420.20: install dir is keyed by profile id (when a Versions Manager
-                // profile is active) rather than by Roblox version hash. Reason: two
-                // profiles whose hashes match would have shared one dir under the old
-                // scheme, so any executor DLL / mod dropped into the folder leaked
-                // between them. Per-profile dirs keep each profile's files isolated.
-                _latestVersionDirectory = Path.Combine(Paths.Versions, ComputeInstallDirName());
+                // v420.23: back to Bloxstrap-standard Versions\version-<hash>\ layout.
+                // Executors like Severe parse the install dir name to detect Roblox's
+                // version (expecting "version-<16hex>"); v420.20's "profile-<id>" dirs
+                // broke every such executor. Trade-off: profiles pinning the same
+                // Roblox hash now share one install dir — but that's correct because
+                // it's literally the same Roblox build.
+                _latestVersionDirectory = Path.Combine(Paths.Versions, _latestVersionGuid);
 
-                // v420.21 fix: also push the chosen dir into AppData so every consumer
-                // that reads AppData.ExecutablePath / AppData.Directory sees the same
-                // path as _latestVersionDirectory. Without this, AppData kept using
-                // Versions\<version-guid>\ and Process.Start in StartRoblox crashed
-                // with DirectoryNotFoundException because the install actually lived
-                // in Versions\profile-<id>\.
+                // AppData.DistributionState.VersionGuid only updates after a download,
+                // so when the user switches between profiles with already-installed
+                // hashes (no download needed) it'd still point at the *previously*
+                // active profile's dir. Override AppData.Directory to the dir we'll
+                // actually launch from so StartRoblox and File.Exists checks hit the
+                // right path.
                 AppData.InstallDirectoryOverride = _latestVersionDirectory;
 
-                // First-launch grace: if the user is upgrading from v420.19 the active
-                // profile probably has no per-profile dir yet, but the legacy version-
-                // hash-keyed dir from before is sitting there with the right bytes.
-                // Rename it into the new layout so we skip a ~700 MB redownload. Only
-                // safe when no OTHER profile would also want that exact same version
-                // hash — otherwise the second profile would steal the first profile's
-                // install on its next launch.
-                MigrateLegacyVersionDirIfApplicable();
+                // Reverse-migrate any leftover v420.20-v420.22 profile-<id> dirs back
+                // to the version-hash layout. Idempotent: no-op when no such dirs
+                // exist (first launch from a clean install, or already migrated).
+                MigrateProfileDirsBackToVersionHash();
 
                 string pkgManifestUrl = Deployment.GetLocation($"/{_latestVersionGuid}-rbxPkgManifest.txt");
                 var pkgManifestData = await App.HttpClient.GetStringAsync(pkgManifestUrl);
@@ -982,14 +1006,18 @@ namespace MrExStrap
                     autoclosePids.Add(pid);
             }
 
-            if (App.Settings.Prop.EnableActivityTracking || App.LaunchSettings.TestModeFlag.Active || autoclosePids.Any())
+            // v420.23: always spawn the watcher so RobloxPlayerBeta never gets left
+            // running in the background after the user closes the window. Pre-v420.23
+            // this only ran when EnableActivityTracking was on (or autoclose pids
+            // existed), which meant users without activity tracking enabled saw the
+            // Roblox process zombie out in Task Manager.
             {
                 using var ipl = new InterProcessLock("Watcher", TimeSpan.FromSeconds(5));
 
-                var watcherData = new WatcherData 
-                { 
-                    ProcessId = _appPid, 
-                    LogFile = logFileName, 
+                var watcherData = new WatcherData
+                {
+                    ProcessId = _appPid,
+                    LogFile = logFileName,
                     AutoclosePids = autoclosePids
                 };
 
@@ -1264,19 +1292,15 @@ namespace MrExStrap
                 return;
             }
 
-            // v420.19+: keep installs that any Versions Manager profile references. The
-            // user explicitly asked for "all my profiles installed at the same time", so
-            // we don't want the post-launch cleanup to evict a different profile's build.
+            // v420.23+: profiles live at Versions\version-<hash>\ again (shared
+            // across same-hash profiles). Preserve every version-hash that any
+            // profile references so a profile the user might switch back to later
+            // isn't evicted between launches.
             //
-            // Two naming schemes to preserve:
-            //   - "profile-<id>"     — v420.20+ per-profile dirs (current scheme)
-            //   - "version-<hash>"   — pre-v420.20 shared dirs that the migration step
-            //                          may not have moved yet (e.g. because another
-            //                          profile also wants that hash and we left it
-            //                          alone)
-            var profileDirNames = new HashSet<string>(
-                App.Settings.Prop.VersionProfiles.Select(p => "profile-" + p.Id),
-                StringComparer.OrdinalIgnoreCase);
+            // Leftover profile-<id> dirs from v420.20-v420.22 are NOT in this set —
+            // they get cleaned up here on first launch after upgrade (the reverse
+            // migration in GetLatestVersionInfo handles known profiles; this catches
+            // orphans whose owning profile was deleted before upgrade).
             var profileVersionGuids = new HashSet<string>(
                 App.Settings.Prop.VersionProfiles
                     .Select(p => p.VersionGuid)
@@ -1287,7 +1311,7 @@ namespace MrExStrap
             {
                 string dirName = Path.GetFileName(dir);
 
-                bool referencedByProfile = profileDirNames.Contains(dirName) || profileVersionGuids.Contains(dirName);
+                bool referencedByProfile = profileVersionGuids.Contains(dirName);
 
                 if (dirName != App.PlayerState.Prop.VersionGuid
                     && dirName != App.StudioState.Prop.VersionGuid

@@ -29,12 +29,23 @@ namespace MrExStrap.Models.Persistable
         // so users can't accidentally remove the always-LIVE fallback.
         public bool IsBuiltIn { get; set; }
 
-        // Version hash currently materialised on disk inside Versions/profile-&lt;Id&gt;.
-        // Distinct from VersionGuid above: VersionGuid is what the user WANTS (empty
-        // for "always LIVE"), InstalledVersionGuid is what's actually present in the
-        // profile's install dir. Used so the launch path knows whether to redownload
-        // when the active profile changes or LIVE moves under the built-in profile.
+        // Version hash currently materialised on disk for this profile. Kept around
+        // from v420.20's per-profile dir layout so the v420.20 -> v420.23 reverse
+        // migration knows what hash to rename Versions/profile-<id> back to. The
+        // active launch path now uses Versions/version-<hash> shared across same-hash
+        // profiles (executor compatibility — see v420.23 release notes).
         public string InstalledVersionGuid { get; set; } = "";
+
+        // When non-empty, the launch path refreshes this profile's VersionGuid from
+        // WEAO by matching this key against WeaoExploit.Title (case-insensitive). Set
+        // when the profile was created via the "From executor" branch of the
+        // AddVersionProfileDialog so executor updates flow into the profile without
+        // re-adding it. Empty for manual profiles and the built-in "Latest LIVE".
+        public string ExecutorRefreshKey { get; set; } = "";
+
+        // Stamped when the WEAO auto-refresh last succeeded. Surfaced on the tile as
+        // "Updated <relative time>" so the user knows when the version last moved.
+        public DateTime? LastExecutorRefreshUtc { get; set; }
 
         public DateTime CreatedUtc { get; set; } = DateTime.UtcNow;
     }

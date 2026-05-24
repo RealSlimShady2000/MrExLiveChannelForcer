@@ -119,11 +119,18 @@
                                        Text="{Binding Name}" FontWeight="SemiBold" FontSize="13"
                                        TextTrimming="CharacterEllipsis" />
 
-                            <TextBlock Grid.Row="3" Margin="8,2,8,0" HorizontalAlignment="Center"
-                                       Text="{Binding DisplayHash, Mode=OneTime}"
-                                       FontFamily="Consolas" FontSize="10"
-                                       TextTrimming="CharacterEllipsis"
-                                       Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                            <StackPanel Grid.Row="3" Margin="8,2,8,0" HorizontalAlignment="Center">
+                                <TextBlock HorizontalAlignment="Center"
+                                           Text="{Binding DisplayHash, Mode=OneTime}"
+                                           FontFamily="Consolas" FontSize="10"
+                                           TextTrimming="CharacterEllipsis"
+                                           Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                                <TextBlock Margin="0,3,0,0" HorizontalAlignment="Center"
+                                           Text="{Binding LastRefreshText, Mode=OneTime}"
+                                           FontSize="9"
+                                           Foreground="#3B82F6"
+                                           Visibility="{Binding IsExecutorTracked, Converter={StaticResource BooleanToVisibilityConverter}, Mode=OneTime}" />
+                            </StackPanel>
 
                             <!-- Footer: delete + disk size -->
                             <Grid Grid.Row="4" Margin="8,4,8,8">
@@ -155,11 +162,17 @@
             <ui:Button Margin="8,0,0,0" Icon="FolderOpen24" Content="Open versions folder"
                        Command="{Binding OpenVersionsFolderCommand, Mode=OneTime}" />
             <ui:Button Margin="8,0,0,0" Icon="ArrowClockwise24" Content="Refresh"
-                       Command="{Binding RefreshCommand, Mode=OneTime}" />
+                       Command="{Binding RefreshCommand, Mode=OneTime}"
+                       IsEnabled="{Binding IsNotRefreshing, Mode=OneWay}"
+                       ToolTip="Pull the latest Roblox version for every executor-tracked profile from WEAO." />
+            <TextBlock Margin="12,0,0,0" VerticalAlignment="Center" FontSize="11"
+                       Foreground="{DynamicResource TextFillColorTertiaryBrush}"
+                       Text="{Binding RefreshStatus, Mode=OneWay}"
+                       Visibility="{Binding HasRefreshStatus, Converter={StaticResource BooleanToVisibilityConverter}, Mode=OneWay}" />
         </StackPanel>
 
         <TextBlock Margin="0,12,0,0" FontSize="11" TextWrapping="Wrap"
                    Foreground="{DynamicResource TextFillColorTertiaryBrush}"
-                   Text="Heads up: each Roblox install is around 700 MB. Five profiles ≈ 3.5 GB. Use 'Open versions folder' to see exactly what's on disk." />
+                   Text="Heads up: each Roblox install is around 700 MB. Five profiles ≈ 3.5 GB. Use 'Open versions folder' to see exactly what's on disk. Executor profiles auto-update when WEAO lists a newer build." />
     </StackPanel>
 </ui:UiPage>

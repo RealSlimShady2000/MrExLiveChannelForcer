@@ -184,7 +184,12 @@ namespace MrExStrap.UI.ViewModels.Dialogs
                 Name = ProfileName.Trim(),
                 VersionGuid = VersionHash.Trim(),
                 ExecutorTitle = _executorTitle,
-                ExecutorLogoUrl = _executorLogoUrl
+                ExecutorLogoUrl = _executorLogoUrl,
+                // v420.23: flag the profile as executor-tracked so the launch path
+                // refreshes its VersionGuid from WEAO when the executor pushes a new
+                // build. Empty for manual-hash entries (no _executorTitle means the
+                // user didn't pick from the dropdown).
+                ExecutorRefreshKey = _executorTitle ?? ""
             };
             CloseRequested?.Invoke(this, profile);
         }
