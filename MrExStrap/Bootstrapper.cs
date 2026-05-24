@@ -126,6 +126,37 @@ namespace MrExStrap
             }
         }
 
+        // Clear the contents of a junction's target without deleting the
+        // junction itself. Used by UpgradeRoblox and the cancel-cleanup path
+        // since Directory.Delete on a junction (even with recursive=true)
+        // unlinks the junction, and Directory.CreateDirectory on the same path
+        // would then create a real dir — which is exactly what tripped up
+        // v420.24 (flippi's bug report 2026-05-24): the install landed in
+        // Versions\version-<hash>\ as a real dir while the per-profile dir
+        // stayed empty.
+        private static void ClearJunctionTargetContents(string junctionPath)
+        {
+            const string LOG_IDENT = "Bootstrapper::ClearJunctionTargetContents";
+
+            try
+            {
+                foreach (string sub in Directory.EnumerateDirectories(junctionPath))
+                {
+                    try { Directory.Delete(sub, true); }
+                    catch (Exception ex) { App.Logger.WriteException(LOG_IDENT, ex); }
+                }
+                foreach (string file in Directory.EnumerateFiles(junctionPath))
+                {
+                    try { File.Delete(file); }
+                    catch (Exception ex) { App.Logger.WriteException(LOG_IDENT, ex); }
+                }
+            }
+            catch (Exception ex)
+            {
+                App.Logger.WriteException(LOG_IDENT, ex);
+            }
+        }
+
         // Tear down any existing entry at junctionPath (junction or stray real
         // dir we couldn't adopt) and lay down a fresh junction pointing at
         // profileDir. Defensive: if mklink fails, we don't crash — downstream
@@ -1125,9 +1156,16 @@ namespace MrExStrap
             {
                 try
                 {
-                    // clean up install
+                    // clean up install — junction-aware: clear the target's contents
+                    // rather than deleting the directory itself (would unlink the
+                    // junction). See v420.25 notes in UpgradeRoblox.
                     if (Directory.Exists(_latestVersionDirectory))
-                        Directory.Delete(_latestVersionDirectory, true);
+                    {
+                        if (Utility.VersionJunctionManager.IsJunction(_latestVersionDirectory))
+                            ClearJunctionTargetContents(_latestVersionDirectory);
+                        else
+                            Directory.Delete(_latestVersionDirectory, true);
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -1563,11 +1601,26 @@ namespace MrExStrap
                 {
                     try
                     {
-                        Directory.Delete(_latestVersionDirectory, true);
+                        if (Utility.VersionJunctionManager.IsJunction(_latestVersionDirectory))
+                        {
+                            // v420.25 fix: _latestVersionDirectory is a junction (set up
+                            // by GetLatestVersionInfo) — Directory.Delete on a junction
+                            // would unlink it, then the CreateDirectory below would put
+                            // a *real* dir at the junction path while the profile dir
+                            // stays empty. (flippi's 2026-05-24 reproduction.) Clear the
+                            // junction's target contents instead so the junction stays
+                            // intact and the next install lands in the profile dir as
+                            // intended.
+                            ClearJunctionTargetContents(_latestVersionDirectory);
+                        }
+                        else
+                        {
+                            Directory.Delete(_latestVersionDirectory, true);
+                        }
                     }
                     catch (Exception ex)
                     {
-                        App.Logger.WriteLine(LOG_IDENT, "Failed to delete the latest version directory");
+                        App.Logger.WriteLine(LOG_IDENT, "Failed to clear the latest version directory");
                         App.Logger.WriteException(LOG_IDENT, ex);
                     }
                 }
