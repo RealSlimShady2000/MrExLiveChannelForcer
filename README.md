@@ -9,7 +9,13 @@ A fork of [Bloxstrap](https://github.com/bloxstraplabs/bloxstrap) hardened again
 ## At a glance
 
 - ✅ **LIVE channel lock**
-  - Forces Roblox onto production every launch. Fixes most "my executor broke after a Roblox update" cases on its own. If it doesn't, the downgrade tab below handles it.
+  - Forces Roblox onto production every launch. Fixes most "my executor broke after a Roblox update" cases on its own. If it doesn't, the downgrading tab handles it.
+- ✅ **Versions Manager (multi-profile version switcher)**
+  - Save a named profile per executor — "Solara", "Matrix Hub", "Latest LIVE", whatever you use. One click switches between them.
+  - Each profile gets its own isolated Roblox folder so two executors can never trample each other's files.
+  - Executor-tracked profiles auto-update from weao.xyz on every launch — when your executor pushes a new build, the profile follows automatically.
+  - Optional "pick a profile when launching" prompt for users who want to choose on the fly.
+  - "Set as install target" button on each tile so executor installers (Synapse Z, Wave) drop their files into the right profile's folder.
 - ✅ **One-click downgrading**
   - Verify any historical Roblox build still exists on the CDN, with deployment timestamp and exact download size.
   - "Match your executor" dropdown driven by weao.xyz — pick your tool, the matching Roblox build gets pinned automatically.
@@ -21,6 +27,9 @@ A fork of [Bloxstrap](https://github.com/bloxstraplabs/bloxstrap) hardened again
   - Auto-arrange every open client into a tidy grid on your primary monitor.
 - ✅ **VIP server picker**
   - Pick a free shared VIP server before launch, straight from rbxservers.xyz.
+- ✅ **Fast Flag editor (with up-to-date policy warning)**
+  - Edit Roblox's Fast Flags via a config file before launch — the method Roblox staff has publicly confirmed is fine.
+  - Banner spells out which tools to avoid (Voidstrap-style memory bypass) so you don't accidentally pick up something that gets your account banned.
 - ✅ **Auto-update with a real progress bar**
   - Fires both when launching Roblox AND when opening the menu directly.
   - Determinate progress bar with byte-by-byte counter so you know it's actually working.
@@ -42,6 +51,8 @@ A fork of [Bloxstrap](https://github.com/bloxstraplabs/bloxstrap) hardened again
 
 - ✅ **LIVE channel lock**
   - Vanilla leaves channel routing alone, so Roblox can A/B-route you onto a test build any time.
+- ✅ **Versions Manager (multi-profile switcher)**
+  - One profile per executor, instant switching, auto-updates from weao.xyz, isolated install folders. Not in vanilla.
 - ✅ **Built-in BanAsync tab**
   - Trace cleanup, MAC spoofing, MachineGuid randomize, selective cookie cleaning — not in vanilla.
 - ✅ **Match-your-executor dropdown**
@@ -52,6 +63,8 @@ A fork of [Bloxstrap](https://github.com/bloxstraplabs/bloxstrap) hardened again
   - Vanilla only checks on Roblox launch — open the settings menu and you never see new releases.
 - ✅ **Diagnostic-snapshot zip for bug reports**
   - Not in vanilla.
+- ✅ **Up-to-date Fast Flag policy warning**
+  - The Editor banner spells out which tools are bannable (Voidstrap-style memory bypass) so you don't end up using one by accident.
 - ✅ **Analytics permanently off**
   - Hardcoded, no toggle.
 
@@ -67,7 +80,9 @@ A fork of [Bloxstrap](https://github.com/bloxstraplabs/bloxstrap) hardened again
 **Pros of MrExBloxstrap**
 
 - ✅ **Exploit-first focus**
-  - Channel lock and executor version matching are the headline features.
+  - Channel lock, Versions Manager (one profile per executor), and executor version matching are the headline features.
+- ✅ **Versions Manager**
+  - Profile-per-executor switching with isolated install folders and weao.xyz auto-update. Fishstrap doesn't have an equivalent.
 - ✅ **BanAsync tab**
   - Trace cleanup, MAC spoofing, MachineGuid randomize, and selective Roblox-only cookie wiping all in one place.
 - ✅ **Diagnostic snapshot**
@@ -96,12 +111,32 @@ A fork of [Bloxstrap](https://github.com/bloxstraplabs/bloxstrap) hardened again
 ### LIVE channel lock
 Roblox sometimes A/B-routes your account onto a test channel like `zlive` or `zintegration` without warning. When that happens, every popular executor stops working until they catch up to that build, or until Roblox rolls you back. MrExBloxstrap rewrites the Roblox-side channel registry key on every launch and verifies the write took. A `CHANNEL: LIVE (locked)` badge appears on the bootstrapper so you know it worked.
 
+### Versions Manager
+A tab full of profile tiles, one per executor you care about (plus a built-in "Latest LIVE" sentinel). One click on a tile makes that profile active for your next launch.
+
+- **Per-profile Roblox installs.** Every profile has its own folder on disk so two profiles can never overwrite each other's executor files. The active profile is exposed at the standard `Versions\version-<hash>\` path via a Windows directory junction, so injected executors that parse that path (Severe, etc.) still see what they expect.
+- **Add from executor.** Pick from a dropdown of every known Windows executor on weao.xyz. Name, logo, and the matching Roblox version hash are filled in automatically.
+- **Add manually.** Type a name and a hash, click Verify to check the hash against the Roblox CDN, save.
+- **Auto-update.** Executor-tracked profiles re-query weao.xyz with a 3-second budget at launch time. When your executor publishes a new build, your profile follows on the next launch. Manual profiles never get touched.
+- **Set as install target.** Each tile has a link-icon button that points the install-target junction at that profile's folder, so when you run an executor installer (Synapse Z, Wave, etc.) its files land in the right profile no matter which one you last launched.
+- **Pick on launch (optional).** Toggle in Settings → Behaviour. When on, every Roblox launch pops a small picker so you choose a profile right before the bootstrapper starts.
+- **Non-LIVE confirmation (optional, default on).** Same toggle group. When a launch picks a profile pinned to an older Roblox build, a one-line "you're launching a non-LIVE build, continue?" prompt fires so you don't accidentally join a public game on a downgraded client.
+
 ### Downgrading
 Pin Roblox to any historical build by version hash. The Downgrading tab:
 - Auto-detects the current LIVE hash from Roblox's CDN on open (no third-party services)
 - Lets you paste any hash and verify it still exists on the CDN
 - Shows exact download size, package count, and deployment date
 - Has a **Match your executor** dropdown powered by weao.xyz — if your executor is behind, pick it and we pin the right historical Roblox build for you
+
+### Fast Flags (and what gets you banned)
+MrExBloxstrap has a Fast Flag editor, but the important bit isn't the editor — it's the policy banner above it. Roblox staff has publicly drawn a clear line on what they consider acceptable from a launcher:
+
+- **Only Fast Flags on Roblox's official [allowlist](https://devforum.roblox.com/t/allowlist-for-local-client-configuration-via-fast-flags/3966569) actually affect the running client.** Anything else is silently ignored. Don't be surprised when a flag you set "does nothing".
+- **Writing flags to a config file before Roblox starts is fine** — that's the method MrExBloxstrap uses (and what Bloxstrap, FishStrap also use). Roblox staff has confirmed this in writing.
+- **Writing flags by modifying the running Roblox process is an exploit.** Tools that do this (Voidstrap and similar "external" FFlag setters) are classified as cheats by Roblox and the accounts that use them get banned. Quote from Roblox staff: *"All bootstrappers using externals to set FFlags, such as Voidstrap, are considered exploits and therefore subject to consequences. Bloxstrap is a safer bet if you really must use a bootstrapper."*
+
+If you only ever touch Fast Flags through MrExBloxstrap's editor, you're on the safe side of that line. The Editor tab's banner repeats this in plain English so anyone editing flags reads it.
 
 ### BanAsync tab
 Optional cleanup + spoofing tools inspired by Technitium MAC Address Changer and similar utilities. Everything is opt-in via toggles, and the Activity log shows you exactly what got changed:
