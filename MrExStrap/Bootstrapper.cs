@@ -70,76 +70,100 @@ namespace MrExStrap
                 .FirstOrDefault(p => p.Id == App.Settings.Prop.ActiveVersionProfileId);
         }
 
-        // v420.23 reverse migration: v420.20-v420.22 installed each profile into
-        // Versions\profile-<id>\. That broke executors like Severe which read the
-        // install dir name to detect the Roblox version (they expect version-<hash>).
-        // From v420.23 onward we go back to Versions\version-<hash>\ — profiles
-        // pinning the same Roblox hash share one install dir (same Roblox build
-        // really IS the same; executor compatibility requires this).
+        // v420.24: each profile owns its real Roblox install at
+        // Versions\profile-<id>\, and the active profile's launch exposes that
+        // dir under the standard Versions\version-<active-hash>\ name via a
+        // directory junction. Executors that detect the Roblox version from
+        // the install-dir name (Severe, etc.) still get "version-<16hex>", and
+        // same-hash profiles don't leak files into each other anymore — each
+        // has its own real folder, only the junction changes per launch.
         //
-        // This helper renames each leftover Versions\profile-<id>\ dir back into the
-        // version-hash layout using profile.InstalledVersionGuid as the target name.
-        // If the target already exists (another profile already has that hash on
-        // disk), the now-redundant profile dir is deleted. Runs best-effort — any
-        // failure logs + skips, never crashes launch.
-        private void MigrateProfileDirsBackToVersionHash()
-        {
-            const string LOG_IDENT = "Bootstrapper::MigrateProfileDirsBackToVersionHash";
+        // Called once per Player launch from GetLatestVersionInfo, after
+        // _latestVersionGuid is resolved. Best-effort throughout: any failure
+        // logs and falls back to the standard version-<hash> path.
 
-            if (!Directory.Exists(Paths.Versions))
+        // If the user is upgrading from v420.23 (or anyone else dropped a real
+        // dir at Versions\version-<hash>\), claim it as the active profile's
+        // install via a zero-copy Directory.Move so they don't redownload.
+        // Only the active profile gets to inherit; other profiles pinning the
+        // same hash redownload into their own profile-<id> dirs on first
+        // launch (correct, since the v420.23 layout shared content and we
+        // can't tell which profile "really" owns the existing files).
+        private void AdoptOrphanRealDirIfApplicable(VersionProfile profile, string profileDir, string junctionPath)
+        {
+            const string LOG_IDENT = "Bootstrapper::AdoptOrphanRealDirIfApplicable";
+
+            if (!Directory.Exists(junctionPath))
+                return;
+            if (VersionJunctionManager.IsJunction(junctionPath))
                 return;
 
-            string[] profileDirs;
+            bool profileDirEmpty = !Directory.Exists(profileDir)
+                || !Directory.EnumerateFileSystemEntries(profileDir).Any();
+
             try
             {
-                profileDirs = Directory.GetDirectories(Paths.Versions, "profile-*");
+                if (profileDirEmpty)
+                {
+                    if (Directory.Exists(profileDir))
+                        Directory.Delete(profileDir, true);
+                    Directory.Move(junctionPath, profileDir);
+                    profile.InstalledVersionGuid = _latestVersionGuid;
+                    App.Settings.Save();
+                    App.Logger.WriteLine(LOG_IDENT, $"Adopted orphan {junctionPath} for profile '{profile.Name}' -> {profileDir}");
+                }
+                else
+                {
+                    string orphanName = $"{Path.GetFileName(junctionPath)}.orphan-{DateTime.UtcNow:yyyyMMddTHHmmssZ}";
+                    string orphanPath = Path.Combine(Paths.Versions, orphanName);
+                    Directory.Move(junctionPath, orphanPath);
+                    App.Logger.WriteLine(LOG_IDENT, $"Profile '{profile.Name}' already has its own install dir; renamed {junctionPath} -> {orphanPath} for manual cleanup.");
+                }
             }
             catch (Exception ex)
             {
                 App.Logger.WriteException(LOG_IDENT, ex);
-                return;
+            }
+        }
+
+        // Tear down any existing entry at junctionPath (junction or stray real
+        // dir we couldn't adopt) and lay down a fresh junction pointing at
+        // profileDir. Defensive: if mklink fails, we don't crash — downstream
+        // file ops will then hit the empty/absent junctionPath and the
+        // standard install path kicks in to populate it.
+        private void RecreateActiveProfileJunction(string junctionPath, string profileDir)
+        {
+            const string LOG_IDENT = "Bootstrapper::RecreateActiveProfileJunction";
+
+            if (Directory.Exists(junctionPath))
+            {
+                if (VersionJunctionManager.IsJunction(junctionPath))
+                {
+                    VersionJunctionManager.DeleteJunction(junctionPath);
+                }
+                else
+                {
+                    // AdoptOrphanRealDirIfApplicable should have handled this, but
+                    // if a leftover real dir somehow sneaks through, set it aside
+                    // rather than overwrite the user's data.
+                    try
+                    {
+                        string orphanName = $"{Path.GetFileName(junctionPath)}.orphan-{DateTime.UtcNow:yyyyMMddTHHmmssZ}";
+                        string orphanPath = Path.Combine(Paths.Versions, orphanName);
+                        Directory.Move(junctionPath, orphanPath);
+                        App.Logger.WriteLine(LOG_IDENT, $"Set aside unexpected real dir {junctionPath} -> {orphanPath} before creating junction.");
+                    }
+                    catch (Exception ex)
+                    {
+                        App.Logger.WriteException(LOG_IDENT, ex);
+                        return;
+                    }
+                }
             }
 
-            if (profileDirs.Length == 0)
-                return;
-
-            foreach (string profileDir in profileDirs)
+            if (!VersionJunctionManager.CreateJunction(junctionPath, profileDir))
             {
-                string dirName = Path.GetFileName(profileDir);
-                string profileId = dirName.Substring("profile-".Length);
-
-                var profile = App.Settings.Prop.VersionProfiles
-                    .FirstOrDefault(p => p.Id == profileId);
-
-                string? targetHash = profile?.InstalledVersionGuid;
-                if (string.IsNullOrEmpty(targetHash) || !Utility.VersionGuidValidator.IsWellFormed(targetHash))
-                {
-                    // No idea what Roblox version is in there. Safest move is to leave it
-                    // alone — the cleanup pass at end-of-launch will evict it eventually
-                    // since it's not referenced by any profile-<id> entry anymore.
-                    App.Logger.WriteLine(LOG_IDENT, $"Skipping {dirName}: no InstalledVersionGuid recorded — cleanup will handle it.");
-                    continue;
-                }
-
-                string target = Path.Combine(Paths.Versions, targetHash);
-                try
-                {
-                    if (Directory.Exists(target))
-                    {
-                        Directory.Delete(profileDir, true);
-                        App.Logger.WriteLine(LOG_IDENT, $"Removed redundant {dirName} (target {targetHash} already present).");
-                    }
-                    else
-                    {
-                        Directory.Move(profileDir, target);
-                        App.Logger.WriteLine(LOG_IDENT, $"Moved {dirName} -> {targetHash} (saved a redownload).");
-                    }
-                }
-                catch (Exception ex)
-                {
-                    App.Logger.WriteLine(LOG_IDENT, $"Migration failed for {dirName} -> {targetHash}");
-                    App.Logger.WriteException(LOG_IDENT, ex);
-                }
+                App.Logger.WriteLine(LOG_IDENT, $"Junction creation failed for {junctionPath} -> {profileDir}; falling back to direct profile dir path.");
             }
         }
 
@@ -432,13 +456,24 @@ namespace MrExStrap
 
             if (!_noConnection)
             {
-                // v420.20: when a Versions Manager profile is driving this launch, the
+                // v420.20+: when a Versions Manager profile is driving this launch, the
                 // "currently installed version" lives on the profile itself rather than
                 // the global DistributionState — that way two profiles whose Roblox
                 // hashes happen to match still install into separate dirs and the
                 // up-to-date check stays accurate per profile.
-                string installedForThisLaunch = GetActiveProfileForBootstrap()?.InstalledVersionGuid
-                                                ?? AppData.DistributionState.VersionGuid;
+                //
+                // v420.24 fix: the previous null-coalesce (?? on the property value)
+                // only fired when the profile object itself was null. A freshly-created
+                // profile's InstalledVersionGuid defaults to "" (empty string), which
+                // is NOT null, so it would short-circuit installedForThisLaunch to ""
+                // and fail the equality check below — triggering a spurious reinstall
+                // every single launch (flippi's 2026-05-24 report). Explicit
+                // IsNullOrEmpty check fixes the fallback path.
+                var activeProfileForCheck = GetActiveProfileForBootstrap();
+                string installedForThisLaunch =
+                    activeProfileForCheck != null && !string.IsNullOrEmpty(activeProfileForCheck.InstalledVersionGuid)
+                        ? activeProfileForCheck.InstalledVersionGuid
+                        : AppData.DistributionState.VersionGuid;
 
                 if (installedForThisLaunch != _latestVersionGuid || _mustUpgrade)
                 {
@@ -686,26 +721,44 @@ namespace MrExStrap
                 _latestVersionGuid = newVersionGuid!;
                 _latestVersion = newVersion;
 
-                // v420.23: back to Bloxstrap-standard Versions\version-<hash>\ layout.
-                // Executors like Severe parse the install dir name to detect Roblox's
-                // version (expecting "version-<16hex>"); v420.20's "profile-<id>" dirs
-                // broke every such executor. Trade-off: profiles pinning the same
-                // Roblox hash now share one install dir — but that's correct because
-                // it's literally the same Roblox build.
-                _latestVersionDirectory = Path.Combine(Paths.Versions, _latestVersionGuid);
+                // v420.24: per-profile real dirs at Versions\profile-<id>\ plus a
+                // launch-time junction at Versions\version-<active-hash>\ that points
+                // at the active profile's dir. Executors still see a standard
+                // version-<hash> install path (junction is transparent to most APIs),
+                // and same-hash profiles no longer share storage — flippi's wave/syn z
+                // file-leak scenario can't happen anymore because each profile has its
+                // own real folder. Studio launches stay on the legacy version-hash
+                // layout (no profile system there).
+                Directory.CreateDirectory(Paths.Versions);
 
-                // AppData.DistributionState.VersionGuid only updates after a download,
-                // so when the user switches between profiles with already-installed
-                // hashes (no download needed) it'd still point at the *previously*
-                // active profile's dir. Override AppData.Directory to the dir we'll
-                // actually launch from so StartRoblox and File.Exists checks hit the
-                // right path.
+                var activeProfileForLaunch = GetActiveProfileForBootstrap();
+                if (activeProfileForLaunch != null)
+                {
+                    string profileDir = Path.Combine(Paths.Versions, "profile-" + activeProfileForLaunch.Id);
+                    string junctionPath = Path.Combine(Paths.Versions, _latestVersionGuid);
+
+                    AdoptOrphanRealDirIfApplicable(activeProfileForLaunch, profileDir, junctionPath);
+
+                    Directory.CreateDirectory(profileDir);
+
+                    RecreateActiveProfileJunction(junctionPath, profileDir);
+
+                    // All downstream file ops go through the junction so Process.Start /
+                    // executors see the standard version-<hash> path. Files actually land
+                    // in profileDir via the junction redirect.
+                    _latestVersionDirectory = junctionPath;
+                }
+                else
+                {
+                    _latestVersionDirectory = Path.Combine(Paths.Versions, _latestVersionGuid);
+                }
+
+                // Override AppData.Directory regardless: DistributionState.VersionGuid
+                // is global and only updates after a download, so on profile switches
+                // (no download needed) it'd still resolve to the previously active
+                // profile's hash. Pinning the override here keeps Process.Start and
+                // File.Exists honest.
                 AppData.InstallDirectoryOverride = _latestVersionDirectory;
-
-                // Reverse-migrate any leftover v420.20-v420.22 profile-<id> dirs back
-                // to the version-hash layout. Idempotent: no-op when no such dirs
-                // exist (first launch from a clean install, or already migrated).
-                MigrateProfileDirsBackToVersionHash();
 
                 string pkgManifestUrl = Deployment.GetLocation($"/{_latestVersionGuid}-rbxPkgManifest.txt");
                 var pkgManifestData = await App.HttpClient.GetStringAsync(pkgManifestUrl);
@@ -1292,15 +1345,23 @@ namespace MrExStrap
                 return;
             }
 
-            // v420.23+: profiles live at Versions\version-<hash>\ again (shared
-            // across same-hash profiles). Preserve every version-hash that any
-            // profile references so a profile the user might switch back to later
-            // isn't evicted between launches.
-            //
-            // Leftover profile-<id> dirs from v420.20-v420.22 are NOT in this set —
-            // they get cleaned up here on first launch after upgrade (the reverse
-            // migration in GetLatestVersionInfo handles known profiles; this catches
-            // orphans whose owning profile was deleted before upgrade).
+            // v420.24 layout. Three kinds of entries can live under Paths.Versions:
+            //   - profile-<id>\         : the per-profile real Roblox install. Keep
+            //                             while a VersionProfile with that id exists;
+            //                             delete when the user removes the profile.
+            //   - version-<hash>\       : either a junction (active profile's
+            //                             facade — keep if its hash matches some
+            //                             profile.VersionGuid AND the target dir
+            //                             exists), or a real dir (Studio install,
+            //                             or the legacy player install for users
+            //                             who never opened the Versions Manager).
+            //   - version-<hash>.orphan-<utc>\ : set aside by the launch migration
+            //                             when we couldn't safely adopt a v420.23
+            //                             leftover. Left alone for the user — never
+            //                             auto-deleted.
+            var profileIds = new HashSet<string>(
+                App.Settings.Prop.VersionProfiles.Select(p => p.Id),
+                StringComparer.OrdinalIgnoreCase);
             var profileVersionGuids = new HashSet<string>(
                 App.Settings.Prop.VersionProfiles
                     .Select(p => p.VersionGuid)
@@ -1311,33 +1372,91 @@ namespace MrExStrap
             {
                 string dirName = Path.GetFileName(dir);
 
-                bool referencedByProfile = profileVersionGuids.Contains(dirName);
-
-                if (dirName != App.PlayerState.Prop.VersionGuid
-                    && dirName != App.StudioState.Prop.VersionGuid
-                    && !referencedByProfile)
+                if (dirName.Contains(".orphan-"))
                 {
-                    // TODO: this is too expensive
-                    //Filesystem.AssertReadOnlyDirectory(dir);
+                    // User-visible leftover. Don't touch it.
+                    continue;
+                }
 
-                    // check if it's still being used first
-                    // we dont want to accidentally delete the files of a running roblox instance
+                if (dirName.StartsWith("profile-", StringComparison.OrdinalIgnoreCase))
+                {
+                    string profileId = dirName.Substring("profile-".Length);
+                    if (profileIds.Contains(profileId))
+                    {
+                        // Keep silently — common case, no need to spam the log.
+                        continue;
+                    }
+
                     if (!TryDeleteRobloxInDirectory(dir))
                         continue;
 
                     try
                     {
                         Directory.Delete(dir, true);
+                        App.Logger.WriteLine(LOG_IDENT, $"Deleted {dirName} (its profile was removed)");
                     }
                     catch (Exception ex)
                     {
                         App.Logger.WriteLine(LOG_IDENT, $"Failed to delete {dir}");
                         App.Logger.WriteException(LOG_IDENT, ex);
                     }
+                    continue;
                 }
-                else if (referencedByProfile && dirName != App.PlayerState.Prop.VersionGuid && dirName != App.StudioState.Prop.VersionGuid)
+
+                bool isJunction = VersionJunctionManager.IsJunction(dir);
+                bool referencedByProfile = profileVersionGuids.Contains(dirName);
+                bool isCurrentState = dirName == App.PlayerState.Prop.VersionGuid
+                                       || dirName == App.StudioState.Prop.VersionGuid;
+
+                if (isJunction)
                 {
-                    App.Logger.WriteLine(LOG_IDENT, $"Keeping {dirName} (referenced by a Versions Manager profile)");
+                    // Junctions point at a profile-<id> dir under Paths.Versions. If
+                    // the target is gone OR no profile claims this hash anymore,
+                    // prune the dangling reparse point. Cheap, safe.
+                    bool keep = referencedByProfile;
+                    if (keep)
+                    {
+                        // Verify target still resolves — broken junctions are useless.
+                        try
+                        {
+                            keep = Directory.EnumerateFileSystemEntries(dir).Any()
+                                   || Directory.Exists(dir);
+                        }
+                        catch
+                        {
+                            keep = false;
+                        }
+                    }
+
+                    if (!keep)
+                    {
+                        if (VersionJunctionManager.DeleteJunction(dir))
+                            App.Logger.WriteLine(LOG_IDENT, $"Pruned stale junction {dirName}");
+                    }
+                    continue;
+                }
+
+                // Real version-<hash>\ dir. Could be Studio, the legacy Player
+                // install, or a v420.23 leftover we couldn't adopt at launch.
+                if (isCurrentState || referencedByProfile)
+                {
+                    if (referencedByProfile && !isCurrentState)
+                        App.Logger.WriteLine(LOG_IDENT, $"Keeping {dirName} (referenced by a Versions Manager profile — will adopt on its next launch)");
+                    continue;
+                }
+
+                if (!TryDeleteRobloxInDirectory(dir))
+                    continue;
+
+                try
+                {
+                    Directory.Delete(dir, true);
+                    App.Logger.WriteLine(LOG_IDENT, $"Deleted orphan {dirName}");
+                }
+                catch (Exception ex)
+                {
+                    App.Logger.WriteLine(LOG_IDENT, $"Failed to delete {dir}");
+                    App.Logger.WriteException(LOG_IDENT, ex);
                 }
             }
         }
