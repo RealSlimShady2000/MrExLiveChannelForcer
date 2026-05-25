@@ -23,5 +23,10 @@ namespace MrExStrap.Models.Persistable
         // Last-Modified header reflects when the package was uploaded — often many
         // hours before Roblox flips the LIVE pointer to this build.
         public Dictionary<string, DateTime> LiveHashFirstSeenUtc { get; set; } = new();
+
+        // v420.28+: last LIVE hash a "Roblox just shipped X" toast was fired for.
+        // Stops the same toast from re-firing every launcher open / tray poll once
+        // the user has already seen it. Updated atomically with the toast call.
+        public string LastNotifiedLiveHash { get; set; } = "";
     }
 }

@@ -40,6 +40,11 @@ namespace MrExStrap
 
         public LaunchFlag ForceFlag                 { get; } = new("force");
 
+        // v420.28: -tray boots MrExBloxstrap into the persistent system-tray
+        // launcher instead of the normal menu / launch path. Registered with
+        // Windows startup via StartupRegistration when EnableTrayLauncher is on.
+        public LaunchFlag TrayFlag                  { get; } = new("tray");
+
 #if DEBUG
         public bool BypassUpdateCheck => true;
 #else

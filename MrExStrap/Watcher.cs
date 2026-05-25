@@ -108,6 +108,17 @@ namespace MrExStrap
 
             ActivityWatcher?.Start();
 
+            // v420.28: when Stream Mode is on, keep Roblox's window title
+            // rewritten to a generic "Roblox" so streamers don't leak game /
+            // account info to viewers. Runs for the lifetime of the watcher.
+            using var streamModeCts = new CancellationTokenSource();
+            Task? streamModeTask = null;
+            if (Utility.StreamMode.IsActive)
+            {
+                streamModeTask = Utility.StreamMode.RewriteWindowTitleLoopAsync(
+                    _watcherData.ProcessId, streamModeCts.Token);
+            }
+
             // v420.26: rolled back v420.23's MainWindowHandle-based force-kill. It
             // was killing live Roblox sessions when the main window briefly went to
             // IntPtr.Zero mid-game (fullscreen toggles, loading screens, in-game
@@ -118,6 +129,12 @@ namespace MrExStrap
             // without EnableActivityTracking).
             while (Utilities.GetProcessesSafe().Any(x => x.Id == _watcherData.ProcessId))
                 await Task.Delay(1000);
+
+            streamModeCts.Cancel();
+            if (streamModeTask is not null)
+            {
+                try { await streamModeTask; } catch { /* expected on cancel */ }
+            }
 
             if (_watcherData.AutoclosePids is not null)
             {

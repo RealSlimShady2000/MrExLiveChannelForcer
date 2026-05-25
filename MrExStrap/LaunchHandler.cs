@@ -49,6 +49,11 @@ namespace MrExStrap
                 App.Logger.WriteLine(LOG_IDENT, "Opening uninstaller");
                 LaunchUninstaller();
             }
+            else if (App.LaunchSettings.TrayFlag.Active)
+            {
+                App.Logger.WriteLine(LOG_IDENT, "Opening system tray launcher");
+                LaunchTray();
+            }
             else if (App.LaunchSettings.MenuFlag.Active)
             {
                 App.Logger.WriteLine(LOG_IDENT, "Opening settings");
@@ -194,6 +199,52 @@ namespace MrExStrap
                 if (process is not null)
                     PInvoke.SetForegroundWindow((HWND)process.MainWindowHandle);
 
+                App.Terminate();
+            }
+        }
+
+        // The IPL needs to outlive LaunchTray (which returns immediately so
+        // the WPF dispatcher loop can start pumping messages for the
+        // NotifyIcon). Stash it in a static field so it stays in scope for
+        // the lifetime of the process.
+        private static InterProcessLock? _trayLock;
+        private static UI.TrayLauncher? _trayInstance;
+
+        public static void LaunchTray()
+        {
+            const string LOG_IDENT = "LaunchHandler::LaunchTray";
+
+            // Only one tray launcher per machine. If a previous launch already
+            // claimed the lock, the user has another tray running — bail
+            // silently rather than spawn a second tray icon.
+            _trayLock = new InterProcessLock("TrayLauncher");
+            if (!_trayLock.IsAcquired)
+            {
+                App.Logger.WriteLine(LOG_IDENT, "Another tray launcher is already running — exiting.");
+                _trayLock.Dispose();
+                _trayLock = null;
+                App.Terminate();
+                return;
+            }
+
+            // Long-lived: the TrayLauncher owns its NotifyIcon and update
+            // timer for the lifetime of the process. We return immediately
+            // so WPF's main dispatcher loop starts (driven by Application.Run
+            // after OnStartup completes), which pumps messages for the
+            // NotifyIcon. ShutdownMode is OnExplicitShutdown so the process
+            // stays alive until the user clicks "Exit tray launcher".
+            try
+            {
+                _trayInstance = new UI.TrayLauncher();
+                Application.Current.Exit += (_, _) =>
+                {
+                    try { _trayInstance?.Dispose(); } catch { }
+                    try { _trayLock?.Dispose(); } catch { }
+                };
+            }
+            catch (Exception ex)
+            {
+                App.Logger.WriteException(LOG_IDENT, ex);
                 App.Terminate();
             }
         }

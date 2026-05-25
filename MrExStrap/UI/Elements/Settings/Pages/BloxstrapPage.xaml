@@ -62,6 +62,34 @@
             <ui:ToggleSwitch IsChecked="{Binding PrivacyModeEnabled, Mode=TwoWay}" />
         </controls:OptionControl>
 
+        <!-- v420.28: Stream Mode toggle -->
+        <controls:OptionControl Margin="0,8,0,0"
+            Header="Stream mode (hide account info from screen-share)"
+            Description="When on, MrExBloxstrap hides your Roblox username from Discord Rich Presence, replaces the place ID on the bootstrapper dialog with a generic 'Joining a Roblox experience', and rewrites the Roblox window title to just 'Roblox'. Useful if you stream or record your screen.">
+            <ui:ToggleSwitch IsChecked="{Binding StreamModeEnabled, Mode=TwoWay}" />
+        </controls:OptionControl>
+
+        <!-- v420.28: Tray launcher toggle -->
+        <controls:OptionControl Margin="0,8,0,0"
+            Header="System tray launcher (start with Windows)"
+            Description="Adds MrExBloxstrap to Windows startup as a small system tray icon. Right-click the icon to switch profiles or open settings, double-click to open the launch menu. No admin needed. Turn off to remove from startup.">
+            <ui:ToggleSwitch IsChecked="{Binding TrayLauncherEnabled, Mode=TwoWay}" />
+        </controls:OptionControl>
+
+        <!-- v420.28: Roblox LIVE-change toast -->
+        <controls:OptionControl Margin="0,8,0,0"
+            Header="Notify when Roblox ships a new LIVE build"
+            Description="Pops a Windows notification when Roblox's official LIVE channel moves to a new build. Checked when you open MrExBloxstrap, and every 30 minutes if the tray launcher above is running. Off by default.">
+            <ui:ToggleSwitch IsChecked="{Binding NotifyOnLiveChange, Mode=TwoWay}" />
+        </controls:OptionControl>
+
+        <!-- v420.28: Executor-update toast -->
+        <controls:OptionControl Margin="0,8,0,0"
+            Header="Notify when a tracked executor updates"
+            Description="Pops a Windows notification when an executor with a Versions Manager profile publishes a new build on weao.xyz. Same polling schedule as the LIVE-change toast above. Off by default.">
+            <ui:ToggleSwitch IsChecked="{Binding NotifyOnExecutorUpdate, Mode=TwoWay}" />
+        </controls:OptionControl>
+
         <!-- Multi-instance toggle -->
         <controls:OptionControl Margin="0,8,0,0"
             Header="Multi-instance (run more than one Roblox client)"

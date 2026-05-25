@@ -372,7 +372,11 @@ namespace MrExStrap.Integrations
 
             icon = universeDetails.Thumbnail.ImageUrl!;
 
-            if (App.Settings.Prop.ShowAccountOnRichPresence)
+            // v420.28: Stream Mode suppresses the user-identifying small-image
+            // text + thumbnail in the RPC payload. Game name and elapsed time
+            // still appear so viewers see the user is in a Roblox game, just
+            // not WHICH account.
+            if (App.Settings.Prop.ShowAccountOnRichPresence && !Utility.StreamMode.IsActive)
             {
                 var userDetails = await UserDetails.Fetch(activity.UserId);
 

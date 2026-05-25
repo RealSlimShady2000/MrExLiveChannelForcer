@@ -35,6 +35,67 @@ namespace MrExStrap.UI.ViewModels.Settings
             set => App.Settings.Prop.EnablePrivacyMode = value;
         }
 
+        // v420.28: Stream Mode
+        public bool StreamModeEnabled
+        {
+            get => App.Settings.Prop.EnableStreamMode;
+            set { App.Settings.Prop.EnableStreamMode = value; OnPropertyChanged(nameof(StreamModeEnabled)); }
+        }
+
+        // v420.28: persistent system tray launcher. Toggle drives the HKCU Run
+        // key + optionally spawns a -tray instance immediately so the user
+        // doesn't have to reboot before seeing it work.
+        public bool TrayLauncherEnabled
+        {
+            get => App.Settings.Prop.EnableTrayLauncher;
+            set
+            {
+                App.Settings.Prop.EnableTrayLauncher = value;
+                OnPropertyChanged(nameof(TrayLauncherEnabled));
+
+                try
+                {
+                    if (value)
+                    {
+                        StartupRegistration.Enable();
+
+                        var prompt = Frontend.ShowMessageBox(
+                            "MrExBloxstrap will now start in the system tray every time Windows starts.\n\n" +
+                            "Start the tray launcher now without rebooting?",
+                            MessageBoxImage.Information,
+                            MessageBoxButton.YesNo,
+                            MessageBoxResult.Yes);
+                        if (prompt == MessageBoxResult.Yes)
+                        {
+                            try { Process.Start(Paths.Process, "-tray"); }
+                            catch (Exception ex) { App.Logger.WriteException("BloxstrapViewModel::TrayLauncher::StartNow", ex); }
+                        }
+                    }
+                    else
+                    {
+                        StartupRegistration.Disable();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    App.Logger.WriteException("BloxstrapViewModel::TrayLauncher::Toggle", ex);
+                }
+            }
+        }
+
+        // v420.28: opt-in toasts for LIVE-channel changes + executor updates.
+        public bool NotifyOnLiveChange
+        {
+            get => App.Settings.Prop.NotifyOnLiveChange;
+            set { App.Settings.Prop.NotifyOnLiveChange = value; OnPropertyChanged(nameof(NotifyOnLiveChange)); }
+        }
+
+        public bool NotifyOnExecutorUpdate
+        {
+            get => App.Settings.Prop.NotifyOnExecutorUpdate;
+            set { App.Settings.Prop.NotifyOnExecutorUpdate = value; OnPropertyChanged(nameof(NotifyOnExecutorUpdate)); }
+        }
+
         public bool MultiInstanceEnabled
         {
             get => App.Settings.Prop.MultiInstanceEnabled;

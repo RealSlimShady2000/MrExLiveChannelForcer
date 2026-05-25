@@ -64,6 +64,27 @@ namespace MrExStrap.Models.Persistable
         // privacy mode — truncate RobloxCookies.dat before every launch (MrExStrap fork feature)
         public bool EnablePrivacyMode { get; set; } = false;
 
+        // v420.28+: Stream Mode hides Roblox-account info from Discord Rich Presence,
+        // the place ID from the bootstrapper dialog, and rewrites the Roblox window
+        // title to a generic "Roblox" string. For users who stream / record / share
+        // their screen and don't want viewers to see account-identifying info.
+        public bool EnableStreamMode { get; set; } = false;
+
+        // v420.28+: persistent system tray launcher. When ON, MrExBloxstrap registers
+        // itself to start with Windows and lives in the notification area with a
+        // right-click menu for quick-launching the active profile or switching
+        // profiles without opening the full settings UI.
+        public bool EnableTrayLauncher { get; set; } = false;
+
+        // v420.28+: opt-in Windows balloon-tip toasts.
+        // NotifyOnLiveChange: pops a toast when Roblox's LIVE channel hash changes
+        //   (polled on launcher open + every 30 min when the tray launcher is on).
+        // NotifyOnExecutorUpdate: pops a toast when any tracked executor profile
+        //   gets a new Roblox version on WEAO.
+        // Both default off so the launcher stays quiet unless the user asks for it.
+        public bool NotifyOnLiveChange { get; set; } = false;
+        public bool NotifyOnExecutorUpdate { get; set; } = false;
+
         // multi-instance: close ROBLOX_singletonEvent after launch so another Roblox can start (MrExStrap fork feature)
         public bool MultiInstanceEnabled { get; set; } = false;
 

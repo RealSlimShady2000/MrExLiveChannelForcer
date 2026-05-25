@@ -797,7 +797,11 @@ namespace MrExStrap
                 {
                     long? placeId = Utility.LaunchArgsUtility.TryExtractPlaceId(_launchCommandLine);
                     if (placeId.HasValue)
-                        fluent.PlaceInfoText = $"Joining Roblox place #{placeId.Value}";
+                    {
+                        fluent.PlaceInfoText = Utility.StreamMode.IsActive
+                            ? Utility.StreamMode.MaskedPlaceInfo
+                            : $"Joining Roblox place #{placeId.Value}";
+                    }
                 }
             }
 

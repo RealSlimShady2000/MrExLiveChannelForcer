@@ -39,7 +39,11 @@ namespace MrExStrap.Utility
                 icon: WinForms.ToolTipIcon.Warning);
         }
 
-        private static void ShowToast(string title, string message, WinForms.ToolTipIcon icon)
+        // v420.28: promoted to public so the UpdateMonitor toasts (and any
+        // future callers) can reuse the dispatch + transient-NotifyIcon
+        // bookkeeping. Existing Show / ShowChannelLockFailed callers are
+        // unchanged.
+        public static void ShowToast(string title, string message, WinForms.ToolTipIcon icon)
         {
             var dispatcher = App.Current?.Dispatcher;
             if (dispatcher == null)

@@ -47,6 +47,11 @@ namespace MrExStrap.Models.Persistable
         // "Updated <relative time>" so the user knows when the version last moved.
         public DateTime? LastExecutorRefreshUtc { get; set; }
 
+        // v420.28+: hash this profile was at the last time a "<executor> updated"
+        // toast fired. Lets UpdateMonitor pop the toast exactly once per WEAO bump
+        // instead of every launcher open / tray poll.
+        public string LastNotifiedExecutorHash { get; set; } = "";
+
         public DateTime CreatedUtc { get; set; } = DateTime.UtcNow;
     }
 }

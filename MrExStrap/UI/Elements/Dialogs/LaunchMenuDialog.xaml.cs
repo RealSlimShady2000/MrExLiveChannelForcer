@@ -36,6 +36,11 @@ namespace MrExStrap.UI.Elements.Dialogs
             DataContext = viewModel;
 
             InitializeComponent();
+
+            // v420.28: fire-and-forget LIVE-change + executor-update toast checks
+            // when the launcher opens. UpdateMonitor honours its own toggles and
+            // budgets so this is safe to call without gating here.
+            _ = MrExStrap.Utility.UpdateMonitor.CheckAllAsync();
         }
     }
 }
