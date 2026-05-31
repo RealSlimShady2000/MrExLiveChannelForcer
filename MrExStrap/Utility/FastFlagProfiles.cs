@@ -1,0 +1,97 @@
+namespace MrExStrap.Utility
+{
+    // Per-Versions-Manager-profile fast flag storage. Each profile's flag set lives at
+    // Paths.FastFlagProfiles\<profileId>.json, kept OUTSIDE Modifications\ so the launch
+    // overlay copy never ships these into the Roblox install.
+    //
+    // At launch the ACTIVE profile's set is materialised into the canonical
+    // Modifications\ClientSettings\ClientAppSettings.json that the existing overlay copy
+    // applies — so the fragile Bootstrapper apply path stays exactly as it was.
+    public static class FastFlagProfiles
+    {
+        private const string LOG_IDENT = "FastFlagProfiles";
+
+        private static string CanonicalFile =>
+            Path.Combine(Paths.Modifications, "ClientSettings", "ClientAppSettings.json");
+
+        public static string PathFor(string profileId) =>
+            Path.Combine(Paths.FastFlagProfiles, $"{profileId}.json");
+
+        // First-run move of the old single global flag file onto the active (default LIVE)
+        // profile so existing users keep their flags. No-op once any per-profile file exists.
+        public static void MigrateGlobalIfNeeded()
+        {
+            try
+            {
+                Directory.CreateDirectory(Paths.FastFlagProfiles);
+
+                if (Directory.EnumerateFiles(Paths.FastFlagProfiles, "*.json").Any())
+                    return;
+
+                if (!File.Exists(CanonicalFile))
+                    return;
+
+                string targetId = !string.IsNullOrEmpty(App.Settings.Prop.ActiveVersionProfileId)
+                    ? App.Settings.Prop.ActiveVersionProfileId
+                    : App.LiveBuiltInProfileId;
+
+                File.Copy(CanonicalFile, PathFor(targetId), overwrite: false);
+                App.Logger.WriteLine(LOG_IDENT, $"Migrated legacy global fast flags -> profile '{targetId}'.");
+            }
+            catch (Exception ex)
+            {
+                App.Logger.WriteException(LOG_IDENT + "::MigrateGlobalIfNeeded", ex);
+            }
+        }
+
+        // Write the active profile's flags into the canonical file the launch overlay applies.
+        // When the manager is off, or the active profile has no flag file, the canonical file
+        // is emptied so nothing stale gets applied.
+        public static void MaterializeActiveToCanonical()
+        {
+            try
+            {
+                Directory.CreateDirectory(Path.GetDirectoryName(CanonicalFile)!);
+
+                if (!App.Settings.Prop.UseFastFlagManager)
+                {
+                    WriteEmpty();
+                    return;
+                }
+
+                string activeId = App.Settings.Prop.ActiveVersionProfileId;
+                string source = string.IsNullOrEmpty(activeId) ? "" : PathFor(activeId);
+
+                if (!string.IsNullOrEmpty(source) && File.Exists(source))
+                    File.Copy(source, CanonicalFile, overwrite: true);
+                else
+                    WriteEmpty();
+
+                App.Logger.WriteLine(LOG_IDENT, $"Materialised fast flags for active profile '{activeId}'.");
+            }
+            catch (Exception ex)
+            {
+                App.Logger.WriteException(LOG_IDENT + "::MaterializeActiveToCanonical", ex);
+            }
+        }
+
+        private static void WriteEmpty() => File.WriteAllText(CanonicalFile, "{}");
+
+        public static void Delete(string profileId)
+        {
+            try
+            {
+                string path = PathFor(profileId);
+                if (File.Exists(path))
+                {
+                    File.Delete(path);
+                    App.Logger.WriteLine(LOG_IDENT, $"Deleted fast flag file for profile '{profileId}'.");
+                }
+            }
+            catch (Exception ex)
+            {
+                App.Logger.WriteException(LOG_IDENT + "::Delete", ex);
+            }
+        }
+    }
+}

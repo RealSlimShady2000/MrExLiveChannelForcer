@@ -217,6 +217,7 @@ namespace MrExStrap.UI.ViewModels.Settings
             if (confirm != MessageBoxResult.Yes) return;
 
             App.Settings.Prop.VersionProfiles.Remove(profile);
+            MrExStrap.Utility.FastFlagProfiles.Delete(id);
 
             // If we just deleted the active profile, fall back to the built-in LIVE one.
             if (App.Settings.Prop.ActiveVersionProfileId == id)

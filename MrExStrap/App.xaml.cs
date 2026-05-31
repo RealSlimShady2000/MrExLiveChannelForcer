@@ -474,6 +474,7 @@ namespace MrExStrap
 
                 Settings.Load();
                 State.Load();
+                Utility.FastFlagProfiles.MigrateGlobalIfNeeded();
                 FastFlags.Load();
 
                 if (!Locale.SupportedLocales.ContainsKey(Settings.Prop.Locale))

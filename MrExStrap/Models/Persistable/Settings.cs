@@ -103,6 +103,9 @@ namespace MrExStrap.Models.Persistable
         public bool BanAsyncPreserveInGameSettings { get; set; } = true;
         public bool BanAsyncPreserveFastFlags { get; set; } = true;
         public bool BanAsyncIncludeStudioFolders { get; set; } = false;
+        // Opt-in (default off): "Clean traces" also wipes MrExBloxstrap's downloaded Roblox
+        // installs under Versions\. Destructive — forces a full re-download next launch.
+        public bool BanAsyncCleanVersions { get; set; } = false;
         public bool BanAsyncClearBrowserCookies { get; set; } = false;
         // Off by default in v420.11+: the netsh adapter cycle already releases the old DHCP
         // lease, so the extra ipconfig /release+/renew tends to do nothing useful and can
@@ -121,5 +124,10 @@ namespace MrExStrap.Models.Persistable
         public bool BanAsyncMachineGuidAcknowledged { get; set; } = false;
         public string BanAsyncOriginalMachineGuid { get; set; } = "";
         public ObservableCollection<string> BanAsyncSpoofedAdapterGuids { get; set; } = new();
+
+        // Original (pre-spoof) MAC per adapter, keyed by adapter Id. Captured the first
+        // time an adapter is spoofed so the UI can show the real hardware MAC next to the
+        // current spoofed one, and cleared on revert.
+        public Dictionary<string, string> BanAsyncOriginalMacByGuid { get; set; } = new();
     }
 }

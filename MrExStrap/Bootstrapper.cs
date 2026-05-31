@@ -70,6 +70,68 @@ namespace MrExStrap
                 .FirstOrDefault(p => p.Id == App.Settings.Prop.ActiveVersionProfileId);
         }
 
+        // What Roblox version is actually installed for this launch?
+        //
+        // For a profile-driven launch the answer lives on the profile, NOT on the
+        // global DistributionState. DistributionState.VersionGuid holds whichever
+        // profile launched last, so reading it here made switching from an executor
+        // profile (e.g. Synapse Z) to "Latest LIVE" redownload Roblox on every launch
+        // even though the Latest LIVE profile's own folder already had the right build.
+        //
+        // When the profile has no recorded hash, recover from the actual client on
+        // disk: if its file version matches the build we're about to launch, adopt it
+        // instead of redownloading. The exe version is authoritative, so a genuinely
+        // stale install (a newer LIVE build shipped) still fails the match and upgrades.
+        private string ResolveInstalledVersionForLaunch(VersionProfile? activeProfile)
+        {
+            const string LOG_IDENT = "Bootstrapper::ResolveInstalledVersionForLaunch";
+
+            if (activeProfile is null)
+                return AppData.DistributionState.VersionGuid;
+
+            if (!string.IsNullOrEmpty(activeProfile.InstalledVersionGuid))
+                return activeProfile.InstalledVersionGuid;
+
+            if (InstalledExeMatchesLatest())
+            {
+                activeProfile.InstalledVersionGuid = _latestVersionGuid;
+                App.Settings.Save();
+                App.Logger.WriteLine(LOG_IDENT, $"Recovered InstalledVersionGuid for profile '{activeProfile.Name}' from on-disk client v{_latestVersion} -> {_latestVersionGuid}");
+                return _latestVersionGuid;
+            }
+
+            return "";
+        }
+
+        // True when the Roblox client already present at the resolved install dir reports
+        // the same file version as the build we're about to launch. Lets us recognise an
+        // existing, current install whose per-profile bookkeeping was lost without ever
+        // trusting a stale build.
+        private bool InstalledExeMatchesLatest()
+        {
+            const string LOG_IDENT = "Bootstrapper::InstalledExeMatchesLatest";
+            try
+            {
+                if (_latestVersion is null)
+                    return false;
+
+                string exePath = AppData.ExecutablePath;
+                if (!File.Exists(exePath))
+                    return false;
+
+                var fvi = System.Diagnostics.FileVersionInfo.GetVersionInfo(exePath);
+                var onDisk = new Version(fvi.FileMajorPart, fvi.FileMinorPart, fvi.FileBuildPart, fvi.FilePrivatePart);
+                bool match = onDisk == _latestVersion;
+                App.Logger.WriteLine(LOG_IDENT, $"On-disk {exePath} v{onDisk} vs latest v{_latestVersion}: {(match ? "match" : "differs")}");
+                return match;
+            }
+            catch (Exception ex)
+            {
+                App.Logger.WriteException(LOG_IDENT, ex);
+                return false;
+            }
+        }
+
         // v420.24: each profile owns its real Roblox install at
         // Versions\profile-<id>\, and the active profile's launch exposes that
         // dir under the standard Versions\version-<active-hash>\ name via a
@@ -477,10 +539,7 @@ namespace MrExStrap
                 // every single launch (flippi's 2026-05-24 report). Explicit
                 // IsNullOrEmpty check fixes the fallback path.
                 var activeProfileForCheck = GetActiveProfileForBootstrap();
-                string installedForThisLaunch =
-                    activeProfileForCheck != null && !string.IsNullOrEmpty(activeProfileForCheck.InstalledVersionGuid)
-                        ? activeProfileForCheck.InstalledVersionGuid
-                        : AppData.DistributionState.VersionGuid;
+                string installedForThisLaunch = ResolveInstalledVersionForLaunch(activeProfileForCheck);
 
                 if (installedForThisLaunch != _latestVersionGuid || _mustUpgrade)
                 {
@@ -506,6 +565,11 @@ namespace MrExStrap
 
                 if (_cancelTokenSource.IsCancellationRequested)
                     return;
+
+                // Per-profile fast flags: materialise the active Versions Manager profile's
+                // flag set into the canonical ClientAppSettings.json that ApplyModifications
+                // copies into the install. Keeps the overlay-copy path itself unchanged.
+                Utility.FastFlagProfiles.MaterializeActiveToCanonical();
 
                 // we require deployment details for applying modifications for a worst case scenario,
                 // where we'd need to restore files from a package that isn't present on disk and needs to be redownloaded

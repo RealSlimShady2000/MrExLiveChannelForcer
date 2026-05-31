@@ -44,11 +44,21 @@ namespace MrExStrap.UI.ViewModels.Settings
                 _selectedAdapter = value;
                 OnPropertyChanged(nameof(SelectedAdapter));
                 OnPropertyChanged(nameof(CurrentMacFormatted));
+                OnPropertyChanged(nameof(OriginalMacFormatted));
             }
         }
 
         public string CurrentMacFormatted =>
             SelectedAdapter == null ? "(no adapter selected)" : NetworkAdapter.FormatMac(SelectedAdapter.PhysicalAddress);
+
+        // The pre-spoof hardware MAC for the selected adapter, if we captured one. Shown
+        // next to the current MAC so the user can see what they spoofed away from and what
+        // Revert will restore. Mirrors the MachineGuid backup display.
+        public string OriginalMacFormatted =>
+            SelectedAdapter != null
+            && App.Settings.Prop.BanAsyncOriginalMacByGuid.TryGetValue(SelectedAdapter.Id, out var original)
+                ? NetworkAdapter.FormatMac(original)
+                : "(none saved yet)";
 
         // ---- bound settings -----------------------------------------------------------
 
@@ -74,6 +84,12 @@ namespace MrExStrap.UI.ViewModels.Settings
         {
             get => App.Settings.Prop.BanAsyncClearBrowserCookies;
             set { App.Settings.Prop.BanAsyncClearBrowserCookies = value; OnPropertyChanged(nameof(ClearBrowserCookies)); }
+        }
+
+        public bool CleanMrExVersions
+        {
+            get => App.Settings.Prop.BanAsyncCleanVersions;
+            set { App.Settings.Prop.BanAsyncCleanVersions = value; OnPropertyChanged(nameof(CleanMrExVersions)); }
         }
 
         public bool DhcpRefreshAfterSpoof
@@ -142,6 +158,11 @@ namespace MrExStrap.UI.ViewModels.Settings
 
         public ObservableCollection<string> ActivityLog { get; } = new();
 
+        // Raised when an action (clean/spoof/revert) starts so the view can bring the
+        // activity log into view and scroll it to the latest line.
+        public event EventHandler? ScrollToLogRequested;
+        private void RequestScrollToLog() => ScrollToLogRequested?.Invoke(this, EventArgs.Empty);
+
         private void Log(string line)
         {
             string stamped = $"[{DateTime.Now:HH:mm:ss}] {line}";
@@ -197,6 +218,7 @@ namespace MrExStrap.UI.ViewModels.Settings
                 "  • %Temp%\\Roblox*\n" +
                 "  • Prefetch entries for Roblox (admin only)\n" +
                 "  • HKCU\\Software\\ROBLOX Corporation\n" +
+                (CleanMrExVersions ? "  • MrExBloxstrap's downloaded Roblox installs (Versions) — forces a full re-download next launch\n" : "") +
                 (ClearBrowserCookies ? "  • Roblox cookies in any installed browsers (Chrome, Edge, Firefox, Brave, Opera, Vivaldi)\n" : "") +
                 "\n" +
                 (PreserveInGameSettings ? "In-game settings (GlobalBasicSettings_*.xml) will be preserved.\n" : "") +
@@ -212,12 +234,14 @@ namespace MrExStrap.UI.ViewModels.Settings
                 return;
             }
 
+            RequestScrollToLog();
             Log("Starting trace cleanup…");
             var options = new CleanupEngine.CleanupOptions
             {
                 PreserveInGameSettings = PreserveInGameSettings,
                 PreserveFastFlags = PreserveFastFlags,
-                IncludeStudioFolders = IncludeStudioFolders
+                IncludeStudioFolders = IncludeStudioFolders,
+                CleanMrExVersions = CleanMrExVersions
             };
 
             CleanupEngine.CleanupResult result = await Task.Run(() => CleanupEngine.RunCleanup(options, Log));
@@ -239,6 +263,8 @@ namespace MrExStrap.UI.ViewModels.Settings
                 Log("Not elevated — spoof is disabled.");
                 return;
             }
+
+            RequestScrollToLog();
 
             var targets = AdvancedMode
                 ? (SelectedAdapter == null ? new List<NetworkAdapter>() : new List<NetworkAdapter> { SelectedAdapter })
@@ -269,6 +295,17 @@ namespace MrExStrap.UI.ViewModels.Settings
                     string newMac = customNormalized ??
                                     MacSpoofer.GenerateRandomMac(OuiMirror ? adapter.PhysicalAddress : null);
 
+                    // Record the real hardware MAC once, before the first spoof. After the
+                    // adapter restarts the OS reports the spoofed MAC as PhysicalAddress, so
+                    // this is the only point we can capture the original for the UI / revert.
+                    if (!string.IsNullOrEmpty(adapter.PhysicalAddress)
+                        && !App.Settings.Prop.BanAsyncOriginalMacByGuid.ContainsKey(adapter.Id))
+                    {
+                        string original = adapter.PhysicalAddress;
+                        Application.Current?.Dispatcher?.Invoke(() =>
+                            App.Settings.Prop.BanAsyncOriginalMacByGuid[adapter.Id] = original);
+                    }
+
                     Log($"Spoofing {adapter.Name} → {NetworkAdapter.FormatMac(newMac)}…");
                     bool ok = MacSpoofer.SpoofAdapter(adapter, newMac, Log);
 
@@ -295,6 +332,8 @@ namespace MrExStrap.UI.ViewModels.Settings
                 return;
             }
 
+            RequestScrollToLog();
+
             var ids = App.Settings.Prop.BanAsyncSpoofedAdapterGuids.ToList();
             // Include any adapter we can see, even if not in the tracked list — covers cases
             // where the user spoofed via another tool but wants to revert here.
@@ -315,7 +354,10 @@ namespace MrExStrap.UI.ViewModels.Settings
                     if (ok)
                     {
                         Application.Current?.Dispatcher?.Invoke(() =>
-                            App.Settings.Prop.BanAsyncSpoofedAdapterGuids.Remove(adapter.Id));
+                        {
+                            App.Settings.Prop.BanAsyncSpoofedAdapterGuids.Remove(adapter.Id);
+                            App.Settings.Prop.BanAsyncOriginalMacByGuid.Remove(adapter.Id);
+                        });
                     }
                 }
             });

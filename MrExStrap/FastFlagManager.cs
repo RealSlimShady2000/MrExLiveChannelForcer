@@ -12,7 +12,27 @@ namespace MrExStrap
 
         public override string FileName => "ClientAppSettings.json";
 
-        public override string FileLocation => Path.Combine(Paths.Modifications, "ClientSettings", FileName);
+        // Which Versions Manager profile's flag set this manager reads/writes. Empty =>
+        // the currently active profile. The FastFlags editor repoints this to edit other
+        // profiles' flags without changing which profile actually launches.
+        public string EditingProfileId { get; set; } = "";
+
+        public override string FileLocation
+        {
+            get
+            {
+                string id = EditingProfileId;
+                if (string.IsNullOrEmpty(id))
+                    id = App.Settings?.Prop?.ActiveVersionProfileId ?? "";
+
+                // No profile yet (fresh install before the profile list is seeded) ->
+                // fall back to the legacy single global file.
+                if (string.IsNullOrEmpty(id))
+                    return Path.Combine(Paths.Modifications, "ClientSettings", FileName);
+
+                return Path.Combine(Paths.FastFlagProfiles, $"{id}.json");
+            }
+        }
 
         public bool Changed => !OriginalProp.SequenceEqual(Prop);
 

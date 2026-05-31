@@ -27,6 +27,11 @@ namespace MrExStrap.Utility.BanAsync
             public bool PreserveInGameSettings { get; set; } = true;
             public bool PreserveFastFlags { get; set; } = true;
             public bool IncludeStudioFolders { get; set; } = false;
+
+            // Also wipe MrExBloxstrap's own Versions folder (the downloaded Roblox
+            // installs under %LocalAppData%\MrExBloxstrap\Versions). Forces a fresh
+            // download on next launch. Off unless the user opts in.
+            public bool CleanMrExVersions { get; set; } = false;
         }
 
         public class CleanupResult
@@ -75,6 +80,10 @@ namespace MrExStrap.Utility.BanAsync
                     log($"Skipped {path}: {ex.Message}");
                 }
             }
+
+            // Optional: wipe MrExBloxstrap's own downloaded Roblox installs (Versions).
+            if (options.CleanMrExVersions)
+                CleanMrExVersionsFolder(result, log);
 
             // Glob targets: %TEMP%\Roblox*
             string tempRoot = Path.GetTempPath();
@@ -140,6 +149,48 @@ namespace MrExStrap.Utility.BanAsync
             }
 
             return result;
+        }
+
+        // Wipe MrExBloxstrap's own Versions folder (the downloaded Roblox installs).
+        // Junction-aware: unlink reparse points without recursing into their targets so a
+        // recursive delete can never clobber a per-profile dir through a junction
+        // (the v420.25 lesson). Real per-profile dirs are deleted recursively.
+        private static void CleanMrExVersionsFolder(CleanupResult result, Action<string> log)
+        {
+            string versions = Paths.Versions;
+            if (string.IsNullOrEmpty(versions) || !Directory.Exists(versions))
+            {
+                log("No MrExBloxstrap Versions folder to clean.");
+                return;
+            }
+
+            log($"Wiping MrExBloxstrap Versions folder {versions}…");
+
+            foreach (string child in Directory.EnumerateDirectories(versions))
+            {
+                try
+                {
+                    if (VersionJunctionManager.IsJunction(child))
+                        Directory.Delete(child, recursive: false);
+                    else
+                        Directory.Delete(child, recursive: true);
+
+                    result.DeletedDirectories++;
+                    log($"Deleted {child}");
+                }
+                catch (Exception ex)
+                {
+                    App.Logger.WriteException(LOG_IDENT + "::CleanVersions", ex);
+                    result.Skipped.Add(child);
+                    log($"Skipped {child}: {ex.Message}");
+                }
+            }
+
+            foreach (string file in Directory.EnumerateFiles(versions))
+            {
+                try { File.Delete(file); result.DeletedFiles++; }
+                catch (Exception ex) { App.Logger.WriteException(LOG_IDENT + "::CleanVersionsFile", ex); }
+            }
         }
 
         private static int KillProcesses(Action<string> log)

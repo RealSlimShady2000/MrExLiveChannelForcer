@@ -25,6 +25,11 @@ namespace MrExStrap
         public static string CustomThemes { get; private set; } = "";
         public static string DebugOutput { get; private set; } = "";
 
+        // Per-Versions-Manager-profile fast flag sets. Each profile's flags live in
+        // FastFlagProfiles\<profileId>.json, kept OUTSIDE Modifications\ so the launch
+        // overlay copy never ships them into the Roblox install.
+        public static string FastFlagProfiles { get; private set; } = "";
+
         public static string Application { get; private set; } = "";
 
         public static string CustomFont => Path.Combine(Modifications, "content\\fonts\\CustomFont.ttf");
@@ -57,6 +62,8 @@ namespace MrExStrap
             // Distinct from Logs/ so users can hand the maintainer a single folder without
             // accidentally including every routine log file.
             DebugOutput = Path.Combine(Base, "Debug");
+
+            FastFlagProfiles = Path.Combine(Base, "FastFlagProfiles");
 
             Application = Path.Combine(Base, $"{App.ProjectName}.exe");
         }

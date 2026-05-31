@@ -84,6 +84,12 @@
         </controls:OptionControl>
 
         <controls:OptionControl
+            Header="Also wipe downloaded Roblox installs (Versions)"
+            Description="Deletes MrExBloxstrap's Versions folder — every downloaded Roblox client across all profiles. OFF by default: this forces a full re-download on the next launch and does NOT help with ban traces (the Roblox binaries aren't unique to you). Turn it on only if you want a completely clean slate.">
+            <ui:ToggleSwitch IsChecked="{Binding CleanMrExVersions, Mode=TwoWay}" />
+        </controls:OptionControl>
+
+        <controls:OptionControl
             Header="Also clear Roblox browser cookies"
             Description="Wipes only the cookies that roblox.com and rbxcdn.com have stored in any browsers you have installed (Chrome, Edge, Firefox, Brave, Opera, Vivaldi). Your other site cookies (Gmail, banking, Discord, everything else) are NOT touched. Close your browsers first — cookie files are locked while the browser is open and locked ones get skipped with a warning in the log.">
             <ui:ToggleSwitch IsChecked="{Binding ClearBrowserCookies, Mode=TwoWay}" />
@@ -148,6 +154,10 @@
                 <TextBlock Margin="0,8,0,0" FontSize="12"
                            Foreground="{DynamicResource TextFillColorSecondaryBrush}"
                            Text="{Binding CurrentMacFormatted, Mode=OneWay, StringFormat='Current MAC: {0}'}" />
+
+                <TextBlock Margin="0,2,0,0" FontSize="12"
+                           Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                           Text="{Binding OriginalMacFormatted, Mode=OneWay, StringFormat='Original MAC: {0}'}" />
 
                 <TextBlock Margin="0,12,0,4" Text="Custom MAC (leave blank to use a random one)" FontWeight="SemiBold" />
                 <Grid>
@@ -255,10 +265,10 @@
             <ui:Button Grid.Column="1" Icon="EraserSmall24" Content="Clear"
                        Command="{Binding ClearLogCommand, Mode=OneTime}" />
         </Grid>
-        <Border Padding="0" CornerRadius="4"
+        <Border x:Name="ActivityLogBorder" Padding="0" CornerRadius="4"
                 Background="{DynamicResource ControlFillColorDefaultBrush}"
                 BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}" BorderThickness="1">
-            <ListBox MinHeight="160" MaxHeight="240" Background="Transparent" BorderThickness="0"
+            <ListBox x:Name="ActivityLogList" MinHeight="160" MaxHeight="240" Background="Transparent" BorderThickness="0"
                      FontFamily="Consolas" FontSize="12"
                      ItemsSource="{Binding ActivityLog, Mode=OneWay}"
                      ScrollViewer.HorizontalScrollBarVisibility="Auto"

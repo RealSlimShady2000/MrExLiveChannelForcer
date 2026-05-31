@@ -1,8 +1,3 @@
-using System.Windows;
-using System.Windows.Input;
-
-using CommunityToolkit.Mvvm.Input;
-
 using MrExStrap.Enums.FlagPresets;
 
 namespace MrExStrap.UI.ViewModels.Settings
@@ -11,15 +6,9 @@ namespace MrExStrap.UI.ViewModels.Settings
     {
         private Dictionary<string, object>? _preResetFlags;
 
+        // Raised when a reset swap happens so the page can rebuild this VM (so the preset
+        // controls re-read App.FastFlags) and refresh the raw editor grid.
         public event EventHandler? RequestPageReloadEvent;
-        
-        public event EventHandler? OpenFlagEditorEvent;
-
-        private void OpenFastFlagEditor() => OpenFlagEditorEvent?.Invoke(this, EventArgs.Empty);
-
-        public ICommand OpenFastFlagEditorCommand => new RelayCommand(OpenFastFlagEditor);
-
-        public Visibility CanShowFastFlagEditor => App.IsStudioInstalled ? Visibility.Visible : Visibility.Collapsed;
 
         public bool UseFastFlagManager
         {
