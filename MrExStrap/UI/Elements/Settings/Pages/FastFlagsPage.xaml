@@ -77,11 +77,38 @@
         <TextBlock Margin="0,0,0,2" Text="{x:Static resources:Strings.Menu_FastFlagEditor_Description}" FontSize="14" Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
         <controls:MarkdownTextBlock TextWrapping="Wrap" FontSize="14" FontWeight="Bold" Margin="0,0,0,12" MarkdownText="{Binding Source={x:Static resources:Strings.Menu_FastFlagEditor_AllowlistInformation}, Converter={StaticResource StringFormatConverter}, ConverterParameter='https://devforum.roblox.com/t/allowlist-for-local-client-configuration-via-fast-flags/3966569'}"  Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
 
-        <ui:InfoBar Margin="0,0,0,8" Padding="8" Title="{x:Static resources:Strings.Menu_FastFlagEditor_BannerTitle}" IsOpen="True" Message="{x:Static resources:Strings.Menu_FastFlagEditor_BannerText}" Severity="Warning" IsClosable="False" />
+        <!-- Bordered wrapped panels instead of ui:InfoBar: InfoBar's Message TextBlock
+             doesn't wrap, so the long multi-line banner text was clipped on the right
+             (user report 2026-06-01). These wrap and grow with the page width. -->
+        <Border Margin="0,0,0,8" Padding="12,10" CornerRadius="4"
+                Background="{DynamicResource SystemFillColorCautionBackgroundBrush}"
+                BorderBrush="{DynamicResource SystemFillColorCautionBrush}" BorderThickness="0,0,0,2">
+            <StackPanel Orientation="Horizontal">
+                <ui:SymbolIcon Symbol="Warning24" FontSize="20" Margin="0,0,10,0" VerticalAlignment="Top" />
+                <StackPanel MaxWidth="640">
+                    <TextBlock FontWeight="SemiBold" FontSize="13" TextWrapping="Wrap"
+                               Text="{x:Static resources:Strings.Menu_FastFlagEditor_BannerTitle}" />
+                    <TextBlock Margin="0,4,0,0" FontSize="12" TextWrapping="Wrap"
+                               Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                               Text="{x:Static resources:Strings.Menu_FastFlagEditor_BannerText}" />
+                </StackPanel>
+            </StackPanel>
+        </Border>
 
-        <ui:InfoBar Margin="0,0,0,8" Padding="8" IsOpen="True" Severity="Informational" IsClosable="False"
-                    Title="Will I face consequences for using flags that aren't on the allowlist?"
-                    Message="No. Fast Flags that aren't on Roblox's allowlist are simply ignored. No action is taken against you for trying to set one — it just won't do anything." />
+        <Border Margin="0,0,0,8" Padding="12,10" CornerRadius="4"
+                Background="{DynamicResource SystemFillColorAttentionBackgroundBrush}"
+                BorderBrush="{DynamicResource SystemFillColorAttentionBrush}" BorderThickness="0,0,0,2">
+            <StackPanel Orientation="Horizontal">
+                <ui:SymbolIcon Symbol="Info24" FontSize="20" Margin="0,0,10,0" VerticalAlignment="Top" />
+                <StackPanel MaxWidth="640">
+                    <TextBlock FontWeight="SemiBold" FontSize="13" TextWrapping="Wrap"
+                               Text="Will I face consequences for using flags that aren't on the allowlist?" />
+                    <TextBlock Margin="0,4,0,0" FontSize="12" TextWrapping="Wrap"
+                               Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                               Text="No. Fast Flags that aren't on Roblox's allowlist are simply ignored. No action is taken against you for trying to set one, it just won't do anything." />
+                </StackPanel>
+            </StackPanel>
+        </Border>
 
         <Expander Margin="0,0,0,16" Header="What Fast Flags are currently on Roblox's allowlist?">
             <StackPanel Margin="4,8,4,4">

@@ -176,10 +176,17 @@ namespace MrExStrap
                 }
                 else
                 {
-                    string orphanName = $"{Path.GetFileName(junctionPath)}.orphan-{DateTime.UtcNow:yyyyMMddTHHmmssZ}";
-                    string orphanPath = Path.Combine(Paths.Versions, orphanName);
-                    Directory.Move(junctionPath, orphanPath);
-                    App.Logger.WriteLine(LOG_IDENT, $"Profile '{profile.Name}' already has its own install dir; renamed {junctionPath} -> {orphanPath} for manual cleanup.");
+                    // The profile already has its real install in profileDir, so this
+                    // stray real dir at the junction path is redundant — just delete it
+                    // in place so RecreateActiveProfileJunction can lay the junction back
+                    // down. Previously we renamed it to <name>.orphan-<utc>, but the very
+                    // next CleanupVersionsFolder pass deletes .orphan- dirs, and on a
+                    // machine where this fired against what was really the live junction
+                    // it nuked the profile's install — causing a full re-extract every
+                    // launch (laptop logs 2026-06-01). Deleting the redundant real dir
+                    // directly avoids ever creating an .orphan- that cleanup chases.
+                    Directory.Delete(junctionPath, true);
+                    App.Logger.WriteLine(LOG_IDENT, $"Profile '{profile.Name}' already has its own install dir; removed redundant real dir {junctionPath} so the junction can be recreated.");
                 }
             }
             catch (Exception ex)
@@ -1445,9 +1452,17 @@ namespace MrExStrap
             var profileIds = new HashSet<string>(
                 App.Settings.Prop.VersionProfiles.Select(p => p.Id),
                 StringComparer.OrdinalIgnoreCase);
+            // Keep any version-<hash> dir/junction a profile either PINS (VersionGuid)
+            // or currently HAS INSTALLED (InstalledVersionGuid). The built-in "Latest
+            // LIVE" profile has an empty VersionGuid (it always tracks current LIVE) but
+            // a populated InstalledVersionGuid — without including the latter, its active
+            // junction was treated as unreferenced and pruned every launch, which made
+            // the exe path vanish and forced a full re-extract on every launch for users
+            // whose only profile is the built-in LIVE one. (Confirmed via laptop logs
+            // 2026-06-01: "Pruned stale junction version-<hash>" each launch.)
             var profileVersionGuids = new HashSet<string>(
                 App.Settings.Prop.VersionProfiles
-                    .Select(p => p.VersionGuid)
+                    .SelectMany(p => new[] { p.VersionGuid, p.InstalledVersionGuid })
                     .Where(g => !string.IsNullOrEmpty(g)),
                 StringComparer.OrdinalIgnoreCase);
 
