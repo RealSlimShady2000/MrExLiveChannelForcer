@@ -119,5 +119,83 @@ namespace MrExStrap.Utility
                 App.Logger.WriteLine("Protocol::Unregister", $"Failed to unregister {key}: {ex}");
             }
         }
+
+        /// <summary>
+        /// Hand the roblox:// / roblox-player:// / roblox-studio:// protocol handlers back to
+        /// stock Roblox WITHOUT uninstalling MrExBloxstrap, so the user can temporarily run
+        /// normal Roblox or an executor that doesn't support bootstrappers (e.g. Volt).
+        ///
+        /// Smart restore, mirroring Installer.DoUninstall's protocol block: if a stock Roblox
+        /// install is registered, point the protocols at its exe; if not, just unregister
+        /// MrExBloxstrap's handlers so the next Roblox/executor installer claims them.
+        ///
+        /// Fully reversible: the next Roblox launch through MrExBloxstrap calls RegisterPlayer
+        /// again (Bootstrapper.cs), so no reinstall is needed to re-hook.
+        /// Returns a short human-readable summary of what happened for the UI + log.
+        /// </summary>
+        public static string ResetToStockRoblox()
+        {
+            const string LOG_IDENT = "WindowsRegistry::ResetToStockRoblox";
+            var summary = new List<string>();
+
+            // ---- Player ----
+            try
+            {
+                using var playerKey = Registry.CurrentUser.OpenSubKey(
+                    @"Software\Microsoft\Windows\CurrentVersion\Uninstall\roblox-player");
+                var playerFolder = playerKey?.GetValue("InstallLocation") as string;
+
+                if (string.IsNullOrEmpty(playerFolder))
+                {
+                    Unregister("roblox");
+                    Unregister("roblox-player");
+                    summary.Add("Removed MrExBloxstrap's Roblox player handler (no stock Roblox install found — the next Roblox or executor installer will claim it).");
+                    App.Logger.WriteLine(LOG_IDENT, "No stock player install; unregistered roblox + roblox-player.");
+                }
+                else
+                {
+                    string playerPath = Path.Combine(playerFolder, "RobloxPlayerBeta.exe");
+                    RegisterPlayer(playerPath, "%1");
+                    summary.Add($"Pointed the Roblox player handler back at your stock Roblox install ({playerPath}).");
+                    App.Logger.WriteLine(LOG_IDENT, $"Restored stock player protocol -> {playerPath}");
+                }
+            }
+            catch (Exception ex)
+            {
+                App.Logger.WriteException(LOG_IDENT + "::Player", ex);
+                summary.Add("Couldn't fully reset the player handler — see the log.");
+            }
+
+            // ---- Studio ----
+            try
+            {
+                using var studioKey = Registry.CurrentUser.OpenSubKey(
+                    @"Software\Microsoft\Windows\CurrentVersion\Uninstall\roblox-studio");
+                var studioFolder = studioKey?.GetValue("InstallLocation") as string;
+
+                if (string.IsNullOrEmpty(studioFolder))
+                {
+                    Unregister("roblox-studio");
+                    Unregister("roblox-studio-auth");
+                    Unregister("Roblox.Place");
+                    Unregister(".rbxl");
+                    Unregister(".rbxlx");
+                    App.Logger.WriteLine(LOG_IDENT, "No stock studio install; unregistered studio protocols + file types.");
+                }
+                else
+                {
+                    string studioPath = Path.Combine(studioFolder, "RobloxStudioBeta.exe");
+                    RegisterStudioProtocol(studioPath, "%1");
+                    RegisterStudioFileClass(studioPath, "-ide \"%1\"");
+                    App.Logger.WriteLine(LOG_IDENT, $"Restored stock studio protocol -> {studioPath}");
+                }
+            }
+            catch (Exception ex)
+            {
+                App.Logger.WriteException(LOG_IDENT + "::Studio", ex);
+            }
+
+            return string.Join("\n\n", summary);
+        }
     }
 }

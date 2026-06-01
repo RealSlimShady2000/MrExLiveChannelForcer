@@ -1,3 +1,4 @@
+using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using CommunityToolkit.Mvvm.Input;
@@ -25,6 +26,8 @@ namespace MrExStrap.UI.ViewModels.Installer
         public ICommand LaunchRobloxStudioCommand => new RelayCommand(LaunchRobloxStudio);
 
         public ICommand LaunchAboutCommand => new RelayCommand(LaunchAbout);
+
+        public ICommand ResetToStockCommand => new RelayCommand(ResetToStock);
 
         public event EventHandler<NextAction>? CloseWindowRequest;
 
@@ -81,5 +84,39 @@ namespace MrExStrap.UI.ViewModels.Installer
         private void LaunchRobloxStudio() => CloseWindowRequest?.Invoke(this, NextAction.LaunchRobloxStudio);
 
         private void LaunchAbout() => new MainWindow().ShowDialog();
+
+        // "Reset to non-Bloxstrap setup": hand the roblox:// protocol back to stock Roblox
+        // (or unregister it if there's no stock install) so the user can run normal Roblox
+        // or an executor that doesn't support bootstrappers (e.g. Volt). Reversible — the
+        // next Roblox launch through MrExBloxstrap re-registers it automatically.
+        private void ResetToStock()
+        {
+            const string LOG_IDENT = "LaunchMenuViewModel::ResetToStock";
+
+            var confirm = Frontend.ShowMessageBox(
+                "This hands Roblox's launch link back to normal Roblox, so Roblox stops launching through MrExBloxstrap.\n\n" +
+                "Use this when you want to run plain Roblox or an executor that doesn't support bootstrappers (like Volt).\n\n" +
+                "Nothing is uninstalled and none of your profiles or settings are touched. To start using MrExBloxstrap again, just launch Roblox through it once — it re-hooks itself automatically.\n\n" +
+                "Continue?",
+                MessageBoxImage.Question,
+                MessageBoxButton.YesNo,
+                MessageBoxResult.No);
+
+            if (confirm != MessageBoxResult.Yes)
+            {
+                App.Logger.WriteLine(LOG_IDENT, "User cancelled reset-to-stock.");
+                return;
+            }
+
+            string summary = MrExStrap.Utility.WindowsRegistry.ResetToStockRoblox();
+
+            Frontend.ShowMessageBox(
+                "Done — Roblox is back to its normal setup.\n\n" +
+                (string.IsNullOrEmpty(summary) ? "" : summary + "\n\n") +
+                "Launch Roblox through MrExBloxstrap any time to switch back to it.",
+                MessageBoxImage.Information);
+
+            App.Logger.WriteLine(LOG_IDENT, "Reset-to-stock completed.");
+        }
     }
 }

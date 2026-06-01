@@ -12,8 +12,8 @@
     <Product>MrExBloxstrap</Product>
     <AssemblyTitle>MrExploit Live Channel Forcer</AssemblyTitle>
     <Company>MrExploit</Company>
-    <Version>420.29.6</Version>
-    <FileVersion>420.29.6.0</FileVersion>
+    <Version>420.29.7</Version>
+    <FileVersion>420.29.7.0</FileVersion>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>

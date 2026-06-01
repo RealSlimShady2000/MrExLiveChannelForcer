@@ -110,6 +110,15 @@
                     </StackPanel>
                 </ui:CardAction>
 
+                <ui:CardAction Margin="0,8,0,0" TabIndex="2" Icon="ArrowReset24" Command="{Binding ResetToStockCommand, Mode=OneTime}">
+                    <StackPanel>
+                        <TextBlock FontSize="14" Text="Reset to non-Bloxstrap setup" />
+                        <TextBlock Margin="0,2,0,0" FontSize="11" TextWrapping="Wrap"
+                                   Foreground="{DynamicResource TextFillColorTertiaryBrush}"
+                                   Text="Hand Roblox back to normal so you can use Volt or other non-bootstrapper tools. Re-hooks when you next launch through MrExBloxstrap." />
+                    </StackPanel>
+                </ui:CardAction>
+
             </StackPanel>
         </Grid>
     </Grid>
