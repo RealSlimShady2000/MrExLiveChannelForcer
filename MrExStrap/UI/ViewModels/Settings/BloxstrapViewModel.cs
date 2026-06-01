@@ -96,6 +96,13 @@ namespace MrExStrap.UI.ViewModels.Settings
             set { App.Settings.Prop.NotifyOnExecutorUpdate = value; OnPropertyChanged(nameof(NotifyOnExecutorUpdate)); }
         }
 
+        // v420.29.5: toast when a newer MrExBloxstrap release is available. Default ON.
+        public bool NotifyOnAppUpdate
+        {
+            get => App.Settings.Prop.NotifyOnAppUpdate;
+            set { App.Settings.Prop.NotifyOnAppUpdate = value; OnPropertyChanged(nameof(NotifyOnAppUpdate)); }
+        }
+
         public bool MultiInstanceEnabled
         {
             get => App.Settings.Prop.MultiInstanceEnabled;

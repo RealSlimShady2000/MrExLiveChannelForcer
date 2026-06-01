@@ -28,5 +28,11 @@ namespace MrExStrap.Models.Persistable
         // Stops the same toast from re-firing every launcher open / tray poll once
         // the user has already seen it. Updated atomically with the toast call.
         public string LastNotifiedLiveHash { get; set; } = "";
+
+        // v420.29.5+: last MrExBloxstrap release tag a "new version available" toast
+        // was fired for. Stops the same toast re-firing every launcher open / tray poll.
+        // Seeded silently on first observation so we never toast just for noticing the
+        // current installed version.
+        public string LastNotifiedAppVersion { get; set; } = "";
     }
 }

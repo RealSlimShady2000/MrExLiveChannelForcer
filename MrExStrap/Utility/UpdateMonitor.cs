@@ -20,13 +20,69 @@ namespace MrExStrap.Utility
         private const string LOG_IDENT = "UpdateMonitor";
         private static readonly TimeSpan DefaultBudget = TimeSpan.FromSeconds(3);
 
-        // Runs the LIVE and executor checks in parallel. Individual failures
-        // don't suppress the other check.
+        // Runs the LIVE, executor, and app-update checks in parallel. Individual
+        // failures don't suppress the others.
         public static async Task CheckAllAsync()
         {
             var liveTask = CheckLiveAsync();
             var exTask = CheckExecutorsAsync();
-            await Task.WhenAll(liveTask, exTask);
+            var appTask = CheckAppUpdateAsync();
+            await Task.WhenAll(liveTask, exTask, appTask);
+        }
+
+        // Toast when a newer MrExBloxstrap release is on GitHub. Complements the
+        // menu-open "install now?" prompt (LaunchHandler.TryMenuAutoUpgrade): that one
+        // is modal and only fires when the user opens the menu, this one passively
+        // notifies tray users and anyone who declined the prompt. Seed-once guard via
+        // State.LastNotifiedAppVersion so it doesn't re-fire every poll for the same
+        // release.
+        public static async Task CheckAppUpdateAsync()
+        {
+            if (!App.Settings.Prop.NotifyOnAppUpdate)
+                return;
+
+            using var cts = new CancellationTokenSource(DefaultBudget);
+            try
+            {
+                var release = await App.GetLatestRelease();
+                if (release is null || string.IsNullOrEmpty(release.TagName))
+                    return;
+
+                // Only toast when the release is strictly newer than what's running.
+                VersionComparison cmp;
+                try
+                {
+                    cmp = Utilities.CompareVersions(App.Version, release.TagName);
+                }
+                catch
+                {
+                    return; // unparseable tag (e.g. an untagged-<sha> slug) — stay quiet
+                }
+
+                if (cmp != VersionComparison.LessThan)
+                    return;
+
+                string last = App.State.Prop.LastNotifiedAppVersion ?? "";
+                if (string.Equals(release.TagName, last, StringComparison.OrdinalIgnoreCase))
+                    return; // already toasted this release
+
+                App.Logger.WriteLine(LOG_IDENT, $"App update available: running v{App.Version}, latest {release.TagName}. Firing toast.");
+                LiveChannelToast.ShowToast(
+                    title: "MrExBloxstrap update available",
+                    message: $"Version {release.TagName} is out (you're on v{App.Version}). Open MrExBloxstrap to update.",
+                    icon: WinForms.ToolTipIcon.Info);
+
+                App.State.Prop.LastNotifiedAppVersion = release.TagName;
+                App.State.Save();
+            }
+            catch (OperationCanceledException)
+            {
+                App.Logger.WriteLine(LOG_IDENT, $"App-update check exceeded {DefaultBudget.TotalSeconds:F1}s budget.");
+            }
+            catch (Exception ex)
+            {
+                App.Logger.WriteException(LOG_IDENT + "::CheckAppUpdateAsync", ex);
+            }
         }
 
         public static async Task CheckLiveAsync()

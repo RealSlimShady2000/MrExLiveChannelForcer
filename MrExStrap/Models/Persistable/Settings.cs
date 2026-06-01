@@ -85,6 +85,12 @@ namespace MrExStrap.Models.Persistable
         public bool NotifyOnLiveChange { get; set; } = false;
         public bool NotifyOnExecutorUpdate { get; set; } = false;
 
+        // v420.29.5+: pop a toast when a newer MrExBloxstrap release is available on
+        // GitHub. Default ON so users always find out about updates even if they never
+        // open the launch menu (e.g. tray-only users). Independent of the existing
+        // menu-open "install now?" prompt — this is the passive heads-up.
+        public bool NotifyOnAppUpdate { get; set; } = true;
+
         // multi-instance: close ROBLOX_singletonEvent after launch so another Roblox can start (MrExStrap fork feature)
         public bool MultiInstanceEnabled { get; set; } = false;
 

@@ -90,6 +90,13 @@
             <ui:ToggleSwitch IsChecked="{Binding NotifyOnExecutorUpdate, Mode=TwoWay}" />
         </controls:OptionControl>
 
+        <!-- v420.29.5: MrExBloxstrap update toast -->
+        <controls:OptionControl Margin="0,8,0,0"
+            Header="Notify when a MrExBloxstrap update is available"
+            Description="Pops a Windows notification when a newer version of MrExBloxstrap is released. Checked when you open MrExBloxstrap, and every 30 minutes if the tray launcher above is running. On by default.">
+            <ui:ToggleSwitch IsChecked="{Binding NotifyOnAppUpdate, Mode=TwoWay}" />
+        </controls:OptionControl>
+
         <!-- Multi-instance toggle -->
         <controls:OptionControl Margin="0,8,0,0"
             Header="Multi-instance (run more than one Roblox client)"
