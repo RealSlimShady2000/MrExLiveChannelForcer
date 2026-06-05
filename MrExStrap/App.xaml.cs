@@ -21,6 +21,11 @@ namespace MrExStrap
         public const string ProjectHelpLink = "https://github.com/RealSlimShady2000/MrExLiveChannelForcer#readme";
         public const string ProjectSupportLink = "https://github.com/RealSlimShady2000/MrExLiveChannelForcer/issues/new";
 
+        // Fork support channels — where users send their crash logs. Surfaced on every
+        // error/crash dialog so a non-developer audience never has to touch GitHub.
+        public const string ProjectSupportEmail = "admin@robloxscripts.com";
+        public const string ProjectDiscordLink = "https://discord.robloxscripts.com";
+
         public const string RobloxPlayerAppName = "RobloxPlayerBeta";
         public const string RobloxStudioAppName = "RobloxStudioBeta";
 
@@ -75,6 +80,10 @@ namespace MrExStrap
         public static readonly JsonManager<Settings> Settings = new();
 
         public static readonly JsonManager<State> State = new();
+
+        // Multi Instance tab account store. Separate file ("Accounts.json") so DPAPI-encrypted
+        // cookies stay out of Settings.json and out of the diagnostic crash-export bundle.
+        public static readonly JsonManager<AccountsData> Accounts = new("Accounts");
 
         public static readonly LazyJsonManager<DistributionState> PlayerState = new(nameof(PlayerState));
 
@@ -474,6 +483,7 @@ namespace MrExStrap
 
                 Settings.Load();
                 State.Load();
+                Accounts.Load();
                 Utility.FastFlagProfiles.MigrateGlobalIfNeeded();
                 FastFlags.Load();
 

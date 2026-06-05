@@ -36,11 +36,14 @@
                 <controls:MarkdownTextBlock x:Name="DescriptionTextBlock" MarkdownText="?" Margin="0,16,0,0" TextWrapping="Wrap" Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
                 <TextBlock Text="{x:Static resources:Strings.Dialog_Connectivity_MoreInfo}" Margin="0,16,0,0" TextWrapping="Wrap" Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
                 <RichTextBox x:Name="ErrorRichTextBox" Padding="8" Margin="0,8,0,0" Block.LineHeight="2" FontFamily="Courier New" IsReadOnly="True" />
+                <controls:MarkdownTextBlock x:Name="ContactTextBlock" Margin="0,16,0,0" TextWrapping="Wrap" Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
             </StackPanel>
         </Grid>
 
         <Border Grid.Row="2" Padding="15" Background="{ui:ThemeResource SolidBackgroundFillColorSecondaryBrush}">
             <StackPanel Orientation="Horizontal" FlowDirection="LeftToRight" HorizontalAlignment="Right">
+                <ui:Button x:Name="ExportLogsButton" Icon="ArrowDownload24" Content="Export logs" Appearance="Primary" />
+                <ui:Button x:Name="JoinDiscordButton" Icon="Chat24" Content="Join Discord" Margin="12,0,0,0" />
                 <Button x:Name="CloseButton" MinWidth="100" Content="{x:Static resources:Strings.Common_Close}" Margin="12,0,0,0" />
             </StackPanel>
         </Border>

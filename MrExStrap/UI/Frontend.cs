@@ -27,7 +27,21 @@ namespace MrExStrap.UI
                 App.ProjectSupportLink
             );
 
-            ShowMessageBox(info, MessageBoxImage.Error);
+            // Offer the same one-click log export the crash dialog has. FluentMessageBox
+            // renders markdown, so the email / Discord links below are clickable.
+            info += "\n\nIf this keeps happening, export your logs and send them over so we can help — "
+                + $"email [{App.ProjectSupportEmail}](mailto:{App.ProjectSupportEmail}) "
+                + $"or join our [Discord]({App.ProjectDiscordLink}).\n\nExport your logs now?";
+
+            var result = ShowMessageBox(info, MessageBoxImage.Error, MessageBoxButton.YesNo, MessageBoxResult.Yes);
+
+            if (result == MessageBoxResult.Yes)
+            {
+                // We're on the bootstrap's background thread here, so blocking until the
+                // export finishes is safe (and the export shows its own dispatcher-marshalled
+                // result dialog). The process may exit right after this returns, so we wait.
+                SupportActions.ExportLogsAsync().GetAwaiter().GetResult();
+            }
         }
 
         public static void ShowExceptionDialog(Exception exception)

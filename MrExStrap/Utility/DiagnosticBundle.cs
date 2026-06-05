@@ -23,14 +23,21 @@ namespace MrExStrap.Utility
     {
         private const string LOG_IDENT = "DiagnosticBundle";
 
-        public static async Task<string> CreateAsync()
+        // quick=true is the crash-time path: it skips the two live network probes (health
+        // check + GitHub probe) so the export is instant and works offline, and falls back
+        // to a temp folder if Paths isn't initialized yet (a crash during early startup).
+        public static async Task<string> CreateAsync(bool quick = false)
         {
-            Directory.CreateDirectory(Paths.DebugOutput);
+            string outputDir = string.IsNullOrEmpty(Paths.DebugOutput)
+                ? Path.Combine(Path.GetTempPath(), $"{App.ProjectName}-Debug")
+                : Paths.DebugOutput;
+            Directory.CreateDirectory(outputDir);
 
             string timestamp = DateTime.UtcNow.ToString("yyyyMMdd'T'HHmmss'Z'");
-            string zipPath = Path.Combine(Paths.DebugOutput, $"MrExBloxstrap-debug-{timestamp}.zip");
+            string kind = quick ? "crashlogs" : "debug";
+            string zipPath = Path.Combine(outputDir, $"MrExBloxstrap-{kind}-{timestamp}.zip");
 
-            App.Logger.WriteLine(LOG_IDENT, $"Building diagnostic snapshot at {zipPath}");
+            App.Logger.WriteLine(LOG_IDENT, $"Building diagnostic snapshot at {zipPath} (quick={quick})");
 
             using var fileStream = new FileStream(zipPath, FileMode.Create, FileAccess.Write);
             using var zip = new ZipOutputStream(fileStream);
@@ -42,8 +49,20 @@ namespace MrExStrap.Utility
             WriteEntry(zip, "fastflags.json", SafeReadFile(App.FastFlags.FileLocation));
             WriteEntry(zip, "adapters.txt", BuildAdapterReport());
             WriteEntry(zip, "processes.txt", BuildProcessReport());
-            WriteEntry(zip, "health.txt", await BuildHealthReportAsync());
-            WriteEntry(zip, "update_probe.txt", await BuildUpdateProbeAsync());
+
+            if (quick)
+            {
+                // Skip the network-bound probes — at crash time we want the logs out
+                // instantly, and the user may have no connection. The logs + settings +
+                // environment below are what actually matter for debugging a crash.
+                WriteEntry(zip, "health.txt", "(skipped for quick crash export)");
+                WriteEntry(zip, "update_probe.txt", "(skipped for quick crash export)");
+            }
+            else
+            {
+                WriteEntry(zip, "health.txt", await BuildHealthReportAsync());
+                WriteEntry(zip, "update_probe.txt", await BuildUpdateProbeAsync());
+            }
 
             AddLogFolder(zip);
 

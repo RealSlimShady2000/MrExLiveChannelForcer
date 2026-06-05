@@ -12,8 +12,8 @@
     <Product>MrExBloxstrap</Product>
     <AssemblyTitle>MrExploit Live Channel Forcer</AssemblyTitle>
     <Company>MrExploit</Company>
-    <Version>420.29.7</Version>
-    <FileVersion>420.29.7.0</FileVersion>
+    <Version>420.30.0</Version>
+    <FileVersion>420.30.0.0</FileVersion>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
@@ -72,6 +72,7 @@
     </PackageReference>
     <PackageReference Include="securifybv.ShellLink" Version="0.1.0" />
     <PackageReference Include="SharpZipLib" Version="1.4.2" />
+    <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="6.0.0" />
     <PackageReference Include="System.Resources.ResourceManager" Version="4.3.0" />
     <PackageReference Include="XamlAnimatedGif" Version="2.3.0" />
   </ItemGroup>

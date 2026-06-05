@@ -56,6 +56,13 @@ namespace MrExStrap.UI.Elements.Dialogs
 
             AddException(exception);
 
+            // Same crash-support flow as the exception dialog: one-click log export plus
+            // where to send it (email / Discord).
+            ContactTextBlock.MarkdownText = SupportActions.ContactMarkdown;
+
+            SupportActions.WireExportButton(ExportLogsButton);
+            JoinDiscordButton.Click += (_, _) => Utilities.ShellExecute(App.ProjectDiscordLink);
+
             CloseButton.Click += delegate
             {
                 Close();

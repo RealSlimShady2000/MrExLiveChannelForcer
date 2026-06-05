@@ -98,6 +98,12 @@ namespace MrExStrap.Models.Persistable
         public bool WindowTilingEnabled { get; set; } = false;
         public WindowTilingLayout WindowTilingLayout { get; set; } = WindowTilingLayout.Auto;
 
+        // Multi Instance tab — bulk-launch preferences (not sensitive; the accounts themselves
+        // live DPAPI-encrypted in Accounts.json, never here). MrExStrap fork feature.
+        public string LastBulkPlaceId { get; set; } = "";
+        public string LastBulkJobId { get; set; } = "";
+        public int BulkLaunchDelaySeconds { get; set; } = 5;
+
         // user-visible debug mode — reveals the Run health check button (MrExStrap fork feature)
         public bool DebugModeEnabled { get; set; } = false;
 

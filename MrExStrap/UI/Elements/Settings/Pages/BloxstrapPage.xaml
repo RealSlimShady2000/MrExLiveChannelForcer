@@ -97,13 +97,6 @@
             <ui:ToggleSwitch IsChecked="{Binding NotifyOnAppUpdate, Mode=TwoWay}" />
         </controls:OptionControl>
 
-        <!-- Multi-instance toggle -->
-        <controls:OptionControl Margin="0,8,0,0"
-            Header="Multi-instance (run more than one Roblox client)"
-            Description="After launch, closes Roblox's singleton lock so you can start another Roblox client alongside the first one. Runs in the background, takes a few seconds. Same-user only, no admin needed.">
-            <ui:ToggleSwitch IsChecked="{Binding MultiInstanceEnabled, Mode=TwoWay}" />
-        </controls:OptionControl>
-
         <!-- Auto window tiling toggle -->
         <controls:OptionControl Margin="0,8,0,0"
             Header="Auto window tiling"
@@ -164,61 +157,6 @@
                        Foreground="{DynamicResource TextFillColorTertiaryBrush}"
                        Text="Save diagnostic snapshot builds a zip in the debug folder containing your settings, every log file, environment info, detected network adapters, running Roblox processes, a health check, and a fresh GitHub probe. Send that one file to the maintainer when reporting a bug." />
         </StackPanel>
-
-        <!-- Running Roblox instances panel -->
-        <ui:CardExpander Margin="0,8,0,0" IsExpanded="False">
-            <ui:CardExpander.Header>
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="Auto" />
-                    </Grid.ColumnDefinitions>
-                    <StackPanel Grid.Column="0">
-                        <TextBlock FontSize="14" Text="{Binding RunningInstancesHeader, Mode=OneWay}" />
-                        <TextBlock FontSize="12" Foreground="{DynamicResource TextFillColorTertiaryBrush}" TextWrapping="Wrap"
-                                   Text="Live list of RobloxPlayerBeta processes. Use the per-row kill button to close a specific instance — handy when running several at once." />
-                    </StackPanel>
-                    <ui:Button Grid.Column="1" MinWidth="100" Margin="0,0,16,0" Icon="ArrowClockwise24" Content="Refresh"
-                               Command="{Binding RefreshRunningInstancesCommand, Mode=OneTime}" />
-                </Grid>
-            </ui:CardExpander.Header>
-            <StackPanel>
-                <TextBlock FontSize="12" Foreground="{DynamicResource TextFillColorSecondaryBrush}"
-                           Text="No Roblox processes are currently running. Launch the app to see it appear here."
-                           Visibility="{Binding HasNoRunningInstances, Converter={StaticResource BooleanToVisibilityConverter}, Mode=OneWay}" />
-                <ItemsControl ItemsSource="{Binding RunningInstances, Mode=OneWay}">
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate>
-                            <Grid Margin="0,4,0,4">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="Auto" />
-                                </Grid.ColumnDefinitions>
-                                <TextBlock Grid.Column="0" Text="{Binding Pid}" FontFamily="Consolas" FontSize="12"
-                                           VerticalAlignment="Center" MinWidth="60" />
-                                <TextBlock Grid.Column="1" Text="{Binding Uptime}" FontSize="12" Margin="12,0,0,0"
-                                           VerticalAlignment="Center" MinWidth="80"
-                                           Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
-                                <TextBlock Grid.Column="2" FontSize="12" Margin="12,0,0,0" VerticalAlignment="Center" MinWidth="80"
-                                           Foreground="{DynamicResource TextFillColorSecondaryBrush}">
-                                    <Run Text="{Binding MemoryMb, Mode=OneWay}" />
-                                    <Run Text=" MB" />
-                                </TextBlock>
-                                <TextBlock Grid.Column="3" Text="{Binding WindowTitle}" FontSize="12" Margin="12,0,8,0"
-                                           VerticalAlignment="Center" TextTrimming="CharacterEllipsis"
-                                           Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
-                                <ui:Button Grid.Column="4" MinWidth="70" Icon="Dismiss24" Content="Kill" Appearance="Danger"
-                                           Command="{Binding DataContext.KillInstanceCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
-                                           CommandParameter="{Binding Pid}" />
-                            </Grid>
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
-            </StackPanel>
-        </ui:CardExpander>
 
         <ui:CardExpander Margin="0,8,0,0" IsExpanded="True">
             <ui:CardExpander.Header>

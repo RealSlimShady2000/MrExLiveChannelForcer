@@ -4,6 +4,19 @@ namespace MrExStrap
 {
     internal class HttpClientLoggingHandler : MessageProcessingHandler
     {
+        // Headers that carry account secrets — never written to the log, even in debug mode.
+        // The Multi Instance / account-manager flow sends .ROBLOSECURITY cookies and CSRF
+        // tokens and gets back one-time auth tickets; logging any of those would leak a full
+        // session into the log file (and the crash-export zip). Redact by header NAME.
+        private static readonly HashSet<string> SensitiveHeaders = new(StringComparer.OrdinalIgnoreCase)
+        {
+            "Cookie", "Set-Cookie", "X-CSRF-TOKEN", "rbx-authentication-ticket",
+            "Authorization", "RBXAuthenticationNegotiation"
+        };
+
+        private static string FormatHeader(string key, IEnumerable<string> values)
+            => SensitiveHeaders.Contains(key) ? $"  {key}: <redacted>" : $"  {key}: {string.Join(",", values)}";
+
         public HttpClientLoggingHandler(HttpMessageHandler innerHandler)
             : base(innerHandler)
         {
@@ -19,7 +32,7 @@ namespace MrExStrap
             if (App.Settings?.Prop?.DebugModeEnabled == true)
             {
                 foreach (var header in request.Headers)
-                    App.Logger.WriteLine("HttpClientLoggingHandler::RequestHeader", $"  {header.Key}: {string.Join(",", header.Value)}");
+                    App.Logger.WriteLine("HttpClientLoggingHandler::RequestHeader", FormatHeader(header.Key, header.Value));
             }
 
             return request;
@@ -32,11 +45,11 @@ namespace MrExStrap
             if (App.Settings?.Prop?.DebugModeEnabled == true)
             {
                 foreach (var header in response.Headers)
-                    App.Logger.WriteLine("HttpClientLoggingHandler::ResponseHeader", $"  {header.Key}: {string.Join(",", header.Value)}");
+                    App.Logger.WriteLine("HttpClientLoggingHandler::ResponseHeader", FormatHeader(header.Key, header.Value));
                 if (response.Content?.Headers != null)
                 {
                     foreach (var header in response.Content.Headers)
-                        App.Logger.WriteLine("HttpClientLoggingHandler::ResponseHeader", $"  {header.Key}: {string.Join(",", header.Value)}");
+                        App.Logger.WriteLine("HttpClientLoggingHandler::ResponseHeader", FormatHeader(header.Key, header.Value));
                 }
             }
 
