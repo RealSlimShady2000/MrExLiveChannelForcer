@@ -59,6 +59,7 @@
                     <ui:Hyperlink Icon="QuestionCircle48" Content="{x:Static resources:Strings.About_Title}" Command="{Binding LaunchAboutCommand, Mode=OneTime}" HorizontalAlignment="Center" />
                     <ui:Hyperlink Icon="PeopleCommunity28" Content="Roblox Exploit Community" NavigateUri="https://robloxscripts.com/" HorizontalAlignment="Center" />
                     <ui:Hyperlink Icon="PlayCircle28" Content="Mr Exploit's YouTube" NavigateUri="https://www.youtube.com/@RealMrExploit-f5h" HorizontalAlignment="Center" />
+                    <ui:Hyperlink Icon="ArrowClockwise24" Content="Check for updates" Command="{Binding CheckForUpdatesCommand, Mode=OneTime}" HorizontalAlignment="Center" />
 
                     <!-- RSWARE.STORE CTA banner. Clickable area is the whole border via the
                          MouseBinding below — Cursor=Hand gives the visual cue. Style trigger

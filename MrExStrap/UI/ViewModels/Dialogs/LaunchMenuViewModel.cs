@@ -29,7 +29,11 @@ namespace MrExStrap.UI.ViewModels.Installer
 
         public ICommand ResetToStockCommand => new RelayCommand(ResetToStock);
 
+        public ICommand CheckForUpdatesCommand => new AsyncRelayCommand(CheckForUpdatesAsync);
+
         public event EventHandler<NextAction>? CloseWindowRequest;
+
+        private bool _isCheckingForUpdates;
 
         // Computed once at construction; reflects the Roblox-side channel registry at the
         // moment the launch menu opens. If Overridden, the bootstrapper will still force
@@ -117,6 +121,108 @@ namespace MrExStrap.UI.ViewModels.Installer
                 MessageBoxImage.Information);
 
             App.Logger.WriteLine(LOG_IDENT, "Reset-to-stock completed.");
+        }
+
+        // Manual "Check for updates" from the launch menu. Unlike the silent on-open auto-check
+        // (LaunchHandler.TryMenuAutoUpgrade), this always reports a result — up to date, an
+        // available update, or why the check failed — since the user explicitly asked. Reuses the
+        // same release fetch, version compare, and UpdateProgressDialog download/relaunch contract.
+        private async Task CheckForUpdatesAsync()
+        {
+            const string LOG_IDENT = "LaunchMenuViewModel::CheckForUpdates";
+
+            if (_isCheckingForUpdates)
+                return;
+            _isCheckingForUpdates = true;
+
+            try
+            {
+                Mouse.OverrideCursor = Cursors.Wait;
+                GithubRelease? release = await App.GetLatestRelease();
+                Mouse.OverrideCursor = null;
+
+                if (release is null || string.IsNullOrEmpty(release.TagName))
+                {
+                    Frontend.ShowMessageBox(
+                        "Couldn't check for updates right now. GitHub may be unreachable — check your connection and try again.",
+                        MessageBoxImage.Warning);
+                    return;
+                }
+
+                VersionComparison cmp;
+                try
+                {
+                    cmp = Utilities.CompareVersions(App.Version, release.TagName);
+                }
+                catch (Exception ex)
+                {
+                    App.Logger.WriteException(LOG_IDENT + "::Compare", ex);
+                    Frontend.ShowMessageBox(
+                        $"You're on v{App.Version}; the latest is {release.TagName}. Couldn't compare them automatically — grab the latest from the releases page if you're behind.",
+                        MessageBoxImage.Warning);
+                    return;
+                }
+
+                if (cmp != VersionComparison.LessThan)
+                {
+                    Frontend.ShowMessageBox(
+                        $"You're up to date — running the latest version (v{App.Version}).",
+                        MessageBoxImage.Information);
+                    return;
+                }
+
+                // A newer version exists. Portable builds can't self-update — point them at the page.
+                if (App.IsPortableMode)
+                {
+                    var open = Frontend.ShowMessageBox(
+                        $"An update is available.\n\nYou're on v{App.Version}. Latest is {release.TagName}.\n\n" +
+                        "This is a portable build, so it can't update itself. Download the new portable build from the releases page. Open it now?",
+                        MessageBoxImage.Information, MessageBoxButton.YesNo, MessageBoxResult.Yes);
+                    if (open == MessageBoxResult.Yes)
+                        Utilities.ShellExecute($"https://github.com/{App.ProjectRepository}/releases/latest");
+                    return;
+                }
+
+                var prompt = Frontend.ShowMessageBox(
+                    $"An update is available.\n\nYou're on v{App.Version}. Latest is {release.TagName}.\n\n" +
+                    "Install now? MrExBloxstrap will download the update and reopen the menu on the new version.",
+                    MessageBoxImage.Question, MessageBoxButton.YesNo, MessageBoxResult.Yes);
+
+                if (prompt != MessageBoxResult.Yes)
+                {
+                    App.Logger.WriteLine(LOG_IDENT, $"User declined update to {release.TagName}");
+                    return;
+                }
+
+                var progressDialog = new UI.Elements.Dialogs.UpdateProgressDialog(release, new[] { "-menu" });
+                progressDialog.ShowDialog();
+
+                if (progressDialog.UpdateStarted)
+                {
+                    // New exe is running with -menu. This process MUST exit (App ShutdownMode is
+                    // OnExplicitShutdown) so it doesn't linger as a ghost behind the new window.
+                    App.Terminate();
+                    return;
+                }
+
+                string reason = string.IsNullOrEmpty(progressDialog.FailureReason) ? "Unknown error." : progressDialog.FailureReason!;
+                Frontend.ShowMessageBox(
+                    $"Couldn't download {release.TagName}.\n\nReason: {reason}\n\n" +
+                    "You can grab the installer manually from the GitHub releases page.",
+                    MessageBoxImage.Warning);
+            }
+            catch (Exception ex)
+            {
+                App.Logger.WriteException(LOG_IDENT, ex);
+                Frontend.ShowMessageBox(
+                    $"Something went wrong checking for updates ({ex.GetType().Name}).",
+                    MessageBoxImage.Warning);
+            }
+            finally
+            {
+                Mouse.OverrideCursor = null;
+                _isCheckingForUpdates = false;
+            }
         }
     }
 }
