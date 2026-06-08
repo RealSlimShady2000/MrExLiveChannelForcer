@@ -18,7 +18,10 @@ namespace MrExStrap.Utility
     //   processes.txt          — running Roblox PIDs + uptime + memory
     //   health.txt             — HealthCheck.RunAllAsync output
     //   update_probe.txt       — fresh HTTP probe of GitHub /releases/latest with status / headers
-    //   logs/<filename>.log    — every file currently in Paths.Logs
+    //   logs/<filename>.log    — every file in Paths.Logs (the live session is taken from the
+    //                            logger's in-memory History, since its on-disk copy is still buffered)
+    //   roblox-logs/<file>.log — newest Roblox client logs (where a Roblox-side crash, as opposed
+    //                            to a MrExBloxstrap fault, is actually diagnosable)
     public static class DiagnosticBundle
     {
         private const string LOG_IDENT = "DiagnosticBundle";
@@ -65,6 +68,7 @@ namespace MrExStrap.Utility
             }
 
             AddLogFolder(zip);
+            AddRobloxLogs(zip);
 
             zip.CloseEntry();
             zip.Finish();
@@ -257,12 +261,27 @@ namespace MrExStrap.Utility
             if (string.IsNullOrEmpty(Paths.Logs) || !Directory.Exists(Paths.Logs))
                 return;
 
+            // The current session's log is the one that matters most at crash time, but it's
+            // also the one the logger is still writing to — and writes are flushed
+            // fire-and-forget, so its on-disk copy is usually empty/partial right now. Capture
+            // it from the logger's in-memory History instead; that's the complete, authoritative
+            // record. Past sessions are fully flushed, so those are copied straight off disk.
+            string? activeLog = App.Logger.FileLocation;
+            bool capturedActive = false;
+
             string[] files;
             try { files = Directory.GetFiles(Paths.Logs); }
             catch (Exception ex) { App.Logger.WriteException(LOG_IDENT + "::EnumLogs", ex); return; }
 
             foreach (var file in files)
             {
+                if (!capturedActive && !string.IsNullOrEmpty(activeLog) && PathsEqual(file, activeLog))
+                {
+                    WriteEntry(zip, "logs/" + Path.GetFileName(file), ReadLiveSession() ?? SafeReadFile(file));
+                    capturedActive = true;
+                    continue;
+                }
+
                 try
                 {
                     var entry = new ZipEntry("logs/" + Path.GetFileName(file)) { DateTime = File.GetLastWriteTimeUtc(file) };
@@ -273,6 +292,70 @@ namespace MrExStrap.Utility
                 catch (Exception ex)
                 {
                     App.Logger.WriteException(LOG_IDENT + "::AddLog::" + Path.GetFileName(file), ex);
+                }
+            }
+
+            // If the live log never had a file on disk to match against (NoWriteMode, temp-dir
+            // fallback, or a crash before the file was created), still emit what's in memory so
+            // the session that crashed isn't lost.
+            if (!capturedActive)
+            {
+                string? live = ReadLiveSession();
+                if (!string.IsNullOrEmpty(live))
+                    WriteEntry(zip, "logs/current-session.log", live);
+            }
+        }
+
+        // Snapshot of the logger's in-memory History. Returns null if it can't be read cleanly
+        // (e.g. another thread is logging mid-snapshot) so callers can fall back to the disk file.
+        private static string? ReadLiveSession()
+        {
+            try { return App.Logger.AsDocument; }
+            catch { return null; }
+        }
+
+        private static bool PathsEqual(string a, string b)
+        {
+            try { return string.Equals(Path.GetFullPath(a), Path.GetFullPath(b), StringComparison.OrdinalIgnoreCase); }
+            catch { return string.Equals(a, b, StringComparison.OrdinalIgnoreCase); }
+        }
+
+        // Roblox writes its own client logs to %LocalAppData%\Roblox\logs, one per launch. That's
+        // where a Roblox-side crash actually shows up — our own logs only see that the process
+        // died. Grab the newest few (they pile up over time) under roblox-logs/ in the zip.
+        // Best-effort: a missing folder or a file Roblox still holds open never breaks the export.
+        private static void AddRobloxLogs(ZipOutputStream zip, int max = 5)
+        {
+            string logDir;
+            try { logDir = Path.Combine(Paths.LocalAppData, "Roblox", "logs"); }
+            catch { return; }
+
+            if (!Directory.Exists(logDir))
+                return;
+
+            FileInfo[] files;
+            try
+            {
+                files = new DirectoryInfo(logDir).GetFiles("*.log")
+                    .OrderByDescending(f => f.LastWriteTimeUtc)
+                    .Take(max)
+                    .ToArray();
+            }
+            catch (Exception ex) { App.Logger.WriteException(LOG_IDENT + "::EnumRobloxLogs", ex); return; }
+
+            foreach (var file in files)
+            {
+                try
+                {
+                    var entry = new ZipEntry("roblox-logs/" + file.Name) { DateTime = file.LastWriteTimeUtc };
+                    zip.PutNextEntry(entry);
+                    // Roblox keeps the current log open while running, so share read+write to copy it.
+                    using var fs = new FileStream(file.FullName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                    fs.CopyTo(zip);
+                }
+                catch (Exception ex)
+                {
+                    App.Logger.WriteException(LOG_IDENT + "::AddRobloxLog::" + file.Name, ex);
                 }
             }
         }

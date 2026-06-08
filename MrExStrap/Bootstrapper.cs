@@ -2293,7 +2293,15 @@ namespace MrExStrap
 
             if (packageDir is null)
             {
-                App.Logger.WriteLine(LOG_IDENT, $"WARNING: {package.Name} was not found in the package map!");
+                // Standalone executables like RobloxPlayerInstaller.exe ship in the manifest but
+                // are never extracted (there's nothing to unzip), so they legitimately have no
+                // package-map entry. Don't cry WARNING about it in every user's logs — only flag
+                // an archive that's genuinely missing a mapping.
+                if (package.Name.EndsWith(".exe", StringComparison.OrdinalIgnoreCase))
+                    App.Logger.WriteLine(LOG_IDENT, $"{package.Name} is not an extractable package, skipping");
+                else
+                    App.Logger.WriteLine(LOG_IDENT, $"WARNING: {package.Name} was not found in the package map!");
+
                 return;
             }
 
