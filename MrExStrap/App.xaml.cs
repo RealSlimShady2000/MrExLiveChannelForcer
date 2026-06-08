@@ -168,6 +168,27 @@ namespace MrExStrap
             }
         }
 
+        // Executor title of the active Versions Manager profile, or null when the active
+        // profile is the clean built-in LIVE (or has no executor attached). Used to tailor
+        // crash messaging — an executor is the prime suspect when Roblox falls over. Safe to
+        // call from any process that has loaded Settings (bootstrapper and watcher both do).
+        public static string? GetActiveExecutorTitle()
+        {
+            try
+            {
+                string activeId = Settings?.Prop?.ActiveVersionProfileId ?? "";
+                if (string.IsNullOrEmpty(activeId))
+                    return null;
+
+                var active = Settings!.Prop.VersionProfiles.FirstOrDefault(p => p.Id == activeId);
+                return string.IsNullOrWhiteSpace(active?.ExecutorTitle) ? null : active!.ExecutorTitle!.Trim();
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
         public static void SoftTerminate(ErrorCode exitCode = ErrorCode.ERROR_SUCCESS)
         {
             int exitCodeNum = (int)exitCode;
