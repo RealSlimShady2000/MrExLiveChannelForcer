@@ -3,6 +3,7 @@ using System.Windows.Input;
 using CommunityToolkit.Mvvm.Input;
 
 using MrExStrap.Integrations.BloxGen;
+using MrExStrap.Utility.Accounts;
 
 namespace MrExStrap.UI.ViewModels.Settings
 {
@@ -92,6 +93,7 @@ namespace MrExStrap.UI.ViewModels.Settings
         public ICommand CopyUsernameCommand => new RelayCommand(() => CopyToClipboard(Username, "Username"));
         public ICommand CopyPasswordCommand => new RelayCommand(() => CopyToClipboard(Password, "Password"));
         public ICommand CopyCookieCommand => new RelayCommand(() => CopyToClipboard(Cookie, ".ROBLOSECURITY cookie"));
+        public ICommand SaveToMultiInstanceCommand => new AsyncRelayCommand(SaveToMultiInstanceAsync);
 
         private async Task GenerateAsync()
         {
@@ -131,6 +133,43 @@ namespace MrExStrap.UI.ViewModels.Settings
                     if (!string.IsNullOrEmpty(result.RawResponse))
                         App.Logger.WriteLine(LOG_IDENT, $"Raw BloxGen response: {result.RawResponse}");
                 }
+            }
+            catch (Exception ex)
+            {
+                App.Logger.WriteException(LOG_IDENT, ex);
+                Status = $"{ex.GetType().Name}: {ex.Message}";
+            }
+            finally
+            {
+                IsBusy = false;
+            }
+        }
+
+        // Bridge to the Multi Instance tab: validate the generated cookie, save it as an account
+        // (cookie DPAPI-encrypted), so the user can pick it on that tab and launch it — alone or
+        // alongside others. Reuses the existing AccountManager so it shows up like any other saved
+        // account.
+        private async Task SaveToMultiInstanceAsync()
+        {
+            const string LOG_IDENT = "AltGenViewModel::SaveToMultiInstanceAsync";
+
+            if (_isBusy || string.IsNullOrEmpty(Cookie))
+                return;
+
+            IsBusy = true;
+            Status = "Saving to Multi Instance…";
+
+            try
+            {
+                var account = await AccountManager.BuildFromCookieAsync(Cookie);
+                if (account is null)
+                {
+                    Status = "Couldn't save — Roblox didn't accept the generated cookie (it may be rate-limited or already invalid). Try again in a moment.";
+                    return;
+                }
+
+                AccountManager.Add(account);
+                Status = $"Saved {account.DisplayLabel} to the Multi Instance tab. Open that tab to launch it — on its own or ticked alongside others.";
             }
             catch (Exception ex)
             {

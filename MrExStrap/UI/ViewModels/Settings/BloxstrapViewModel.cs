@@ -42,6 +42,16 @@ namespace MrExStrap.UI.ViewModels.Settings
             set => App.Settings.Prop.CloseRobloxCrashHandler = value;
         }
 
+        // v420.30.5: disable Roblox's built-in screenshot + video capture by blocking the save
+        // folders. State lives in the filesystem (read-only placeholder), so the getter reflects
+        // reality rather than a stored flag.
+        public bool DisableRobloxCapturesEnabled
+        {
+            // Fully qualified: the MrExStrap.UI.Utility namespace shadows the top-level Utility here.
+            get => MrExStrap.Utility.RobloxCaptureBlocker.IsBlocked;
+            set { MrExStrap.Utility.RobloxCaptureBlocker.SetBlocked(value); OnPropertyChanged(nameof(DisableRobloxCapturesEnabled)); }
+        }
+
         // v420.28: Stream Mode
         public bool StreamModeEnabled
         {

@@ -69,6 +69,13 @@
             <ui:ToggleSwitch IsChecked="{Binding CloseRobloxCrashHandlerEnabled, Mode=TwoWay}" />
         </controls:OptionControl>
 
+        <!-- v420.30.5: disable Roblox's built-in screenshot + video recording -->
+        <controls:OptionControl Margin="0,8,0,0"
+            Header="Disable Roblox screenshots &amp; recordings"
+            Description="Stops Roblox's built-in screenshot and video recording from saving, by blocking the folders Roblox writes them to (your Pictures\Roblox and Videos\Roblox). Any existing captures are moved to a backup folder and restored when you turn this off. Off by default. Note: the in-game screenshot/record hotkeys stop working while this is on.">
+            <ui:ToggleSwitch IsChecked="{Binding DisableRobloxCapturesEnabled, Mode=TwoWay}" />
+        </controls:OptionControl>
+
         <!-- v420.28: Stream Mode toggle -->
         <controls:OptionControl Margin="0,8,0,0"
             Header="Stream mode (hide account info from screen-share)"
