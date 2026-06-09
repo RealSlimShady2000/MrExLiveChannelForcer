@@ -22,9 +22,24 @@ namespace MrExStrap.UI.ViewModels.Settings
             }
         }
 
-        // The account types BloxGen exposes (sent verbatim as the "type" param). "dump" and the
-        // aged types may need a higher BloxGen role — the API returns a clear message if not.
-        public string[] AltTypes { get; } = { "alt", "+30 days old", "+1 year old", "5+ years old", "dump" };
+        // A BloxGen account type: Value is sent to the API verbatim; Label shows the type plus the
+        // tier it needs (Free / Premium / Ultra), matching BloxGen's role plans, so users know what
+        // their role can actually generate.
+        public class AltGenType
+        {
+            public string Value { get; }
+            public string Label { get; }
+            public AltGenType(string value, string label) { Value = value; Label = label; }
+        }
+
+        public AltGenType[] AltTypes { get; } =
+        {
+            new("alt", "alt — All from 2025 (Free)"),
+            new("+30 days old", "+30 days old (Premium)"),
+            new("+1 year old", "+1 year old (Premium)"),
+            new("5+ years old", "5+ years old (Premium)"),
+            new("dump", "dump — Dumps Alts (Ultra)"),
+        };
 
         private string _selectedType = "alt";
         public string SelectedType
@@ -49,6 +64,70 @@ namespace MrExStrap.UI.ViewModels.Settings
             set { _status = value; OnPropertyChanged(nameof(Status)); OnPropertyChanged(nameof(HasStatus)); }
         }
         public bool HasStatus => !string.IsNullOrEmpty(_status);
+
+        // Set when BloxGen rejects a generate because the account hasn't accepted the rules yet.
+        // Surfaces an "Agree to BloxGen rules" button that opens the maintainer's affiliate link.
+        private bool _needsRulesAgreement;
+        public bool NeedsRulesAgreement
+        {
+            get => _needsRulesAgreement;
+            set { _needsRulesAgreement = value; OnPropertyChanged(nameof(NeedsRulesAgreement)); }
+        }
+
+        // Live cooldown (BloxGen 429): a DispatcherTimer ticks CooldownText down once a second so the
+        // user sees a real countdown instead of a frozen "wait N minutes" message.
+        private System.Windows.Threading.DispatcherTimer? _cooldownTimer;
+        private DateTime _cooldownEndUtc;
+
+        private bool _onCooldown;
+        public bool OnCooldown
+        {
+            get => _onCooldown;
+            set { _onCooldown = value; OnPropertyChanged(nameof(OnCooldown)); }
+        }
+
+        private string _cooldownText = "";
+        public string CooldownText
+        {
+            get => _cooldownText;
+            set { _cooldownText = value; OnPropertyChanged(nameof(CooldownText)); }
+        }
+
+        private void StartCooldown(long milliseconds)
+        {
+            _cooldownEndUtc = DateTime.UtcNow.AddMilliseconds(milliseconds);
+            OnCooldown = true;
+            UpdateCooldown();
+
+            _cooldownTimer ??= new System.Windows.Threading.DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
+            _cooldownTimer.Tick -= OnCooldownTick;
+            _cooldownTimer.Tick += OnCooldownTick;
+            _cooldownTimer.Start();
+        }
+
+        private void StopCooldown()
+        {
+            _cooldownTimer?.Stop();
+            OnCooldown = false;
+            CooldownText = "";
+        }
+
+        private void OnCooldownTick(object? sender, EventArgs e) => UpdateCooldown();
+
+        private void UpdateCooldown()
+        {
+            var remaining = _cooldownEndUtc - DateTime.UtcNow;
+            if (remaining <= TimeSpan.Zero)
+            {
+                _cooldownTimer?.Stop();
+                OnCooldown = false;
+                CooldownText = "";
+                Status = "Cooldown's over — you can generate again.";
+                return;
+            }
+
+            CooldownText = $"Please wait {(int)remaining.TotalMinutes:D2}:{remaining.Seconds:D2} before your next free generation.";
+        }
 
         private string _username = "";
         public string Username
@@ -90,6 +169,7 @@ namespace MrExStrap.UI.ViewModels.Settings
         public bool HasResult => !string.IsNullOrEmpty(_username) || !string.IsNullOrEmpty(_cookie);
 
         public ICommand GenerateCommand => new AsyncRelayCommand(GenerateAsync);
+        public ICommand SaveKeyCommand => new RelayCommand(SaveKey);
         public ICommand CopyUsernameCommand => new RelayCommand(() => CopyToClipboard(Username, "Username"));
         public ICommand CopyPasswordCommand => new RelayCommand(() => CopyToClipboard(Password, "Password"));
         public ICommand CopyCookieCommand => new RelayCommand(() => CopyToClipboard(Cookie, ".ROBLOSECURITY cookie"));
@@ -110,6 +190,7 @@ namespace MrExStrap.UI.ViewModels.Settings
 
             IsBusy = true;
             Status = "Generating…";
+            NeedsRulesAgreement = false;
 
             try
             {
@@ -117,6 +198,7 @@ namespace MrExStrap.UI.ViewModels.Settings
 
                 if (result.Success)
                 {
+                    StopCooldown();
                     Username = result.Username ?? "";
                     Password = result.Password ?? "";
                     Cookie = result.Cookie ?? "";
@@ -129,7 +211,22 @@ namespace MrExStrap.UI.ViewModels.Settings
                 }
                 else
                 {
-                    Status = result.Error ?? "Generation failed.";
+                    // BloxGen returns "You must accept the rules before generating" until the account
+                    // agrees once on the site — surface a one-click button to go do that.
+                    NeedsRulesAgreement = (result.Error ?? "").Contains("rules", StringComparison.OrdinalIgnoreCase);
+
+                    if (result.TimeRemaining.HasValue && result.TimeRemaining.Value > 0)
+                    {
+                        // Cooldown (429): show a live ticking countdown + premium upsell instead of a
+                        // frozen "wait N minutes" line.
+                        StartCooldown(result.TimeRemaining.Value);
+                        Status = "";
+                    }
+                    else
+                    {
+                        Status = result.Error ?? "Generation failed.";
+                    }
+
                     if (!string.IsNullOrEmpty(result.RawResponse))
                         App.Logger.WriteLine(LOG_IDENT, $"Raw BloxGen response: {result.RawResponse}");
                 }
@@ -180,6 +277,16 @@ namespace MrExStrap.UI.ViewModels.Settings
             {
                 IsBusy = false;
             }
+        }
+
+        private void SaveKey()
+        {
+            App.Settings.Prop.BloxGenApiKey = (App.Settings.Prop.BloxGenApiKey ?? "").Trim();
+            App.Settings.Save();
+            OnPropertyChanged(nameof(ApiKey));
+            Status = string.IsNullOrEmpty(App.Settings.Prop.BloxGenApiKey)
+                ? "Cleared the saved API key."
+                : "API key saved — you can generate whenever you like now.";
         }
 
         private void CopyToClipboard(string value, string label)

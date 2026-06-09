@@ -16,6 +16,25 @@
 
     <ui:UiPage.Resources>
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+
+        <!-- Reveal-on-hover: the real value shows only while the cursor is over the cell; otherwise
+             a fixed dot mask is shown. Both styles read the cell's (wrapping Grid) IsMouseOver. -->
+        <Style x:Key="RevealRealStyle" TargetType="TextBox">
+            <Setter Property="Visibility" Value="Collapsed" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType=Grid}}" Value="True">
+                    <Setter Property="Visibility" Value="Visible" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+        <Style x:Key="RevealMaskStyle" TargetType="TextBox">
+            <Setter Property="Visibility" Value="Visible" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType=Grid}}" Value="True">
+                    <Setter Property="Visibility" Value="Collapsed" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
     </ui:UiPage.Resources>
 
     <StackPanel Margin="0,0,14,14">
@@ -53,10 +72,11 @@
 
         <!-- Account type -->
         <TextBlock Margin="0,16,0,2" FontSize="12" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Text="Account type" />
-        <ComboBox HorizontalAlignment="Left" MinWidth="220" Padding="8,4"
+        <ComboBox HorizontalAlignment="Left" MinWidth="300" Padding="8,4"
                   ItemsSource="{Binding AltTypes, Mode=OneTime}"
-                  SelectedItem="{Binding SelectedType, Mode=TwoWay}"
-                  ToolTip="Aged and dump accounts may need a higher BloxGen role." />
+                  DisplayMemberPath="Label" SelectedValuePath="Value"
+                  SelectedValue="{Binding SelectedType, Mode=TwoWay}"
+                  ToolTip="Aged accounts need Premium and dumps need Ultra — your BloxGen role decides what you can generate." />
 
         <!-- API key + generate -->
         <TextBlock Margin="0,12,0,2" FontSize="12" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Text="Your BloxGen API key" />
@@ -64,11 +84,15 @@
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
             <TextBox Grid.Column="0" Padding="8,6" FontFamily="Consolas"
                      Text="{Binding ApiKey, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                      ToolTip="Stored locally on this PC only. Never shared." />
-            <ui:Button Grid.Column="1" Margin="8,0,0,0" Icon="PersonAdd24" Content="Generate alt" Appearance="Primary"
+            <ui:Button Grid.Column="1" Margin="8,0,0,0" Icon="Save24" Content="Save key"
+                       Command="{Binding SaveKeyCommand, Mode=OneTime}"
+                       ToolTip="Save your key to settings so it's remembered next time." />
+            <ui:Button Grid.Column="2" Margin="8,0,0,0" Icon="PersonAdd24" Content="Generate alt" Appearance="Primary"
                        Command="{Binding GenerateCommand, Mode=OneTime}"
                        IsEnabled="{Binding CanGenerate, Mode=OneWay}" />
         </Grid>
@@ -79,6 +103,27 @@
                 BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}" BorderThickness="0,0,0,2"
                 Visibility="{Binding HasStatus, Converter={StaticResource BooleanToVisibilityConverter}, Mode=OneWay}">
             <TextBlock TextWrapping="Wrap" FontSize="12" Text="{Binding Status, Mode=OneWay}" />
+        </Border>
+
+        <!-- Shown when BloxGen requires accepting the rules first -->
+        <ui:Button Margin="0,8,0,0" Icon="CheckmarkCircle24" Appearance="Primary" Content="Agree to BloxGen rules"
+                   Command="vmroot:GlobalViewModel.OpenWebpageCommand"
+                   CommandParameter="https://bloxgen.net/@osoloco98628"
+                   Visibility="{Binding NeedsRulesAgreement, Converter={StaticResource BooleanToVisibilityConverter}, Mode=OneWay}" />
+
+        <!-- Live cooldown countdown + premium upsell (shown on a BloxGen 429 cooldown) -->
+        <Border Margin="0,8,0,0" Padding="12,10" CornerRadius="8"
+                Background="{DynamicResource ControlFillColorDefaultBrush}"
+                BorderBrush="{DynamicResource AccentFillColorDefaultBrush}" BorderThickness="1"
+                Visibility="{Binding OnCooldown, Converter={StaticResource BooleanToVisibilityConverter}, Mode=OneWay}">
+            <StackPanel>
+                <TextBlock FontSize="15" FontWeight="SemiBold" Text="{Binding CooldownText, Mode=OneWay}" />
+                <TextBlock Margin="0,6,0,0" FontSize="12" TextWrapping="Wrap" Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                           Text="Don't want to wait? The free tier is 20 generations a day. Lifetime Premium ($4.99) bumps you to 50 a day, and Ultra ($9.99) gives you 100 a day." />
+                <ui:Button Margin="0,10,0,0" Icon="Star24" Appearance="Primary" Content="Get more generations"
+                           Command="vmroot:GlobalViewModel.OpenWebpageCommand"
+                           CommandParameter="https://bloxgen.net/@osoloco98628" />
+            </StackPanel>
         </Border>
 
         <!-- Result -->
@@ -123,7 +168,10 @@
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
                     <TextBlock Grid.Column="0" VerticalAlignment="Center" FontSize="12" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Text="Password" />
-                    <TextBox Grid.Column="1" Padding="6,4" IsReadOnly="True" FontFamily="Consolas" Text="{Binding Password, Mode=OneWay}" />
+                    <Grid Grid.Column="1" ToolTip="Hover to reveal">
+                        <TextBox Style="{StaticResource RevealRealStyle}" Padding="6,4" IsReadOnly="True" FontFamily="Consolas" Text="{Binding Password, Mode=OneWay}" />
+                        <TextBox Style="{StaticResource RevealMaskStyle}" Padding="6,4" IsReadOnly="True" FontFamily="Consolas" Focusable="False" Text="••••••••••••" />
+                    </Grid>
                     <ui:Button Grid.Column="2" Margin="6,0,0,0" Icon="Copy24" ToolTip="Copy password"
                                Command="{Binding CopyPasswordCommand, Mode=OneTime}" />
                 </Grid>
@@ -135,7 +183,10 @@
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
                     <TextBlock Grid.Column="0" VerticalAlignment="Center" FontSize="12" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Text=".ROBLOSECURITY" />
-                    <TextBox Grid.Column="1" Padding="6,4" IsReadOnly="True" FontFamily="Consolas" Text="{Binding Cookie, Mode=OneWay}" />
+                    <Grid Grid.Column="1" ToolTip="Hover to reveal">
+                        <TextBox Style="{StaticResource RevealRealStyle}" Padding="6,4" IsReadOnly="True" FontFamily="Consolas" Text="{Binding Cookie, Mode=OneWay}" />
+                        <TextBox Style="{StaticResource RevealMaskStyle}" Padding="6,4" IsReadOnly="True" FontFamily="Consolas" Focusable="False" Text="••••••••••••" />
+                    </Grid>
                     <ui:Button Grid.Column="2" Margin="6,0,0,0" Icon="Copy24" ToolTip="Copy cookie"
                                Command="{Binding CopyCookieCommand, Mode=OneTime}" />
                 </Grid>
