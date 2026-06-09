@@ -59,6 +59,7 @@
                     <ui:NavigationItem Content="Versions Manager" PageType="{x:Type pages:VersionsManagerPage}" Icon="Library24" Tag="versionsmanager" />
                     <ui:NavigationItem Content="VIP Servers" PageType="{x:Type pages:VipServerPage}" Icon="People28" Tag="vipservers" />
                     <ui:NavigationItem Content="Multi Instance" PageType="{x:Type pages:MultiInstancePage}" Icon="PeopleTeam24" Tag="multiinstance" />
+                    <ui:NavigationItem Content="Alt Generator" PageType="{x:Type pages:AltGenPage}" Icon="PersonAdd24" Tag="altgen" />
                     <ui:NavigationItem Content="BanAsync" PageType="{x:Type pages:BanAsyncPage}" Icon="ShieldKeyhole24" Tag="banasync" />
                     <ui:NavigationItem Content="{x:Static resources:Strings.Menu_Mods_Title}" PageType="{x:Type pages:ModsPage}" Icon="WrenchScrewdriver20" Tag="mods" />
                     <ui:NavigationItem Content="{x:Static resources:Strings.Menu_FastFlags_Title}" PageType="{x:Type pages:FastFlagsPage}" Icon="Flag24" Tag="fastflags" />

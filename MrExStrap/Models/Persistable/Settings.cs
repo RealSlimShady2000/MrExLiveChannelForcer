@@ -99,6 +99,11 @@ namespace MrExStrap.Models.Persistable
         // holds. Default off. (With this on we can't use the crash handler to detect crashes.)
         public bool CloseRobloxCrashHandler { get; set; } = false;
 
+        // AltGen tab: the user's OWN BloxGen API key (https://bloxgen.net). Stored locally only —
+        // we never ship a key. Each user supplies their own (signs up via the affiliate link on
+        // the tab). Empty until entered.
+        public string BloxGenApiKey { get; set; } = "";
+
         // auto-tile Roblox windows in a grid once they're visible (MrExStrap fork feature)
         public bool WindowTilingEnabled { get; set; } = false;
         public WindowTilingLayout WindowTilingLayout { get; set; } = WindowTilingLayout.Auto;
