@@ -35,6 +35,13 @@ namespace MrExStrap.UI.ViewModels.Settings
             set => App.Settings.Prop.EnablePrivacyMode = value;
         }
 
+        // v420.30.3: Froststrap-style memory saver — close RobloxCrashHandler.exe while Roblox runs.
+        public bool CloseRobloxCrashHandlerEnabled
+        {
+            get => App.Settings.Prop.CloseRobloxCrashHandler;
+            set => App.Settings.Prop.CloseRobloxCrashHandler = value;
+        }
+
         // v420.28: Stream Mode
         public bool StreamModeEnabled
         {

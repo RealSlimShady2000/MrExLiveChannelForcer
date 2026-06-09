@@ -127,8 +127,16 @@ namespace MrExStrap
             // PID exit — same behaviour as pre-v420.23. The always-spawn change
             // from v420.23 stays (so AutoclosePids cleanup runs for everyone even
             // without EnableActivityTracking).
+            bool closeCrashHandler = App.Settings.Prop.CloseRobloxCrashHandler;
+
             while (Utilities.GetProcessesSafe().Any(x => x.Id == _watcherData.ProcessId))
+            {
+                // Froststrap-style memory saver: keep RobloxCrashHandler closed while Roblox runs.
+                if (closeCrashHandler)
+                    CloseRobloxCrashHandlers();
+
                 await Task.Delay(1000);
+            }
 
             streamModeCts.Cancel();
             if (streamModeTask is not null)
@@ -144,6 +152,29 @@ namespace MrExStrap
 
             if (App.LaunchSettings.TestModeFlag.Active)
                 Process.Start(Paths.Process, "-settings -testmode");
+        }
+
+        // Froststrap-style memory saver: close RobloxCrashHandler.exe while Roblox runs. It's the
+        // out-of-process crash reporter and isn't needed for the game to run, so closing it frees
+        // the memory it holds. Best-effort and silent on failure (it may be mid-exit or briefly
+        // protected). Called once per second from the watch loop so a respawn gets caught too.
+        private static void CloseRobloxCrashHandlers()
+        {
+            const string LOG_IDENT = "Watcher::CloseRobloxCrashHandlers";
+
+            foreach (var process in Process.GetProcessesByName("RobloxCrashHandler"))
+            {
+                try
+                {
+                    if (!process.HasExited)
+                    {
+                        process.Kill();
+                        App.Logger.WriteLine(LOG_IDENT, $"Closed RobloxCrashHandler (pid={process.Id}) to free memory");
+                    }
+                }
+                catch { /* best-effort: handler may be exiting or briefly protected */ }
+                finally { process.Dispose(); }
+            }
         }
 
         public void Dispose()

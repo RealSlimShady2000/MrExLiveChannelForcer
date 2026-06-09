@@ -62,6 +62,13 @@
             <ui:ToggleSwitch IsChecked="{Binding PrivacyModeEnabled, Mode=TwoWay}" />
         </controls:OptionControl>
 
+        <!-- v420.30.3: close RobloxCrashHandler to free memory (Froststrap-style) -->
+        <controls:OptionControl Margin="0,8,0,0"
+            Header="Close Roblox's crash handler (free memory)"
+            Description="While Roblox is running, MrExBloxstrap closes the RobloxCrashHandler.exe background process to free the memory it holds. Roblox still runs normally. Off by default. Note: with this on, MrExBloxstrap can't use the crash handler to detect Roblox crashes.">
+            <ui:ToggleSwitch IsChecked="{Binding CloseRobloxCrashHandlerEnabled, Mode=TwoWay}" />
+        </controls:OptionControl>
+
         <!-- v420.28: Stream Mode toggle -->
         <controls:OptionControl Margin="0,8,0,0"
             Header="Stream mode (hide account info from screen-share)"

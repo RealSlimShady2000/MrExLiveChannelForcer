@@ -94,6 +94,11 @@ namespace MrExStrap.Models.Persistable
         // multi-instance: close ROBLOX_singletonEvent after launch so another Roblox can start (MrExStrap fork feature)
         public bool MultiInstanceEnabled { get; set; } = false;
 
+        // v420.30.3+: Froststrap-style memory saver. When ON, the watcher closes Roblox's
+        // RobloxCrashHandler.exe background process while the game runs, freeing the memory it
+        // holds. Default off. (With this on we can't use the crash handler to detect crashes.)
+        public bool CloseRobloxCrashHandler { get; set; } = false;
+
         // auto-tile Roblox windows in a grid once they're visible (MrExStrap fork feature)
         public bool WindowTilingEnabled { get; set; } = false;
         public WindowTilingLayout WindowTilingLayout { get; set; } = WindowTilingLayout.Auto;
