@@ -45,6 +45,17 @@ namespace MrExStrap
         // Windows startup via StartupRegistration when EnableTrayLauncher is on.
         public LaunchFlag TrayFlag                  { get; } = new("tray");
 
+        // Forces multi-instance handling for THIS launch even when the global toggle is
+        // off. The Multi Instance tab always passes it: launching a saved account is a
+        // multi-account action by definition, so the new client must start independently
+        // (as that account) instead of being absorbed by an already-running client.
+        public LaunchFlag MultiInstanceFlag         { get; } = new("multiinstance");
+
+        // Per-launch Versions Manager profile override (the Multi Instance tab passes
+        // "-versionprofile <id>" when an account has a version assigned). Overrides the active
+        // profile for THIS launch only — the global ActiveVersionProfileId is never touched.
+        public LaunchFlag VersionProfileFlag        { get; } = new("versionprofile");
+
 #if DEBUG
         public bool BypassUpdateCheck => true;
 #else

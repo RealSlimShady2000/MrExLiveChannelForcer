@@ -60,14 +60,34 @@ namespace MrExStrap
         // profile mid-launch (shouldn't happen, but cheap to re-read).
         // Studio launches deliberately bypass profile mode — the profile system only
         // applies to LaunchMode.Player.
+        // Multi-instance is active for this launch when the user's global toggle is on OR the
+        // launch carried -multiinstance (every Multi Instance tab launch does — see
+        // AccountLauncher). The latter guarantees account launches start an independent client
+        // even when the toggle is off, instead of being swallowed by a running client.
+        private static bool MultiInstanceActive =>
+            App.Settings.Prop.MultiInstanceEnabled || App.LaunchSettings.MultiInstanceFlag.Active;
+
         private VersionProfile? GetActiveProfileForBootstrap()
         {
             if (_launchMode != LaunchMode.Player)
                 return null;
+
+            var profiles = App.Settings.Prop.VersionProfiles;
+
+            // Per-account override from the Multi Instance tab (-versionprofile <id>). Applies to
+            // THIS launch only — the global ActiveVersionProfileId is never written. An unknown id
+            // (e.g. the profile was deleted) falls through to the global active profile below.
+            if (App.LaunchSettings.VersionProfileFlag.Active
+                && !string.IsNullOrEmpty(App.LaunchSettings.VersionProfileFlag.Data))
+            {
+                var overridden = profiles.FirstOrDefault(p => p.Id == App.LaunchSettings.VersionProfileFlag.Data);
+                if (overridden != null)
+                    return overridden;
+            }
+
             if (string.IsNullOrEmpty(App.Settings.Prop.ActiveVersionProfileId))
                 return null;
-            return App.Settings.Prop.VersionProfiles
-                .FirstOrDefault(p => p.Id == App.Settings.Prop.ActiveVersionProfileId);
+            return profiles.FirstOrDefault(p => p.Id == App.Settings.Prop.ActiveVersionProfileId);
         }
 
         // What Roblox version is actually installed for this launch?
@@ -712,20 +732,17 @@ namespace MrExStrap
             if (_launchMode == LaunchMode.Player && !cliVersion)
                 await ExecutorProfileRefresher.RefreshActiveAsync(TimeSpan.FromSeconds(3));
 
-            // Resolve the active Versions Manager profile, if any.
+            // Resolve the Versions Manager profile for this launch (honors a per-account
+            // -versionprofile override; otherwise the global active profile).
             string? activeProfileGuid = null;
             string? activeProfileName = null;
-            if (!string.IsNullOrEmpty(App.Settings.Prop.ActiveVersionProfileId))
+            var resolvedProfile = GetActiveProfileForBootstrap();
+            if (resolvedProfile != null
+                && !string.IsNullOrEmpty(resolvedProfile.VersionGuid)
+                && Utility.VersionGuidValidator.IsWellFormed(resolvedProfile.VersionGuid))
             {
-                var profile = App.Settings.Prop.VersionProfiles
-                    .FirstOrDefault(p => p.Id == App.Settings.Prop.ActiveVersionProfileId);
-                if (profile != null
-                    && !string.IsNullOrEmpty(profile.VersionGuid)
-                    && Utility.VersionGuidValidator.IsWellFormed(profile.VersionGuid))
-                {
-                    activeProfileGuid = profile.VersionGuid;
-                    activeProfileName = profile.Name;
-                }
+                activeProfileGuid = resolvedProfile.VersionGuid;
+                activeProfileName = resolvedProfile.Name;
             }
 
             bool pinnedVersion = activeProfileGuid != null
@@ -995,6 +1012,15 @@ namespace MrExStrap
                 Utility.PrivacyMode.TruncateRobloxCookies();
             }
 
+            // Multi-instance: hold Roblox's single-instance lock BEFORE the client starts.
+            // While an MrExStrap process owns it, no client can elect itself the primary
+            // instance, which is what triggers "the previous instance will be closed" and
+            // kills the older client. Also sweeps the singleton event of any client that
+            // became primary earlier (launched while this setting was off), so turning the
+            // setting on mid-session works too.
+            if (MultiInstanceActive && _launchMode == LaunchMode.Player)
+                MrExStrap.Utility.MultiInstance.PrepareForLaunch();
+
             SetStatus(Strings.Bootstrapper_Status_Starting);
 
             var startInfo = new ProcessStartInfo()
@@ -1077,12 +1103,14 @@ namespace MrExStrap
             // Runs once per launch. Handles its own dispatch and cleanup.
             MrExStrap.Utility.LiveChannelToast.Show();
 
-            // Multi-instance: close Roblox's singleton event so a second client can launch.
-            // Background task + internal grace window — safe if Roblox exits early.
-            if (App.Settings.Prop.MultiInstanceEnabled && _launchMode == LaunchMode.Player)
+            // Multi-instance safety net: the held mutex (see PrepareForLaunch above) should
+            // keep this client from ever becoming the primary instance. If it became primary
+            // anyway, this background probe closes its singleton event so the next launch
+            // doesn't kill it. No-op when the mutex did its job.
+            if (MultiInstanceActive && _launchMode == LaunchMode.Player)
             {
-                App.Logger.WriteLine(LOG_IDENT, $"Multi-instance enabled — scheduling singleton close for PID {_appPid}");
-                MrExStrap.Utility.MultiInstance.ScheduleSingletonClose(_appPid);
+                App.Logger.WriteLine(LOG_IDENT, $"Multi-instance active — scheduling singleton sweep (PID {_appPid})");
+                MrExStrap.Utility.MultiInstance.ScheduleSingletonSweep();
             }
 
             // Window tiling: arrange all Roblox windows into a grid after a short delay.
@@ -1162,6 +1190,12 @@ namespace MrExStrap
 
                 if (App.LaunchSettings.TestModeFlag.Active)
                     args += " -testmode";
+
+                // Propagate multi-instance so the watcher (the longest-lived process this
+                // session) keeps holding Roblox's single-instance lock — even for account
+                // launches that only set the flag and not the global toggle.
+                if (MultiInstanceActive)
+                    args += " -multiinstance";
 
                 if (ipl.IsAcquired)
                     Process.Start(Paths.Process, args);

@@ -28,6 +28,11 @@ namespace MrExStrap.Models.Persistable
         public DateTime AddedUtc { get; set; } = DateTime.UtcNow;
         public DateTime? LastValidatedUtc { get; set; }
 
+        // Optional Versions Manager profile this account launches with, stored as VersionProfile.Id.
+        // Empty (the default) means "use whatever profile is active globally" — the normal launch.
+        // Applied as a per-launch override only; it never changes the global active profile.
+        public string VersionProfileId { get; set; } = "";
+
         // Best label to show in the UI. Pure logic, not persisted.
         [JsonIgnore]
         public string DisplayLabel =>

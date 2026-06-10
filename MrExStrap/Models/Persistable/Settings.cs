@@ -91,8 +91,14 @@ namespace MrExStrap.Models.Persistable
         // menu-open "install now?" prompt — this is the passive heads-up.
         public bool NotifyOnAppUpdate { get; set; } = true;
 
-        // multi-instance: close ROBLOX_singletonEvent after launch so another Roblox can start (MrExStrap fork feature)
+        // multi-instance: hold ROBLOX_singletonMutex while clients run so they can start side
+        // by side instead of closing each other (MrExStrap fork feature, see Utility.MultiInstance)
         public bool MultiInstanceEnabled { get; set; } = false;
+
+        // Multi Instance tab: when on, account launches open to the Roblox home screen instead
+        // of joining a place, so no Place ID is needed. Place ID / Job ID stay available for
+        // when this is off. Default off (join a game, the original behavior).
+        public bool MultiInstanceLaunchToHome { get; set; } = false;
 
         // v420.30.3+: Froststrap-style memory saver. When ON, the watcher closes Roblox's
         // RobloxCrashHandler.exe background process while the game runs, freeing the memory it

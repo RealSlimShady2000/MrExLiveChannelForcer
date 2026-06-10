@@ -106,6 +106,14 @@ namespace MrExStrap
             if (!_lock.IsAcquired || _watcherData is null)
                 return;
 
+            // Multi-instance: the watcher is the longest-lived MrExStrap process in a play
+            // session, so it owns Roblox's single-instance lock while the client runs. While
+            // we own it, no client can become the primary instance and close the others.
+            // See Utility.MultiInstance for the full picture. The flag covers account launches
+            // (Multi Instance tab) that force multi-instance without the global toggle.
+            if (App.Settings.Prop.MultiInstanceEnabled || App.LaunchSettings.MultiInstanceFlag.Active)
+                Utility.MultiInstance.HoldSingletonMutex();
+
             ActivityWatcher?.Start();
 
             // v420.28: when Stream Mode is on, keep Roblox's window title

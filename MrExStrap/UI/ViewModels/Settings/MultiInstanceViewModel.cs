@@ -30,6 +30,29 @@ namespace MrExStrap.UI.ViewModels.Settings
         public string DisplayLabel => Account.DisplayLabel;
         public string UsernameLine => string.IsNullOrEmpty(Account.Username) ? "" : "@" + Account.Username;
         public string? AvatarUrl => Account.AvatarUrl;
+
+        // The Versions Manager profile this account launches under (VersionProfile.Id; "" = use
+        // the global active profile). Persisted immediately so the choice survives reload/restart.
+        public string VersionProfileId
+        {
+            get => Account.VersionProfileId;
+            set
+            {
+                if ((value ?? "") == Account.VersionProfileId)
+                    return;
+                Account.VersionProfileId = value ?? "";
+                App.Accounts.Save();
+                OnPropertyChanged(nameof(VersionProfileId));
+            }
+        }
+    }
+
+    // One entry in an account row's version dropdown. An empty Id means "use the active profile".
+    public class ProfileChoice
+    {
+        public string Id { get; }
+        public string Name { get; }
+        public ProfileChoice(string id, string name) { Id = id; Name = name; }
     }
 
     public class MultiInstanceViewModel : NotifyPropertyChangedViewModel
@@ -38,9 +61,22 @@ namespace MrExStrap.UI.ViewModels.Settings
 
         public ObservableCollection<AccountRow> Accounts { get; } = new();
 
+        // Version-dropdown options shared by every account row (Default + each Versions Manager
+        // profile). Rebuilt inside ReloadAccounts while no rows are bound, so refreshing it can
+        // never write back into a live ComboBox selection.
+        public ObservableCollection<ProfileChoice> AvailableProfiles { get; } = new();
+
         public ObservableCollection<RobloxInstanceInfo> RunningInstances { get; } = new();
 
         public MultiInstanceViewModel()
+        {
+            ReloadAccounts();
+            RefreshRunningInstances();
+        }
+
+        // Called when the tab becomes visible (the page caches its view-model, so this is how
+        // accounts saved from other tabs and newly opened/closed Roblox instances get picked up).
+        public void RefreshOnShow()
         {
             ReloadAccounts();
             RefreshRunningInstances();
@@ -63,12 +99,29 @@ namespace MrExStrap.UI.ViewModels.Settings
 
         private void ReloadAccounts()
         {
+            // Keep any bulk-launch ticks the user already made — a reload (including the
+            // refresh-on-show) shouldn't silently clear their selection.
+            var previouslySelected = Accounts.Where(a => a.IsSelected).Select(a => a.Id).ToHashSet();
+
             Accounts.Clear();
+
+            // Rebuild the version dropdown options now that no rows (and no bound ComboBoxes)
+            // exist, so refreshing the profile list can't blank out a live selection.
+            ReloadProfiles();
+
             foreach (var account in AccountManager.All)
-                Accounts.Add(new AccountRow(account));
+                Accounts.Add(new AccountRow(account) { IsSelected = previouslySelected.Contains(account.Id) });
 
             OnPropertyChanged(nameof(AccountsHeader));
             OnPropertyChanged(nameof(HasNoAccounts));
+        }
+
+        private void ReloadProfiles()
+        {
+            AvailableProfiles.Clear();
+            AvailableProfiles.Add(new ProfileChoice("", "Default (active version)"));
+            foreach (var p in App.Settings.Prop.VersionProfiles)
+                AvailableProfiles.Add(new ProfileChoice(p.Id, p.Name));
         }
 
         private void AddAccount()
@@ -104,13 +157,15 @@ namespace MrExStrap.UI.ViewModels.Settings
             if (row is null)
                 return;
 
-            if (!TryGetPlaceId(out long placeId))
+            bool home = LaunchToHome;
+            long placeId = 0;
+            if (!home && !TryGetPlaceId(out placeId))
                 return;
 
             BulkStatus = $"Launching {row.DisplayLabel}…";
-            bool ok = await AccountLauncher.LaunchAsync(row.Account, placeId, NormalizedJobId);
+            bool ok = await AccountLauncher.LaunchAsync(row.Account, placeId, NormalizedJobId, home);
             BulkStatus = ok
-                ? $"Launched {row.DisplayLabel}."
+                ? $"Launched {row.DisplayLabel}{(home ? " to home" : "")}."
                 : $"Couldn't launch {row.DisplayLabel} — the saved login may have expired. Re-add it.";
             RefreshRunningInstances();
         }
@@ -140,6 +195,21 @@ namespace MrExStrap.UI.ViewModels.Settings
             get => App.Settings.Prop.MultiInstanceEnabled;
             set { App.Settings.Prop.MultiInstanceEnabled = value; OnPropertyChanged(nameof(MultiInstanceEnabled)); }
         }
+
+        // When on, launches open to the Roblox home screen and the Place/Job fields are ignored.
+        public bool LaunchToHome
+        {
+            get => App.Settings.Prop.MultiInstanceLaunchToHome;
+            set
+            {
+                App.Settings.Prop.MultiInstanceLaunchToHome = value;
+                OnPropertyChanged(nameof(LaunchToHome));
+                OnPropertyChanged(nameof(IsGameLaunch));
+            }
+        }
+
+        // Place ID / Job ID only apply when NOT launching to home — bound to enable those fields.
+        public bool IsGameLaunch => !App.Settings.Prop.MultiInstanceLaunchToHome;
 
         private string _bulkStatus = "";
         public string BulkStatus
@@ -186,7 +256,10 @@ namespace MrExStrap.UI.ViewModels.Settings
         {
             if (IsLaunching)
                 return;
-            if (!TryGetPlaceId(out long placeId))
+
+            bool home = LaunchToHome;
+            long placeId = 0;
+            if (!home && !TryGetPlaceId(out placeId))
                 return;
 
             IsLaunching = true;
@@ -194,7 +267,7 @@ namespace MrExStrap.UI.ViewModels.Settings
             {
                 var progress = new Progress<string>(s => BulkStatus = s);
                 int delay = App.Settings.Prop.BulkLaunchDelaySeconds;
-                await AccountLauncher.BulkLaunchAsync(accounts, placeId, NormalizedJobId, delay, progress);
+                await AccountLauncher.BulkLaunchAsync(accounts, placeId, NormalizedJobId, delay, home, progress);
             }
             catch (Exception ex)
             {

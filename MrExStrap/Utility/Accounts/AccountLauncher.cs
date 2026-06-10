@@ -9,9 +9,10 @@ namespace MrExStrap.Utility.Accounts
     {
         private const string LOG_IDENT = "AccountLauncher";
 
-        // Launch one account into a place (and optionally a specific server job). Returns true if a
-        // launch process was spawned.
-        public static async Task<bool> LaunchAsync(RobloxAccount account, long placeId, string? jobId)
+        // Launch one account. With launchToHome the client opens to the Roblox home screen and
+        // placeId/jobId are ignored; otherwise it joins the given place (and optional server job).
+        // Returns true if a launch process was spawned.
+        public static async Task<bool> LaunchAsync(RobloxAccount account, long placeId, string? jobId, bool launchToHome = false)
         {
             string? cookie = SecureStore.Unprotect(account.EncryptedCookieB64);
             if (string.IsNullOrEmpty(cookie))
@@ -27,18 +28,30 @@ namespace MrExStrap.Utility.Accounts
                 return false;
             }
 
-            string uri = BuildLaunchUri(ticket, placeId, jobId);
+            string uri = launchToHome ? BuildHomeLaunchUri(ticket) : BuildLaunchUri(ticket, placeId, jobId);
+
+            // Always force multi-instance for account launches. Without it, a launch fired while
+            // another client is open gets absorbed by that client and runs as whoever is already
+            // logged in there — not this account. The flag makes our bootstrapper neutralise
+            // Roblox's single-instance lock so this client starts on its own and redeems this
+            // account's ticket. Independent of the user's global toggle.
+            string args = $"{uri} -multiinstance";
+
+            // Per-account version: launch under this account's assigned Versions Manager profile,
+            // as a per-launch override the bootstrapper reads. Empty = use the global active one.
+            if (!string.IsNullOrEmpty(account.VersionProfileId))
+                args += $" -versionprofile {account.VersionProfileId}";
 
             try
             {
                 Process.Start(new ProcessStartInfo
                 {
                     FileName = Paths.Application,
-                    Arguments = uri,
+                    Arguments = args,
                     UseShellExecute = false,
                     WorkingDirectory = Paths.Base
                 });
-                App.Logger.WriteLine(LOG_IDENT, $"Launched {account.DisplayLabel} into place {placeId}{(string.IsNullOrEmpty(jobId) ? "" : $" job {jobId}")}.");
+                App.Logger.WriteLine(LOG_IDENT, $"Launched {account.DisplayLabel} {(launchToHome ? "to home" : $"into place {placeId}{(string.IsNullOrEmpty(jobId) ? "" : $" job {jobId}")}")}.");
                 return true;
             }
             catch (Exception ex)
@@ -51,20 +64,15 @@ namespace MrExStrap.Utility.Accounts
         // Sequential bulk launch with a per-account delay. The delay is REQUIRED, not cosmetic:
         //   - the log file is named to the second, so two launches in the same second collide and
         //     the later MrExBloxstrap self-terminates as a "duplicate launch";
-        //   - each Roblox client's ROBLOX_singletonEvent is closed ~4s after it starts, and the
-        //     next client can't start as a separate instance until that happens;
         //   - it also throttles the auth-ticket calls for rate-limited IPs.
-        // Minimum is clamped to 2s. Also ensures multi-instance is enabled (otherwise alts can't
-        // coexist). Returns how many launched.
-        public static async Task<int> BulkLaunchAsync(IReadOnlyList<RobloxAccount> accounts, long placeId, string? jobId, int delaySeconds, IProgress<string>? progress = null)
+        // (The singleton lock itself is no longer a timing concern — it's held up front by the
+        // bootstrapper/watcher before each client starts, see Utility.MultiInstance.)
+        // Minimum is clamped to 2s. Returns how many launched.
+        public static async Task<int> BulkLaunchAsync(IReadOnlyList<RobloxAccount> accounts, long placeId, string? jobId, int delaySeconds, bool launchToHome = false, IProgress<string>? progress = null)
         {
-            if (!App.Settings.Prop.MultiInstanceEnabled)
-            {
-                App.Settings.Prop.MultiInstanceEnabled = true;
-                App.Settings.Save();
-                App.Logger.WriteLine(LOG_IDENT, "Enabled multi-instance for bulk launch.");
-            }
-
+            // No need to flip the user's global multi-instance toggle anymore — every account
+            // launch passes -multiinstance (see LaunchAsync), so bulk launches start independent
+            // clients regardless of the saved setting.
             delaySeconds = Math.Max(2, delaySeconds);
             int launched = 0;
 
@@ -73,7 +81,7 @@ namespace MrExStrap.Utility.Accounts
                 var account = accounts[i];
                 progress?.Report($"Launching {account.DisplayLabel} ({i + 1}/{accounts.Count})…");
 
-                if (await LaunchAsync(account, placeId, jobId))
+                if (await LaunchAsync(account, placeId, jobId, launchToHome))
                     launched++;
 
                 if (i < accounts.Count - 1)
@@ -83,6 +91,19 @@ namespace MrExStrap.Utility.Accounts
             progress?.Report($"Done — launched {launched} of {accounts.Count}.");
             App.Logger.WriteLine(LOG_IDENT, $"Bulk launch finished: {launched}/{accounts.Count}.");
             return launched;
+        }
+
+        // Home/app launch: open the Roblox app to the home screen, authenticated as this account,
+        // without joining a game. launchmode:app + the auth ticket and NO placelauncherurl is what
+        // tells the client to land on home. Useful to pass a login/bot check before joining, and
+        // for accounts you just want signed in.
+        private static string BuildHomeLaunchUri(string ticket)
+        {
+            long launchTime = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+            long tracker = Random.Shared.NextInt64(10_000_000, 200_000_000);
+
+            return $"roblox-player:1+launchmode:app+gameinfo:{ticket}+launchtime:{launchTime}"
+                 + $"+browsertrackerid:{tracker}+robloxLocale:en_us+gameLocale:en_us+channel:";
         }
 
         private static string BuildLaunchUri(string ticket, long placeId, string? jobId)

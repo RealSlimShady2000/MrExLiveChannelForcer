@@ -12,6 +12,7 @@
       mc:Ignorable="d"
       d:DesignHeight="700" d:DesignWidth="800"
       Title="MultiInstancePage"
+      Loaded="Page_Loaded"
       Scrollable="True">
 
     <ui:UiPage.Resources>
@@ -76,6 +77,15 @@
                                            Foreground="{DynamicResource TextFillColorPrimaryBrush}" TextTrimming="CharacterEllipsis" />
                                 <TextBlock Text="{Binding UsernameLine, Mode=OneWay}" FontSize="11"
                                            Foreground="{DynamicResource TextFillColorTertiaryBrush}" />
+                                <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                                    <TextBlock Text="Version" VerticalAlignment="Center" FontSize="11" Margin="0,0,6,0"
+                                               Foreground="{DynamicResource TextFillColorTertiaryBrush}" />
+                                    <ComboBox MinWidth="170" FontSize="12" Padding="8,2"
+                                              ItemsSource="{Binding DataContext.AvailableProfiles, RelativeSource={RelativeSource AncestorType=ItemsControl}, Mode=OneWay}"
+                                              DisplayMemberPath="Name" SelectedValuePath="Id"
+                                              SelectedValue="{Binding VersionProfileId, Mode=TwoWay}"
+                                              ToolTip="Which Versions Manager profile this account launches with. 'Default' uses your active version." />
+                                </StackPanel>
                             </StackPanel>
                             <ui:Button Grid.Column="3" Icon="Play24" Content="Launch" Margin="0,0,8,0"
                                        Command="{Binding DataContext.LaunchAccountCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
@@ -95,21 +105,36 @@
                 <StackPanel>
                     <TextBlock FontSize="14" Text="Bulk launch" />
                     <TextBlock FontSize="12" Foreground="{DynamicResource TextFillColorTertiaryBrush}" TextWrapping="Wrap"
-                               Text="Launch the ticked accounts (or all of them) into a place. Add a Job ID to drop them all into the same server." />
+                               Text="Launch the ticked accounts (or all of them) — to the home screen, or into a place. Add a Job ID to drop them all into the same server." />
                 </StackPanel>
             </ui:CardExpander.Header>
             <StackPanel>
+                <!-- Launch target: home vs a specific place -->
+                <Grid Margin="0,0,0,10">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <ui:ToggleSwitch Grid.Column="0" VerticalAlignment="Top" Margin="0,2,0,0"
+                                     IsChecked="{Binding LaunchToHome, Mode=TwoWay}" />
+                    <StackPanel Grid.Column="1" Margin="10,0,0,0">
+                        <TextBlock FontSize="13" Text="Open to the home page (no Place ID needed)" />
+                        <TextBlock FontSize="11" TextWrapping="Wrap" Foreground="{DynamicResource TextFillColorTertiaryBrush}"
+                                   Text="Launches each account straight to the Roblox home screen instead of a game — handy to sign in and clear any bot-check first. Turn this off to join a specific place with the Place ID below." />
+                    </StackPanel>
+                </Grid>
+
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
-                    <StackPanel Grid.Column="0" Margin="0,0,8,0">
+                    <StackPanel Grid.Column="0" Margin="0,0,8,0" IsEnabled="{Binding IsGameLaunch, Mode=OneWay}">
                         <TextBlock FontSize="12" Margin="0,0,0,2" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Text="Place ID" />
                         <TextBox Padding="8,5" Text="{Binding BulkPlaceId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                     </StackPanel>
-                    <StackPanel Grid.Column="1" Margin="0,0,8,0">
+                    <StackPanel Grid.Column="1" Margin="0,0,8,0" IsEnabled="{Binding IsGameLaunch, Mode=OneWay}">
                         <TextBlock FontSize="12" Margin="0,0,0,2" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Text="Job ID (optional)" />
                         <TextBox Padding="8,5" Text="{Binding BulkJobId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                     </StackPanel>
@@ -140,7 +165,7 @@
         <!-- Multi-instance toggle -->
         <controls:OptionControl Margin="0,16,0,0"
             Header="Multi-instance (run more than one Roblox client)"
-            Description="Required for bulk launch. After each launch, closes Roblox's singleton lock so the next client can start alongside it. Same-user only, no admin needed. Bulk launch turns this on automatically.">
+            Description="Required for bulk launch. Holds Roblox's single-instance lock so new clients run alongside the ones already open instead of closing them. Works best when it's on before the first client starts. Same-user only, no admin needed. Bulk launch turns this on automatically.">
             <ui:ToggleSwitch IsChecked="{Binding MultiInstanceEnabled, Mode=TwoWay}" />
         </controls:OptionControl>
 
