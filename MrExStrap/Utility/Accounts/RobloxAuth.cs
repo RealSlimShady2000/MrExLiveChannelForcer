@@ -6,9 +6,11 @@ namespace MrExStrap.Utility.Accounts
     // headshot, and mint a one-time launch ("authentication") ticket. Adapted technique from
     // robloxmanager by sasha / centerepic (MIT) — https://gitlab.com/centerepic/robloxmanager.
     //
-    // Each call sets the .ROBLOSECURITY cookie per-request (App.HttpClient has no cookie container),
-    // and the cookie/CSRF/ticket headers are redacted by HttpClientLoggingHandler so they never hit
-    // the log.
+    // Each call sets the .ROBLOSECURITY cookie per-request. App.HttpClient is built with
+    // UseCookies=false on purpose (see App.xaml.cs) so the handler never caches the cookie
+    // auth.roblox.com rotates back and re-attaches it to the next account's request — without
+    // that, every alt's launch ticket resolves to the same account. The cookie/CSRF/ticket
+    // headers are redacted by HttpClientLoggingHandler so they never hit the log.
     public static class RobloxAuth
     {
         private const string LOG_IDENT = "RobloxAuth";

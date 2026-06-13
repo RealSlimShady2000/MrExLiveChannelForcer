@@ -165,7 +165,7 @@
         <!-- Multi-instance toggle -->
         <controls:OptionControl Margin="0,16,0,0"
             Header="Multi-instance (run more than one Roblox client)"
-            Description="Required for bulk launch. Holds Roblox's single-instance lock so new clients run alongside the ones already open instead of closing them. Works best when it's on before the first client starts. Same-user only, no admin needed. Bulk launch turns this on automatically.">
+            Description="Account and bulk launches from this tab already run on their own, so you don't need this turned on for them. Switch it on to also let your normal Roblox launches open alongside clients that are already running instead of closing them. It holds Roblox's single-instance lock. Same-user only, no admin needed.">
             <ui:ToggleSwitch IsChecked="{Binding MultiInstanceEnabled, Mode=TwoWay}" />
         </controls:OptionControl>
 

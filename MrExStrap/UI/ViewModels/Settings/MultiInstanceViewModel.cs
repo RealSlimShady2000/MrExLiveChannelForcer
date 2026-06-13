@@ -162,11 +162,21 @@ namespace MrExStrap.UI.ViewModels.Settings
             if (!home && !TryGetPlaceId(out placeId))
                 return;
 
-            BulkStatus = $"Launching {row.DisplayLabel}…";
-            bool ok = await AccountLauncher.LaunchAsync(row.Account, placeId, NormalizedJobId, home);
-            BulkStatus = ok
-                ? $"Launched {row.DisplayLabel}{(home ? " to home" : "")}."
-                : $"Couldn't launch {row.DisplayLabel} — the saved login may have expired. Re-add it.";
+            await _launchGate.WaitAsync();
+            try
+            {
+                await SpaceOutLaunchAsync();
+                BulkStatus = $"Launching {row.DisplayLabel}…";
+                bool ok = await AccountLauncher.LaunchAsync(row.Account, placeId, NormalizedJobId, home);
+                _lastLaunchUtc = DateTime.UtcNow;
+                BulkStatus = ok
+                    ? $"Launched {row.DisplayLabel}{(home ? " to home" : "")}."
+                    : $"Couldn't launch {row.DisplayLabel} — the saved login may have expired. Re-add it.";
+            }
+            finally
+            {
+                _launchGate.Release();
+            }
             RefreshRunningInstances();
         }
 
@@ -227,6 +237,23 @@ namespace MrExStrap.UI.ViewModels.Settings
         }
         public bool IsNotLaunching => !_isLaunching;
 
+        // Every launch path (single row "Launch" and bulk) runs through this gate so two
+        // MrExBloxstrap processes never start in the same UTC second. The launcher names its
+        // log file to the second, and a second process that lands on the same name fails to
+        // initialise its logger and self-terminates as a "duplicate launch" (see Logger) — so
+        // without spacing, clicking Launch on two accounts quickly, or a single launch firing
+        // during a bulk launch, would silently drop one of them. Bulk already spaces its own
+        // launches internally; the gate + _lastLaunchUtc extend that across single launches too.
+        private readonly System.Threading.SemaphoreSlim _launchGate = new(1, 1);
+        private DateTime _lastLaunchUtc = DateTime.MinValue;
+
+        private async Task SpaceOutLaunchAsync()
+        {
+            var gap = TimeSpan.FromSeconds(2) - (DateTime.UtcNow - _lastLaunchUtc);
+            if (gap > TimeSpan.Zero)
+                await Task.Delay(gap);
+        }
+
         public ICommand LaunchSelectedCommand => new AsyncRelayCommand(LaunchSelectedAsync);
         public ICommand LaunchAllCommand => new AsyncRelayCommand(LaunchAllAsync);
 
@@ -263,11 +290,14 @@ namespace MrExStrap.UI.ViewModels.Settings
                 return;
 
             IsLaunching = true;
+            await _launchGate.WaitAsync();
             try
             {
+                await SpaceOutLaunchAsync();
                 var progress = new Progress<string>(s => BulkStatus = s);
                 int delay = App.Settings.Prop.BulkLaunchDelaySeconds;
                 await AccountLauncher.BulkLaunchAsync(accounts, placeId, NormalizedJobId, delay, home, progress);
+                _lastLaunchUtc = DateTime.UtcNow;
             }
             catch (Exception ex)
             {
@@ -276,6 +306,7 @@ namespace MrExStrap.UI.ViewModels.Settings
             }
             finally
             {
+                _launchGate.Release();
                 IsLaunching = false;
                 RefreshRunningInstances();
             }

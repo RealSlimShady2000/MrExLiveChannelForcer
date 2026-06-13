@@ -91,9 +91,17 @@ namespace MrExStrap
 
         public static readonly FastFlagManager FastFlags = new();
 
+        // UseCookies = false is REQUIRED for multi-account launching — do not remove it.
+        // The Multi Instance tab mints a launch ticket per saved account by setting the
+        // account's .ROBLOSECURITY on each request by hand (see RobloxAuth). With a cookie
+        // container (the HttpClientHandler default) the handler caches the .ROBLOSECURITY
+        // that auth.roblox.com rotates back via Set-Cookie and then re-attaches it to the
+        // NEXT account's request — so every alt's ticket resolves to whichever account's
+        // cookie got cached first, and they all launch as the same account. No other call
+        // in the app relies on the container; every Roblox auth call sets the cookie itself.
         public static readonly HttpClient HttpClient = new(
             new HttpClientLoggingHandler(
-                new HttpClientHandler { AutomaticDecompression = DecompressionMethods.All }
+                new HttpClientHandler { AutomaticDecompression = DecompressionMethods.All, UseCookies = false }
             )
         );
 
