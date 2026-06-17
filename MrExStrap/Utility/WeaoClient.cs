@@ -19,7 +19,9 @@ namespace MrExStrap.Utility
     // ERR_SSL_PROTOCOL_ERROR / a corrupted TLS frame in .NET) or intercepted by antivirus HTTPS
     // scanning. robloxscripts.com serves the identical data from a DIFFERENT domain, so a
     // weao.xyz-specific block doesn't reach it. We try weao.xyz first (canonical, freshest) and
-    // fall back to the mirror on any failure. Mapping + shapes: docs.robloxscripts.com (#weao).
+    // fall back to the mirror on any failure (order flips with the PreferRobloxScriptsApi setting).
+    // The mirror's endpoint path is resolved from its API index at call time — see below. Shapes
+    // and mapping: docs.robloxscripts.com.
     //
     // Per docs.weao.xyz the User-Agent "WEAO-3PService" is required for weao.xyz. The mirror just
     // needs any non-bot User-Agent (a bare "curl/x" UA is challenged) — App.HttpClient's default
@@ -27,18 +29,20 @@ namespace MrExStrap.Utility
     public static class WeaoClient
     {
         private const string EXPLOITS_ENDPOINT = "https://weao.xyz/api/status/exploits";
-        private const string MIRROR_EXPLOITS_ENDPOINT = "https://robloxscripts.com/api/v1/weao/status/exploits";
         private const string USER_AGENT = "WEAO-3PService";
+
+        // robloxscripts.com mirror. Its exploit path has been renamed before (/api/v1/weao/... →
+        // /api/v1/backup/... on 2026-06-17), so instead of hard-pinning it we ask the API index
+        // (/api/v1, which lists endpoints.exploits) for the current path at call time, and only fall
+        // back to MIRROR_EXPLOITS_DEFAULT if that lookup fails. A future rename then self-heals.
+        private const string MIRROR_BASE = "https://robloxscripts.com";
+        private const string MIRROR_INDEX_ENDPOINT = "https://robloxscripts.com/api/v1";
+        private const string MIRROR_EXPLOITS_DEFAULT = "https://robloxscripts.com/api/v1/backup/status/exploits";
 
         public readonly record struct WeaoResult(IReadOnlyList<WeaoExploit> Exploits, string? Error, WeaoSource Source = WeaoSource.None)
         {
             public bool Success => Error is null;
         }
-
-        // Endpoint descriptors so the two sources can be tried in either order.
-        private readonly record struct Endpoint(string Url, string Host, WeaoSource Source, bool SendWeaoUserAgent);
-        private static readonly Endpoint WeaoEndpoint = new(EXPLOITS_ENDPOINT, "weao.xyz", WeaoSource.Weao, true);
-        private static readonly Endpoint MirrorEndpoint = new(MIRROR_EXPLOITS_ENDPOINT, "robloxscripts.com", WeaoSource.Mirror, false);
 
         public static async Task<WeaoResult> GetWindowsExploitsAsync(CancellationToken token = default)
         {
@@ -48,46 +52,84 @@ namespace MrExStrap.Utility
             // "prefer robloxscripts.com" setting flips it for users whose network/ISP blocks weao.xyz,
             // so they skip the dead weao.xyz attempt and hit the working mirror first. Either way the
             // other source is the fallback, and both are tried before giving up.
-            var order = App.Settings.Prop.PreferRobloxScriptsApi
-                ? new[] { MirrorEndpoint, WeaoEndpoint }
-                : new[] { WeaoEndpoint, MirrorEndpoint };
+            bool preferMirror = App.Settings.Prop.PreferRobloxScriptsApi;
+            string primaryHost = preferMirror ? "robloxscripts.com" : "weao.xyz";
+            string fallbackHost = preferMirror ? "weao.xyz" : "robloxscripts.com";
 
-            WeaoResult primaryResult = default;
+            var primary = preferMirror ? await FetchMirrorAsync(token) : await FetchWeaoAsync(token);
+            if (primary.Success)
+                return primary;
 
-            for (int i = 0; i < order.Length; i++)
+            App.Logger.WriteLine(LOG_IDENT, $"{primaryHost} failed ({primary.Error}) — falling back to {fallbackHost}.");
+
+            var fallback = preferMirror ? await FetchWeaoAsync(token) : await FetchMirrorAsync(token);
+            if (fallback.Success)
             {
-                var ep = order[i];
-                var result = await FetchExploitsAsync(ep.Url, ep.Host, ep.Source, ep.SendWeaoUserAgent, token);
-
-                if (result.Success)
-                {
-                    if (i > 0)
-                        App.Logger.WriteLine(LOG_IDENT, $"Loaded {result.Exploits.Count} executors from {ep.Host} (fallback).");
-                    return result;
-                }
-
-                if (i == 0)
-                {
-                    primaryResult = result;
-                    App.Logger.WriteLine(LOG_IDENT, $"{ep.Host} failed ({result.Error}) — falling back to {order[i + 1].Host}.");
-                }
-                else
-                {
-                    App.Logger.WriteLine(LOG_IDENT, $"{ep.Host} also failed ({result.Error}).");
-                }
+                App.Logger.WriteLine(LOG_IDENT, $"Loaded {fallback.Exploits.Count} executors from {fallbackHost} (fallback).");
+                return fallback;
             }
 
             // Both sources are unreachable — almost always a broad block on the user's PC or network
             // (antivirus HTTPS scanning, or an ISP/router SSL filter) rather than anything app-side.
             // Lead with the preferred-source reason and make clear the backup failed too.
+            App.Logger.WriteLine(LOG_IDENT, $"{fallbackHost} also failed ({fallback.Error}).");
             return new WeaoResult(
                 Array.Empty<WeaoExploit>(),
                 "Couldn't load the executor list from weao.xyz or the robloxscripts.com backup.\n\n" +
-                $"{primaryResult.Error}\n\n" +
+                $"{primary.Error}\n\n" +
                 "Both sources being down at once usually means something on your PC or network is blocking this kind " +
                 "of traffic — antivirus HTTPS/SSL scanning, or an ISP/router-level filter. You can still paste a " +
                 "version hash manually below.",
                 WeaoSource.None);
+        }
+
+        private static Task<WeaoResult> FetchWeaoAsync(CancellationToken token)
+            => FetchExploitsAsync(EXPLOITS_ENDPOINT, "weao.xyz", WeaoSource.Weao, sendWeaoUserAgent: true, token);
+
+        private static async Task<WeaoResult> FetchMirrorAsync(CancellationToken token)
+        {
+            string url = await DiscoverMirrorExploitsUrlAsync(token);
+            return await FetchExploitsAsync(url, "robloxscripts.com", WeaoSource.Mirror, sendWeaoUserAgent: false, token);
+        }
+
+        // Ask the robloxscripts.com API index (/api/v1) for the current exploits endpoint path so a
+        // future path rename self-heals without an app update. Falls back to MIRROR_EXPLOITS_DEFAULT
+        // on any problem (index blocked, shape changed, missing field).
+        private static async Task<string> DiscoverMirrorExploitsUrlAsync(CancellationToken token)
+        {
+            const string LOG_IDENT = "WeaoClient::DiscoverMirrorUrl";
+            try
+            {
+                using var request = new HttpRequestMessage(HttpMethod.Get, MIRROR_INDEX_ENDPOINT);
+                using var response = await App.HttpClient.SendAsync(request, token);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    await using var stream = await response.Content.ReadAsStreamAsync(token);
+                    using var doc = await JsonDocument.ParseAsync(stream, default, token);
+
+                    if (doc.RootElement.TryGetProperty("endpoints", out var endpoints)
+                        && endpoints.TryGetProperty("exploits", out var exploits)
+                        && exploits.ValueKind == JsonValueKind.String)
+                    {
+                        string path = (exploits.GetString() ?? "").Trim();
+                        if (path.StartsWith("http", StringComparison.OrdinalIgnoreCase))
+                            return path;
+                        if (path.StartsWith("/"))
+                            return MIRROR_BASE + path;
+                    }
+                    App.Logger.WriteLine(LOG_IDENT, "Index had no usable endpoints.exploits; using default path.");
+                }
+                else
+                {
+                    App.Logger.WriteLine(LOG_IDENT, $"Index returned HTTP {(int)response.StatusCode}; using default path.");
+                }
+            }
+            catch (Exception ex)
+            {
+                App.Logger.WriteLine(LOG_IDENT, $"Index discovery failed ({ex.GetType().Name}); using default path.");
+            }
+            return MIRROR_EXPLOITS_DEFAULT;
         }
 
         // Fetch + parse + filter one source. Never throws — every failure path returns a WeaoResult
