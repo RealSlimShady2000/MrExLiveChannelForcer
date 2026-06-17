@@ -2285,21 +2285,35 @@ namespace MrExStrap
                     App.Logger.WriteLine(LOG_IDENT, $"An exception occurred after downloading {totalBytesRead} bytes. ({i}/{maxTries})");
                     App.Logger.WriteException(LOG_IDENT, ex);
 
-                    if (ex.GetType() == typeof(ChecksumFailedException))
+                    bool isChecksumFailure = ex.GetType() == typeof(ChecksumFailedException);
+
+                    // A checksum mismatch means the bytes arrived altered, not that the request was
+                    // blocked outright. The usual culprit is an antivirus doing HTTPS/TLS inspection:
+                    // it re-encrypts the stream and corrupts the payload, so the hash never matches.
+                    // That's recoverable, so treat it like any other transient failure here - delete
+                    // the partial file and retry, falling back to plain HTTP below (which AV TLS
+                    // inspection can't touch). Only once every attempt is exhausted do we give up and
+                    // show the connectivity dialog. Previously a single checksum failure terminated
+                    // immediately with no retry, so a user behind an inspecting AV could never launch
+                    // even though the HTTP fallback would have rescued them.
+                    if (i >= maxTries)
                     {
-                        App.SendStat("packageDownloadState", "httpFail");
+                        if (isChecksumFailure)
+                        {
+                            App.SendStat("packageDownloadState", "httpFail");
 
-                        Frontend.ShowConnectivityDialog(
-                            Strings.Dialog_Connectivity_UnableToDownload,
-                            String.Format(Strings.Dialog_Connectivity_UnableToDownloadReason, $"[{App.ProjectSupportLink}]({App.ProjectSupportLink})"),
-                            MessageBoxImage.Error,
-                            ex
-                        );
+                            Frontend.ShowConnectivityDialog(
+                                Strings.Dialog_Connectivity_UnableToDownload,
+                                String.Format(Strings.Dialog_Connectivity_UnableToDownloadReason, $"[{App.ProjectSupportLink}]({App.ProjectSupportLink})"),
+                                MessageBoxImage.Error,
+                                ex
+                            );
 
-                        App.Terminate(ErrorCode.ERROR_CANCELLED);
-                    }
-                    else if (i >= maxTries)
+                            App.Terminate(ErrorCode.ERROR_CANCELLED);
+                        }
+
                         throw;
+                    }
 
                     if (File.Exists(package.DownloadPath))
                         File.Delete(package.DownloadPath);
@@ -2310,7 +2324,10 @@ namespace MrExStrap
                     // attempt download over HTTP
                     // this isn't actually that unsafe - signatures were fetched earlier over HTTPS
                     // so we've already established that our signatures are legit, and that there's very likely no MITM anyway
-                    if (ex.GetType() == typeof(IOException) && !packageUrl.StartsWith("http://"))
+                    // A checksum failure is the strongest signal that something (usually AV HTTPS
+                    // inspection) is corrupting the encrypted stream, so switch to HTTP for those too,
+                    // not just IOExceptions.
+                    if ((ex.GetType() == typeof(IOException) || isChecksumFailure) && !packageUrl.StartsWith("http://"))
                     {
                         App.Logger.WriteLine(LOG_IDENT, "Retrying download over HTTP...");
                         packageUrl = packageUrl.Replace("https://", "http://");
