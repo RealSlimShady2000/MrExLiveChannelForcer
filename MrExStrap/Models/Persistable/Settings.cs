@@ -38,6 +38,12 @@ namespace MrExStrap.Models.Persistable
         public bool UseCustomVersion { get; set; } = false;
         public string CustomVersionGuid { get; set; } = "";
 
+        // Downgrade tab "Match your executor/exploit" list source. Default OFF = weao.xyz first,
+        // robloxscripts.com mirror as fallback. ON = robloxscripts.com first (for users whose
+        // network/ISP blocks weao.xyz, so they skip the dead attempt), weao.xyz as the fallback.
+        // Either way both are tried before giving up. See WeaoClient.
+        public bool PreferRobloxScriptsApi { get; set; } = false;
+
         // Versions Manager (v420.19+). Multiple named profiles each pointing at a
         // Roblox version hash. ActiveVersionProfileId picks which one applies on
         // launch — the legacy UseCustomVersion / CustomVersionGuid pair above

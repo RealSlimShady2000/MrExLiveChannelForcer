@@ -137,6 +137,13 @@
             </StackPanel>
         </Border>
 
+        <!-- Executor-list data source: weao.xyz (default) vs the robloxscripts.com mirror. -->
+        <controls:OptionControl Margin="0,0,0,16"
+            Header="Use the robloxscripts.com API instead of weao.xyz"
+            Description="The executor list below normally comes from weao.xyz. Turn this on to pull it from robloxscripts.com first instead, which helps if weao.xyz is blocked on your network. The other one is still used as a backup either way.">
+            <ui:ToggleSwitch IsChecked="{Binding PreferRobloxScriptsApi, Mode=TwoWay}" />
+        </controls:OptionControl>
+
         <!-- Match-your-executor card (WEAO-powered dropdown) -->
         <Border Margin="0,0,0,16" Padding="14" CornerRadius="6"
                 Background="{DynamicResource ControlFillColorDefaultBrush}"

@@ -346,6 +346,22 @@ namespace MrExStrap.UI.ViewModels.Settings
 
         public bool HasExploitsSourceNote => !string.IsNullOrEmpty(_exploitsSourceNote);
 
+        // Downgrade-tab toggle: prefer the robloxscripts.com mirror over weao.xyz as the primary
+        // source. Flipping it re-pulls the list from the newly-preferred source right away.
+        public bool PreferRobloxScriptsApi
+        {
+            get => App.Settings.Prop.PreferRobloxScriptsApi;
+            set
+            {
+                if (App.Settings.Prop.PreferRobloxScriptsApi == value)
+                    return;
+
+                App.Settings.Prop.PreferRobloxScriptsApi = value;
+                OnPropertyChanged(nameof(PreferRobloxScriptsApi));
+                _ = LoadExploitsAsync();
+            }
+        }
+
         private async Task LoadExploitsAsync()
         {
             if (IsLoadingExploits)
@@ -368,10 +384,15 @@ namespace MrExStrap.UI.ViewModels.Settings
                 foreach (var e in result.Exploits)
                     Exploits.Add(e);
 
-                // weao.xyz was unreachable but the robloxscripts.com mirror saved the load — tell the
-                // user why it still worked (and credit the backup source).
-                if (result.Source == WeaoSource.Mirror)
-                    ExploitsSourceNote = "weao.xyz wasn't reachable, so this list loaded from the robloxscripts.com backup.";
+                // If we ended up on the NON-preferred source, a fallback happened — tell the user
+                // which source was down and which one supplied the list (and credit it).
+                var preferredSource = App.Settings.Prop.PreferRobloxScriptsApi ? WeaoSource.Mirror : WeaoSource.Weao;
+                if (result.Source != WeaoSource.None && result.Source != preferredSource)
+                {
+                    ExploitsSourceNote = result.Source == WeaoSource.Mirror
+                        ? "weao.xyz wasn't reachable, so this list loaded from the robloxscripts.com backup."
+                        : "robloxscripts.com wasn't reachable, so this list loaded from weao.xyz instead.";
+                }
 
                 if (Exploits.Count == 0)
                 {

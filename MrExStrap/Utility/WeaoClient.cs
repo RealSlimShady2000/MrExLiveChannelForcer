@@ -35,33 +35,55 @@ namespace MrExStrap.Utility
             public bool Success => Error is null;
         }
 
+        // Endpoint descriptors so the two sources can be tried in either order.
+        private readonly record struct Endpoint(string Url, string Host, WeaoSource Source, bool SendWeaoUserAgent);
+        private static readonly Endpoint WeaoEndpoint = new(EXPLOITS_ENDPOINT, "weao.xyz", WeaoSource.Weao, true);
+        private static readonly Endpoint MirrorEndpoint = new(MIRROR_EXPLOITS_ENDPOINT, "robloxscripts.com", WeaoSource.Mirror, false);
+
         public static async Task<WeaoResult> GetWindowsExploitsAsync(CancellationToken token = default)
         {
             const string LOG_IDENT = "WeaoClient::GetWindowsExploitsAsync";
 
-            // Canonical source first.
-            var primary = await FetchExploitsAsync(EXPLOITS_ENDPOINT, "weao.xyz", WeaoSource.Weao, sendWeaoUserAgent: true, token);
-            if (primary.Success)
-                return primary;
+            // Default order is weao.xyz (canonical, freshest) then the robloxscripts.com mirror. The
+            // "prefer robloxscripts.com" setting flips it for users whose network/ISP blocks weao.xyz,
+            // so they skip the dead weao.xyz attempt and hit the working mirror first. Either way the
+            // other source is the fallback, and both are tried before giving up.
+            var order = App.Settings.Prop.PreferRobloxScriptsApi
+                ? new[] { MirrorEndpoint, WeaoEndpoint }
+                : new[] { WeaoEndpoint, MirrorEndpoint };
 
-            App.Logger.WriteLine(LOG_IDENT, $"weao.xyz failed ({primary.Error}) — falling back to the robloxscripts.com mirror.");
+            WeaoResult primaryResult = default;
 
-            // Failover to the robloxscripts.com mirror (different domain, identical data).
-            var mirror = await FetchExploitsAsync(MIRROR_EXPLOITS_ENDPOINT, "robloxscripts.com", WeaoSource.Mirror, sendWeaoUserAgent: false, token);
-            if (mirror.Success)
+            for (int i = 0; i < order.Length; i++)
             {
-                App.Logger.WriteLine(LOG_IDENT, $"Loaded {mirror.Exploits.Count} executors from the robloxscripts.com mirror.");
-                return mirror;
+                var ep = order[i];
+                var result = await FetchExploitsAsync(ep.Url, ep.Host, ep.Source, ep.SendWeaoUserAgent, token);
+
+                if (result.Success)
+                {
+                    if (i > 0)
+                        App.Logger.WriteLine(LOG_IDENT, $"Loaded {result.Exploits.Count} executors from {ep.Host} (fallback).");
+                    return result;
+                }
+
+                if (i == 0)
+                {
+                    primaryResult = result;
+                    App.Logger.WriteLine(LOG_IDENT, $"{ep.Host} failed ({result.Error}) — falling back to {order[i + 1].Host}.");
+                }
+                else
+                {
+                    App.Logger.WriteLine(LOG_IDENT, $"{ep.Host} also failed ({result.Error}).");
+                }
             }
 
-            // Both the main source AND the backup are unreachable — almost always a broad block on
-            // the user's PC or network (antivirus HTTPS scanning, or an ISP/router SSL filter) rather
-            // than anything app-side. Lead with the weao.xyz reason and make clear the backup failed too.
-            App.Logger.WriteLine(LOG_IDENT, $"robloxscripts.com mirror also failed ({mirror.Error}).");
+            // Both sources are unreachable — almost always a broad block on the user's PC or network
+            // (antivirus HTTPS scanning, or an ISP/router SSL filter) rather than anything app-side.
+            // Lead with the preferred-source reason and make clear the backup failed too.
             return new WeaoResult(
                 Array.Empty<WeaoExploit>(),
                 "Couldn't load the executor list from weao.xyz or the robloxscripts.com backup.\n\n" +
-                $"{primary.Error}\n\n" +
+                $"{primaryResult.Error}\n\n" +
                 "Both sources being down at once usually means something on your PC or network is blocking this kind " +
                 "of traffic — antivirus HTTPS/SSL scanning, or an ISP/router-level filter. You can still paste a " +
                 "version hash manually below.",
