@@ -108,6 +108,22 @@ namespace MrExStrap.Utility
                 return "TLS handshake with weao.xyz failed. This usually means antivirus HTTPS inspection is breaking the connection, " +
                        "or Windows is missing TLS 1.2/1.3 updates. Try disabling AV HTTPS scanning or running Windows Update.";
             }
+
+            // A TLS stream that corrupts mid-flight — the inner exception is an IOException like
+            // "Cannot determine the frame size or a corrupted frame was received", usually wrapped
+            // as "The SSL connection could not be established" — is the fingerprint of a middlebox
+            // rewriting the connection: antivirus HTTPS/SSL scanning, or a filtering proxy/VPN.
+            // Name it, because the old generic "your network may be blocking the request" sent
+            // people hunting for a firewall rule when the real fix is to stop their AV inspecting HTTPS.
+            if (IsTlsStreamCorruption(ex))
+            {
+                return "The secure connection to weao.xyz was corrupted before it finished (a TLS frame came back malformed). " +
+                       "This is almost always antivirus HTTPS/SSL scanning, or a filtering proxy or VPN, interfering with the connection. " +
+                       "Add MrExBloxstrap to your antivirus's exclusions or turn off its HTTPS/SSL scanning, then click Refresh. " +
+                       "On a locked-down school or work network, a phone hotspot is the quickest test. " +
+                       "You can also paste a version hash manually below.";
+            }
+
             if (inner is SocketException sock)
             {
                 return sock.SocketErrorCode switch
@@ -127,6 +143,23 @@ namespace MrExStrap.Utility
             if (string.IsNullOrEmpty(msg))
                 msg = "unknown error";
             return $"Couldn't reach weao.xyz: {msg}. Your network may be blocking the request.";
+        }
+
+        // Walk the inner-exception chain for the signature of a corrupted TLS stream. SslStream
+        // surfaces this as an IOException mentioning the TLS "frame" (e.g. "Cannot determine the
+        // frame size or a corrupted frame was received"); HttpClient wraps it as "The SSL
+        // connection could not be established". A genuine handshake/cert failure is an
+        // AuthenticationException instead and is handled before this is called.
+        private static bool IsTlsStreamCorruption(Exception ex)
+        {
+            for (Exception? e = ex; e is not null; e = e.InnerException)
+            {
+                if (e is IOException && e.Message.Contains("frame", StringComparison.OrdinalIgnoreCase))
+                    return true;
+                if (e.Message.Contains("SSL connection could not be established", StringComparison.OrdinalIgnoreCase))
+                    return true;
+            }
+            return false;
         }
     }
 }

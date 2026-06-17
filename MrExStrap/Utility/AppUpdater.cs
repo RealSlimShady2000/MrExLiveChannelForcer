@@ -234,6 +234,18 @@ namespace MrExStrap.Utility
             {
                 return "TLS handshake with GitHub failed. Antivirus HTTPS inspection or missing Windows TLS updates is the usual culprit.";
             }
+
+            // TLS stream corrupted mid-flight (IOException "...corrupted frame...", wrapped as
+            // "The SSL connection could not be established") — a middlebox rewriting the connection,
+            // i.e. antivirus HTTPS/SSL scanning or a filtering proxy/VPN. Mirrors WeaoClient so a
+            // failed self-update points at the real cause instead of a vague network error.
+            if (IsTlsStreamCorruption(ex))
+            {
+                return "The secure connection to GitHub was corrupted before it finished (a TLS frame came back malformed). " +
+                       "This is almost always antivirus HTTPS/SSL scanning, or a filtering proxy or VPN. " +
+                       "Add MrExBloxstrap to your antivirus's exclusions or turn off its HTTPS/SSL scanning, then try again.";
+            }
+
             if (inner is SocketException sock)
             {
                 return sock.SocketErrorCode switch
@@ -251,6 +263,22 @@ namespace MrExStrap.Utility
             return string.IsNullOrEmpty(msg)
                 ? "Network error contacting GitHub."
                 : $"Network error contacting GitHub: {msg}.";
+        }
+
+        // Walk the inner-exception chain for the signature of a corrupted TLS stream (AV HTTPS
+        // inspection / filtering proxy). SslStream surfaces it as an IOException mentioning the
+        // TLS "frame"; HttpClient wraps it as "The SSL connection could not be established".
+        // A clean handshake/cert failure is an AuthenticationException, handled before this.
+        private static bool IsTlsStreamCorruption(Exception ex)
+        {
+            for (Exception? e = ex; e is not null; e = e.InnerException)
+            {
+                if (e is IOException && e.Message.Contains("frame", StringComparison.OrdinalIgnoreCase))
+                    return true;
+                if (e.Message.Contains("SSL connection could not be established", StringComparison.OrdinalIgnoreCase))
+                    return true;
+            }
+            return false;
         }
 
         private static long? TryGetFreeDiskSpace(string anyPathOnDrive)
