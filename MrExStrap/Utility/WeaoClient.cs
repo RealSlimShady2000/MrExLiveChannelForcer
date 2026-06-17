@@ -1,3 +1,4 @@
+using System.IO;
 using System.Net.Http;
 using System.Net.Sockets;
 using System.Security.Authentication;
@@ -7,20 +8,29 @@ using MrExStrap.Models.APIs;
 
 namespace MrExStrap.Utility
 {
-    // Thin client for https://weao.xyz/api.
-    // Fetches exploit metadata (titles + the Roblox version hash each is currently updated for)
-    // so the Downgrading tab can offer a one-click "match my executor's version" flow.
+    // Where the executor list actually came from, so the UI can note when the backup was used.
+    public enum WeaoSource { None, Weao, Mirror }
+
+    // Client for the WEAO exploit-status API (https://weao.xyz/api), with a transparent failover
+    // to the robloxscripts.com mirror of the same data.
     //
-    // Per docs.weao.xyz, the User-Agent header "WEAO-3PService" is required.
+    // weao.xyz is frequently unreachable on end-user machines — not because the app is broken, but
+    // because the domain is blocked at the network/ISP layer (SNI filtering surfaces as a browser
+    // ERR_SSL_PROTOCOL_ERROR / a corrupted TLS frame in .NET) or intercepted by antivirus HTTPS
+    // scanning. robloxscripts.com serves the identical data from a DIFFERENT domain, so a
+    // weao.xyz-specific block doesn't reach it. We try weao.xyz first (canonical, freshest) and
+    // fall back to the mirror on any failure. Mapping + shapes: docs.robloxscripts.com (#weao).
+    //
+    // Per docs.weao.xyz the User-Agent "WEAO-3PService" is required for weao.xyz. The mirror just
+    // needs any non-bot User-Agent (a bare "curl/x" UA is challenged) — App.HttpClient's default
+    // "MrExBloxstrap/<version>" already satisfies that, so the mirror request sends no extra header.
     public static class WeaoClient
     {
         private const string EXPLOITS_ENDPOINT = "https://weao.xyz/api/status/exploits";
+        private const string MIRROR_EXPLOITS_ENDPOINT = "https://robloxscripts.com/api/v1/weao/status/exploits";
         private const string USER_AGENT = "WEAO-3PService";
 
-        // Failures here are almost always client-network-side (DNS/ISP/firewall/AV TLS inspection)
-        // because the server-side API itself is stable. The caller surfaces the friendly message
-        // verbatim, so we keep them concrete and actionable.
-        public readonly record struct WeaoResult(IReadOnlyList<WeaoExploit> Exploits, string? Error)
+        public readonly record struct WeaoResult(IReadOnlyList<WeaoExploit> Exploits, string? Error, WeaoSource Source = WeaoSource.None)
         {
             public bool Success => Error is null;
         }
@@ -29,10 +39,46 @@ namespace MrExStrap.Utility
         {
             const string LOG_IDENT = "WeaoClient::GetWindowsExploitsAsync";
 
+            // Canonical source first.
+            var primary = await FetchExploitsAsync(EXPLOITS_ENDPOINT, "weao.xyz", WeaoSource.Weao, sendWeaoUserAgent: true, token);
+            if (primary.Success)
+                return primary;
+
+            App.Logger.WriteLine(LOG_IDENT, $"weao.xyz failed ({primary.Error}) — falling back to the robloxscripts.com mirror.");
+
+            // Failover to the robloxscripts.com mirror (different domain, identical data).
+            var mirror = await FetchExploitsAsync(MIRROR_EXPLOITS_ENDPOINT, "robloxscripts.com", WeaoSource.Mirror, sendWeaoUserAgent: false, token);
+            if (mirror.Success)
+            {
+                App.Logger.WriteLine(LOG_IDENT, $"Loaded {mirror.Exploits.Count} executors from the robloxscripts.com mirror.");
+                return mirror;
+            }
+
+            // Both the main source AND the backup are unreachable — almost always a broad block on
+            // the user's PC or network (antivirus HTTPS scanning, or an ISP/router SSL filter) rather
+            // than anything app-side. Lead with the weao.xyz reason and make clear the backup failed too.
+            App.Logger.WriteLine(LOG_IDENT, $"robloxscripts.com mirror also failed ({mirror.Error}).");
+            return new WeaoResult(
+                Array.Empty<WeaoExploit>(),
+                "Couldn't load the executor list from weao.xyz or the robloxscripts.com backup.\n\n" +
+                $"{primary.Error}\n\n" +
+                "Both sources being down at once usually means something on your PC or network is blocking this kind " +
+                "of traffic — antivirus HTTPS/SSL scanning, or an ISP/router-level filter. You can still paste a " +
+                "version hash manually below.",
+                WeaoSource.None);
+        }
+
+        // Fetch + parse + filter one source. Never throws — every failure path returns a WeaoResult
+        // carrying a human-readable Error so the caller can decide whether to fall back.
+        private static async Task<WeaoResult> FetchExploitsAsync(string url, string host, WeaoSource source, bool sendWeaoUserAgent, CancellationToken token)
+        {
+            string LOG_IDENT = $"WeaoClient::FetchExploits({host})";
+
             try
             {
-                using var request = new HttpRequestMessage(HttpMethod.Get, EXPLOITS_ENDPOINT);
-                request.Headers.UserAgent.ParseAdd(USER_AGENT);
+                using var request = new HttpRequestMessage(HttpMethod.Get, url);
+                if (sendWeaoUserAgent)
+                    request.Headers.UserAgent.ParseAdd(USER_AGENT);
 
                 using var response = await App.HttpClient.SendAsync(request, token);
 
@@ -41,14 +87,14 @@ namespace MrExStrap.Utility
                     int code = (int)response.StatusCode;
                     string reason = code switch
                     {
-                        403 => "weao.xyz returned 403 (forbidden). Cloudflare or your network may be blocking the request from your IP.",
-                        429 => "weao.xyz returned 429 (rate limited). Wait a minute and click Refresh.",
-                        503 => "weao.xyz returned 503 (service unavailable). The site may be temporarily down — try again shortly.",
-                        >= 500 and < 600 => $"weao.xyz returned {code}. The site is having issues — try again shortly.",
-                        _ => $"weao.xyz returned HTTP {code}. Click Refresh to try again."
+                        403 => $"{host} returned 403 (forbidden). Cloudflare or your network may be blocking the request from your IP.",
+                        429 => $"{host} returned 429 (rate limited). Wait a minute and click Refresh.",
+                        503 => $"{host} returned 503 (service unavailable). It may be temporarily down — try again shortly.",
+                        >= 500 and < 600 => $"{host} returned {code}. The site is having issues — try again shortly.",
+                        _ => $"{host} returned HTTP {code}. Click Refresh to try again."
                     };
-                    App.Logger.WriteLine(LOG_IDENT, $"Non-success status {code} from {EXPLOITS_ENDPOINT}");
-                    return new WeaoResult(Array.Empty<WeaoExploit>(), reason);
+                    App.Logger.WriteLine(LOG_IDENT, $"Non-success status {code} from {url}");
+                    return new WeaoResult(Array.Empty<WeaoExploit>(), reason, source);
                 }
 
                 await using var stream = await response.Content.ReadAsStreamAsync(token);
@@ -58,7 +104,7 @@ namespace MrExStrap.Utility
                     token);
 
                 if (all is null)
-                    return new WeaoResult(Array.Empty<WeaoExploit>(), "weao.xyz returned an empty response.");
+                    return new WeaoResult(Array.Empty<WeaoExploit>(), $"{host} returned an empty response.", source);
 
                 // Only surface Windows exploits that aren't hidden AND have a real hash.
                 // Sort by title for a predictable dropdown.
@@ -69,59 +115,54 @@ namespace MrExStrap.Utility
                     .OrderBy(e => e.Title, StringComparer.OrdinalIgnoreCase)
                     .ToArray();
 
-                return new WeaoResult(filtered, null);
+                return new WeaoResult(filtered, null, source);
             }
             catch (TaskCanceledException) when (!token.IsCancellationRequested)
             {
-                App.Logger.WriteLine(LOG_IDENT, "Request to weao.xyz timed out (30s).");
+                App.Logger.WriteLine(LOG_IDENT, $"Request to {host} timed out (30s).");
                 return new WeaoResult(Array.Empty<WeaoExploit>(),
-                    "Request to weao.xyz timed out. Your connection may be slow or the request is being blocked silently. Click Refresh to retry.");
+                    $"Request to {host} timed out. Your connection may be slow or the request is being blocked silently.", source);
             }
             catch (HttpRequestException ex)
             {
                 App.Logger.WriteException(LOG_IDENT + "::Http", ex);
-                string reason = ClassifyHttpFailure(ex);
-                return new WeaoResult(Array.Empty<WeaoExploit>(), reason);
+                return new WeaoResult(Array.Empty<WeaoExploit>(), ClassifyHttpFailure(ex, host), source);
             }
             catch (JsonException ex)
             {
                 App.Logger.WriteException(LOG_IDENT + "::Json", ex);
                 return new WeaoResult(Array.Empty<WeaoExploit>(),
-                    "weao.xyz returned data we couldn't parse. The API may have changed — please report this. " +
-                    "You can still paste a version hash manually below.");
+                    $"{host} returned data we couldn't parse. The API may have changed — please report this.", source);
             }
             catch (Exception ex)
             {
                 App.Logger.WriteException(LOG_IDENT, ex);
                 return new WeaoResult(Array.Empty<WeaoExploit>(),
-                    $"Couldn't load the executor list ({ex.GetType().Name}). You can still paste a version hash manually below.");
+                    $"Couldn't load the executor list from {host} ({ex.GetType().Name}).", source);
             }
         }
 
         // Map common transport failures to language that points the user at where to look.
         // Almost every "empty dropdown" report so far has been a network-side block, not a code bug.
-        private static string ClassifyHttpFailure(HttpRequestException ex)
+        private static string ClassifyHttpFailure(HttpRequestException ex, string host)
         {
             var inner = ex.InnerException;
             if (inner is AuthenticationException)
             {
-                return "TLS handshake with weao.xyz failed. This usually means antivirus HTTPS inspection is breaking the connection, " +
+                return $"TLS handshake with {host} failed. This usually means antivirus HTTPS inspection is breaking the connection, " +
                        "or Windows is missing TLS 1.2/1.3 updates. Try disabling AV HTTPS scanning or running Windows Update.";
             }
 
-            // A TLS stream that corrupts mid-flight — the inner exception is an IOException like
-            // "Cannot determine the frame size or a corrupted frame was received", usually wrapped
-            // as "The SSL connection could not be established" — is the fingerprint of a middlebox
-            // rewriting the connection: antivirus HTTPS/SSL scanning, or a filtering proxy/VPN.
-            // Name it, because the old generic "your network may be blocking the request" sent
-            // people hunting for a firewall rule when the real fix is to stop their AV inspecting HTTPS.
+            // A TLS stream that corrupts mid-flight — IOException like "Cannot determine the frame
+            // size or a corrupted frame was received", usually wrapped as "The SSL connection could
+            // not be established". A middlebox rewriting the connection: antivirus HTTPS/SSL scanning,
+            // a filtering proxy/VPN, or an ISP/router SSL filter on the domain (which shows up in a
+            // browser as ERR_SSL_PROTOCOL_ERROR — confirmed even with AV fully off).
             if (IsTlsStreamCorruption(ex))
             {
-                return "The secure connection to weao.xyz was corrupted before it finished (a TLS frame came back malformed). " +
-                       "This is almost always antivirus HTTPS/SSL scanning, or a filtering proxy or VPN, interfering with the connection. " +
-                       "Add MrExBloxstrap to your antivirus's exclusions or turn off its HTTPS/SSL scanning, then click Refresh. " +
-                       "On a locked-down school or work network, a phone hotspot is the quickest test. " +
-                       "You can also paste a version hash manually below.";
+                return $"The secure connection to {host} was corrupted before it finished (a TLS frame came back malformed). " +
+                       "This is usually antivirus HTTPS/SSL scanning, or an ISP/router-level filter blocking the site. " +
+                       "Try turning off AV HTTPS scanning, switching DNS to 1.1.1.1 or 8.8.8.8, or a different network.";
             }
 
             if (inner is SocketException sock)
@@ -129,20 +170,20 @@ namespace MrExStrap.Utility
                 return sock.SocketErrorCode switch
                 {
                     SocketError.HostNotFound =>
-                        "Couldn't resolve weao.xyz. Your DNS server may be blocking it (some ISPs, school networks, " +
+                        $"Couldn't resolve {host}. Your DNS server may be blocking it (some ISPs, school networks, " +
                         "and family-filter DNS like Cloudflare 1.1.1.3 categorize it). Try switching DNS to 1.1.1.1 or 8.8.8.8.",
                     SocketError.ConnectionRefused or SocketError.NetworkUnreachable or SocketError.HostUnreachable =>
-                        "Couldn't reach weao.xyz. A firewall or VPN may be blocking outbound HTTPS to that host.",
+                        $"Couldn't reach {host}. A firewall or VPN may be blocking outbound HTTPS to that host.",
                     SocketError.TimedOut =>
-                        "Connection to weao.xyz timed out. Network is slow or the host is being filtered silently.",
-                    _ => $"Network error contacting weao.xyz (socket: {sock.SocketErrorCode}). Check your connection and click Refresh."
+                        $"Connection to {host} timed out. Network is slow or the host is being filtered silently.",
+                    _ => $"Network error contacting {host} (socket: {sock.SocketErrorCode}). Check your connection and click Refresh."
                 };
             }
 
             string msg = (inner?.Message ?? ex.Message).Trim();
             if (string.IsNullOrEmpty(msg))
                 msg = "unknown error";
-            return $"Couldn't reach weao.xyz: {msg}. Your network may be blocking the request.";
+            return $"Couldn't reach {host}: {msg}.";
         }
 
         // Walk the inner-exception chain for the signature of a corrupted TLS stream. SslStream

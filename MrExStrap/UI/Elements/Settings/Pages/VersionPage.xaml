@@ -212,6 +212,13 @@
                     </StackPanel>
                 </Border>
 
+                <!-- Backup-source note — shown only when weao.xyz was unreachable and the
+                     robloxscripts.com mirror supplied the list instead. -->
+                <TextBlock Margin="0,8,0,0" FontSize="11" TextWrapping="Wrap"
+                           Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                           Visibility="{Binding HasExploitsSourceNote, Converter={StaticResource BooleanToVisibilityConverter}, Mode=OneWay}"
+                           Text="{Binding ExploitsSourceNote, Mode=OneWay}" />
+
                 <TextBlock Margin="0,8,0,0" FontSize="11" Foreground="{DynamicResource TextFillColorTertiaryBrush}"
                            Text="Green dot = executor is up to date for the Roblox version it reports. Amber = the executor is behind the latest Roblox — pinning to its version still works, but the executor itself may be unstable." TextWrapping="Wrap" />
             </StackPanel>

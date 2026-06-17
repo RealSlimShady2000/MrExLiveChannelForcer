@@ -332,6 +332,20 @@ namespace MrExStrap.UI.ViewModels.Settings
 
         public bool HasExploitsLoadError => !string.IsNullOrEmpty(_exploitsLoadError);
 
+        private string _exploitsSourceNote = "";
+        public string ExploitsSourceNote
+        {
+            get => _exploitsSourceNote;
+            private set
+            {
+                _exploitsSourceNote = value;
+                OnPropertyChanged(nameof(ExploitsSourceNote));
+                OnPropertyChanged(nameof(HasExploitsSourceNote));
+            }
+        }
+
+        public bool HasExploitsSourceNote => !string.IsNullOrEmpty(_exploitsSourceNote);
+
         private async Task LoadExploitsAsync()
         {
             if (IsLoadingExploits)
@@ -339,6 +353,7 @@ namespace MrExStrap.UI.ViewModels.Settings
 
             IsLoadingExploits = true;
             ExploitsLoadError = "";
+            ExploitsSourceNote = "";
             try
             {
                 var result = await WeaoClient.GetWindowsExploitsAsync();
@@ -352,6 +367,11 @@ namespace MrExStrap.UI.ViewModels.Settings
 
                 foreach (var e in result.Exploits)
                     Exploits.Add(e);
+
+                // weao.xyz was unreachable but the robloxscripts.com mirror saved the load — tell the
+                // user why it still worked (and credit the backup source).
+                if (result.Source == WeaoSource.Mirror)
+                    ExploitsSourceNote = "weao.xyz wasn't reachable, so this list loaded from the robloxscripts.com backup.";
 
                 if (Exploits.Count == 0)
                 {
