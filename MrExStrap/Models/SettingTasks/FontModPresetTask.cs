@@ -1,6 +1,6 @@
-using MrExStrap.Models.SettingTasks.Base;
+using ExploitStrap.Models.SettingTasks.Base;
 
-namespace MrExStrap.Models.SettingTasks
+namespace ExploitStrap.Models.SettingTasks
 {
     public class FontModPresetTask : StringBaseTask
     {

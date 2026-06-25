@@ -1,9 +1,9 @@
 using System.ComponentModel;
 using System.Windows;
 
-using MrExStrap.Utility;
+using ExploitStrap.Utility;
 
-namespace MrExStrap.UI.Elements.Dialogs
+namespace ExploitStrap.UI.Elements.Dialogs
 {
     public partial class UpdateProgressDialog
     {
@@ -28,7 +28,7 @@ namespace MrExStrap.UI.Elements.Dialogs
 
             InitializeComponent();
 
-            HeaderText.Text = $"Downloading MrExBloxstrap {release.TagName}…";
+            HeaderText.Text = $"Downloading ExploitStrap {release.TagName}…";
             Loaded += async (_, _) => await RunAsync();
         }
 

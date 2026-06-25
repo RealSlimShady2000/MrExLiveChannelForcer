@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace MrExStrap.Models.Persistable
+namespace ExploitStrap.Models.Persistable
 {
     public class State
     {
@@ -10,7 +10,7 @@ namespace MrExStrap.Models.Persistable
 
         public WindowState SettingsWindow { get; set; } = new();
 
-        // Recent hashes the user has verified/pinned (MrExStrap fork feature).
+        // Recent hashes the user has verified/pinned (ExploitStrap fork feature).
         // Newest first. Capped at 10 via the push helper.
         public List<string> RecentCustomVersionHashes { get; set; } = new();
 
@@ -29,7 +29,7 @@ namespace MrExStrap.Models.Persistable
         // the user has already seen it. Updated atomically with the toast call.
         public string LastNotifiedLiveHash { get; set; } = "";
 
-        // v420.29.5+: last MrExBloxstrap release tag a "new version available" toast
+        // v420.29.5+: last ExploitStrap release tag a "new version available" toast
         // was fired for. Stops the same toast re-firing every launcher open / tray poll.
         // Seeded silently on first observation so we never toast just for noticing the
         // current installed version.

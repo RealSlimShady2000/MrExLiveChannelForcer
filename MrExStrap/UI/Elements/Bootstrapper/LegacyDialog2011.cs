@@ -1,8 +1,8 @@
 using System.Windows.Forms;
 
-using MrExStrap.UI.Elements.Bootstrapper.Base;
+using ExploitStrap.UI.Elements.Bootstrapper.Base;
 
-namespace MrExStrap.UI.Elements.Bootstrapper
+namespace ExploitStrap.UI.Elements.Bootstrapper
 {
     // https://youtu.be/3K9oCEMHj2s?t=35
 

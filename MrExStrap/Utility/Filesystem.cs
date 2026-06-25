@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 
-namespace MrExStrap.Utility
+namespace ExploitStrap.Utility
 {
     internal static class Filesystem
     {

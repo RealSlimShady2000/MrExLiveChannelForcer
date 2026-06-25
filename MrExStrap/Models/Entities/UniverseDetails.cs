@@ -1,4 +1,4 @@
-namespace MrExStrap.Models.Entities
+namespace ExploitStrap.Models.Entities
 {
     /// <summary>
     /// Explicit loading. Load from cache before and after a fetch.

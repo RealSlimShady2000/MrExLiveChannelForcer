@@ -4,7 +4,7 @@ using System.Net.Http;
 using System.Runtime.InteropServices;
 using System.Text;
 
-namespace MrExStrap.Utility
+namespace ExploitStrap.Utility
 {
     public enum CheckStatus { Ok, Warn, Fail }
 
@@ -39,7 +39,7 @@ namespace MrExStrap.Utility
         public static string Render(IEnumerable<CheckResult> results)
         {
             var sb = new StringBuilder();
-            sb.AppendLine($"MrExBloxstrap v{App.Version}{(App.IsPortableMode ? " (portable)" : "")} — health check");
+            sb.AppendLine($"ExploitStrap v{App.Version}{(App.IsPortableMode ? " (portable)" : "")} — health check");
             sb.AppendLine($"Run at: {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
             sb.AppendLine();
 

@@ -1,7 +1,7 @@
 using System.Windows;
 using System.Windows.Forms;
 
-namespace MrExStrap.UI.Utility
+namespace ExploitStrap.UI.Utility
 {
     public static class WindowScaling
     {

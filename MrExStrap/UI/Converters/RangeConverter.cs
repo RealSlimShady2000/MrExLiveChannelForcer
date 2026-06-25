@@ -1,6 +1,6 @@
 using System.Windows.Data;
 
-namespace MrExStrap.UI.Converters
+namespace ExploitStrap.UI.Converters
 {
     internal class RangeConverter : IValueConverter
     {

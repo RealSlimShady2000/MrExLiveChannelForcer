@@ -1,6 +1,6 @@
 using System.Windows.Media;
 
-namespace MrExStrap.Models
+namespace ExploitStrap.Models
 {
     public class BootstrapperIconEntry
     {

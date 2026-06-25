@@ -1,4 +1,4 @@
-namespace MrExStrap.Models.APIs
+namespace ExploitStrap.Models.APIs
 {
     public class IPInfoResponse
     {

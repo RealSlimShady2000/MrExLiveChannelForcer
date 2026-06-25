@@ -1,4 +1,4 @@
-namespace MrExStrap.Utility
+namespace ExploitStrap.Utility
 {
     internal static class Http
     {

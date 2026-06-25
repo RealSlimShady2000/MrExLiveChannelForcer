@@ -3,7 +3,7 @@ using System.Runtime.InteropServices;
 using System.Security.Principal;
 using ICSharpCode.SharpZipLib.Zip;
 
-namespace MrExStrap.Utility
+namespace ExploitStrap.Utility
 {
     // One-click "everything the maintainer needs to debug a problem on the user's machine"
     // bundle. Triggered from the Debug-mode panel in Settings; output lands in Paths.DebugOutput
@@ -14,14 +14,14 @@ namespace MrExStrap.Utility
     //   settings.json          — full Settings dump
     //   state.json             — full State dump
     //   fastflags.json         — FastFlags dump (if file exists)
-    //   adapters.txt           — physical network adapters as MrExBloxstrap sees them
+    //   adapters.txt           — physical network adapters as ExploitStrap sees them
     //   processes.txt          — running Roblox PIDs + uptime + memory
     //   health.txt             — HealthCheck.RunAllAsync output
     //   update_probe.txt       — fresh HTTP probe of GitHub /releases/latest with status / headers
     //   logs/<filename>.log    — every file in Paths.Logs (the live session is taken from the
     //                            logger's in-memory History, since its on-disk copy is still buffered)
     //   roblox-logs/<file>.log — newest Roblox client logs (where a Roblox-side crash, as opposed
-    //                            to a MrExBloxstrap fault, is actually diagnosable)
+    //                            to a ExploitStrap fault, is actually diagnosable)
     public static class DiagnosticBundle
     {
         private const string LOG_IDENT = "DiagnosticBundle";
@@ -38,7 +38,7 @@ namespace MrExStrap.Utility
 
             string timestamp = DateTime.UtcNow.ToString("yyyyMMdd'T'HHmmss'Z'");
             string kind = quick ? "crashlogs" : "debug";
-            string zipPath = Path.Combine(outputDir, $"MrExBloxstrap-{kind}-{timestamp}.zip");
+            string zipPath = Path.Combine(outputDir, $"ExploitStrap-{kind}-{timestamp}.zip");
 
             App.Logger.WriteLine(LOG_IDENT, $"Building diagnostic snapshot at {zipPath} (quick={quick})");
 
@@ -202,7 +202,7 @@ namespace MrExStrap.Utility
                 }
             }
             if (sb.Length == 0)
-                sb.AppendLine("(no Roblox or MrExBloxstrap processes were running at snapshot time)");
+                sb.AppendLine("(no Roblox or ExploitStrap processes were running at snapshot time)");
             return sb.ToString();
         }
 

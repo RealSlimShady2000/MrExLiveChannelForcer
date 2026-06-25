@@ -1,4 +1,4 @@
-namespace MrExStrap.Exceptions
+namespace ExploitStrap.Exceptions
 {
     public class InvalidChannelException : Exception
     {

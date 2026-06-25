@@ -1,6 +1,6 @@
 using System.ComponentModel;
 
-namespace MrExStrap.Enums
+namespace ExploitStrap.Enums
 {
     [JsonConverter(typeof(JsonStringEnumConverter))]
     public enum WebEnvironment

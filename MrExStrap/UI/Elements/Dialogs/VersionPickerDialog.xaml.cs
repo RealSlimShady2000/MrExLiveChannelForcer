@@ -1,7 +1,7 @@
-using MrExStrap.Models.Persistable;
-using MrExStrap.UI.ViewModels.Dialogs;
+using ExploitStrap.Models.Persistable;
+using ExploitStrap.UI.ViewModels.Dialogs;
 
-namespace MrExStrap.UI.Elements.Dialogs
+namespace ExploitStrap.UI.Elements.Dialogs
 {
     public partial class VersionPickerDialog
     {

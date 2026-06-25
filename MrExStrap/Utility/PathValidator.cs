@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MrExStrap.Utility
+namespace ExploitStrap.Utility
 {
     internal static class PathValidator
     {

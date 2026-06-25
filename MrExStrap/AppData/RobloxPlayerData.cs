@@ -1,4 +1,4 @@
-namespace MrExStrap.AppData
+namespace ExploitStrap.AppData
 {
     public class RobloxPlayerData : CommonAppData, IAppData
     {

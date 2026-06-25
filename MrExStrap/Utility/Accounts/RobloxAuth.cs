@@ -1,4 +1,4 @@
-namespace MrExStrap.Utility.Accounts
+namespace ExploitStrap.Utility.Accounts
 {
     public record AuthedUser(long Id, string Name, string DisplayName);
 

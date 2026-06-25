@@ -4,14 +4,14 @@ using Wpf.Ui.Mvvm.Contracts;
 using System.ComponentModel;
 using System.Windows;
 
-using MrExStrap.UI.ViewModels.Installer;
-using MrExStrap.UI.Elements.Installer.Pages;
-using MrExStrap.UI.Elements.Base;
+using ExploitStrap.UI.ViewModels.Installer;
+using ExploitStrap.UI.Elements.Installer.Pages;
+using ExploitStrap.UI.Elements.Base;
 using System.Windows.Media.Animation;
 using System.Reflection.Metadata.Ecma335;
-using MrExStrap.Resources;
+using ExploitStrap.Resources;
 
-namespace MrExStrap.UI.Elements.Installer
+namespace ExploitStrap.UI.Elements.Installer
 {
     /// <summary>
     /// Interaction logic for MainWindow.xaml

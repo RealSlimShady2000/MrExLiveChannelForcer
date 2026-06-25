@@ -1,9 +1,9 @@
 using System.Windows;
 using System.Windows.Controls;
 
-using MrExStrap.UI.ViewModels.Installer;
+using ExploitStrap.UI.ViewModels.Installer;
 
-namespace MrExStrap.UI.Elements.Installer.Pages
+namespace ExploitStrap.UI.Elements.Installer.Pages
 {
     /// <summary>
     /// Interaction logic for WelcomePage.xaml

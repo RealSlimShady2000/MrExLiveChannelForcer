@@ -1,9 +1,9 @@
-using MrExStrap.UI.ViewModels.About;
+using ExploitStrap.UI.ViewModels.About;
 
 using System.Windows.Input;
 using System.Windows.Media.Animation;
 
-namespace MrExStrap.UI.Elements.About.Pages
+namespace ExploitStrap.UI.Elements.About.Pages
 {
     /// <summary>
     /// Interaction logic for AboutPage.xaml

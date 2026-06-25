@@ -1,6 +1,6 @@
-using MrExStrap.UI.ViewModels.Settings;
+using ExploitStrap.UI.ViewModels.Settings;
 
-namespace MrExStrap.UI.Elements.Settings.Pages
+namespace ExploitStrap.UI.Elements.Settings.Pages
 {
     public partial class VersionsManagerPage
     {

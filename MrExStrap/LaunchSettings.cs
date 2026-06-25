@@ -1,4 +1,4 @@
-using MrExStrap.Enums;
+using ExploitStrap.Enums;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using System.Web;
 using System.Windows;
 
-namespace MrExStrap
+namespace ExploitStrap
 {
     public class LaunchSettings
     {
@@ -40,7 +40,7 @@ namespace MrExStrap
 
         public LaunchFlag ForceFlag                 { get; } = new("force");
 
-        // v420.28: -tray boots MrExBloxstrap into the persistent system-tray
+        // v420.28: -tray boots ExploitStrap into the persistent system-tray
         // launcher instead of the normal menu / launch path. Registered with
         // Windows startup via StartupRegistration when EnableTrayLauncher is on.
         public LaunchFlag TrayFlag                  { get; } = new("tray");

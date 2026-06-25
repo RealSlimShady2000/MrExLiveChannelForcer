@@ -11,9 +11,9 @@ using System.Xml.Linq;
 
 using Wpf.Ui.Markup;
 
-using MrExStrap.UI.Elements.Controls;
+using ExploitStrap.UI.Elements.Controls;
 
-namespace MrExStrap.UI.Elements.Bootstrapper
+namespace ExploitStrap.UI.Elements.Bootstrapper
 {
     public partial class CustomDialog
     {
@@ -361,7 +361,7 @@ namespace MrExStrap.UI.Elements.Bootstrapper
                 uiElement.FontFamily = new System.Windows.Media.FontFamily(fontFamily);
         }
 
-        private static UIElement HandleXmlElement_BloxstrapCustomBootstrapper(CustomDialog dialog, XElement xmlElement)
+        private static UIElement HandleXmlElement_ExploitStrapCustomBootstrapper(CustomDialog dialog, XElement xmlElement)
         {
             xmlElement.SetAttributeValue("Visibility", "Collapsed"); // don't show the bootstrapper yet!!!
             xmlElement.SetAttributeValue("IsEnabled", "True");
@@ -401,7 +401,7 @@ namespace MrExStrap.UI.Elements.Bootstrapper
             dialog.Margin = new Thickness(0, 0, 0, 0);
             dialog.Padding = new Thickness(0, 0, 0, 0);
 
-            string? title = xmlElement.Attribute("Title")?.Value?.ToString() ?? "MrExStrap";
+            string? title = xmlElement.Attribute("Title")?.Value?.ToString() ?? "ExploitStrap";
             dialog.Title = title;
 
             bool ignoreTitleBarInset = ParseXmlAttribute<bool>(xmlElement, "IgnoreTitleBarInset", false);
@@ -414,9 +414,9 @@ namespace MrExStrap.UI.Elements.Bootstrapper
             return new DummyFrameworkElement();
         }
 
-        private static UIElement HandleXmlElement_BloxstrapCustomBootstrapper_Fake(CustomDialog dialog, XElement xmlElement)
+        private static UIElement HandleXmlElement_ExploitStrapCustomBootstrapper_Fake(CustomDialog dialog, XElement xmlElement)
         {
-            // this only exists to error out the theme if someone tries to use two BloxstrapCustomBootstrappers
+            // this only exists to error out the theme if someone tries to use two ExploitStrapCustomBootstrappers
             throw new CustomThemeException("CustomTheme.Errors.ElementInvalidChild", xmlElement.Parent!.Name, xmlElement.Name);
         }
 
@@ -443,7 +443,7 @@ namespace MrExStrap.UI.Elements.Bootstrapper
             dialog.RootTitleBar.ShowMinimize = ParseXmlAttribute<bool>(xmlElement, "ShowMinimize", true);
             dialog.RootTitleBar.ShowClose = ParseXmlAttribute<bool>(xmlElement, "ShowClose", true);
 
-            string? title = xmlElement.Attribute("Title")?.Value?.ToString() ?? "MrExStrap";
+            string? title = xmlElement.Attribute("Title")?.Value?.ToString() ?? "ExploitStrap";
             dialog.RootTitleBar.Title = title;
 
             return new DummyFrameworkElement(); // dont add anything

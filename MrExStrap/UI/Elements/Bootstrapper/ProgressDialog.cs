@@ -1,9 +1,9 @@
 using System.Drawing;
 using System.Windows.Forms;
 
-using MrExStrap.UI.Elements.Bootstrapper.Base;
+using ExploitStrap.UI.Elements.Bootstrapper.Base;
 
-namespace MrExStrap.UI.Elements.Bootstrapper
+namespace ExploitStrap.UI.Elements.Bootstrapper
 {
     // basically just the modern dialog
 

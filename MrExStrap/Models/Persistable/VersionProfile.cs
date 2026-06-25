@@ -1,4 +1,4 @@
-namespace MrExStrap.Models.Persistable
+namespace ExploitStrap.Models.Persistable
 {
     // A single saved Roblox version slot. The user can have many of these — one per
     // executor they care about, plus a built-in "Latest LIVE" sentinel — and switches

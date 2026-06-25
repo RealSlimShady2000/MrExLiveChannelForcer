@@ -1,4 +1,4 @@
-namespace MrExStrap.UI.Elements.Bootstrapper
+namespace ExploitStrap.UI.Elements.Bootstrapper
 {
     partial class VistaDialog
     {

@@ -1,4 +1,4 @@
-namespace MrExStrap.UI.ViewModels.Installer
+namespace ExploitStrap.UI.ViewModels.Installer
 {
     public class WelcomeViewModel : NotifyPropertyChangedViewModel
     {

@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using System.Windows.Data;
 using System.Xml.Linq;
 
-namespace MrExStrap.UI.Converters
+namespace ExploitStrap.UI.Converters
 {
     class EnumNameConverter : IValueConverter
     {

@@ -2,7 +2,7 @@ using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 
-namespace MrExStrap.UI.ViewModels.Bootstrapper
+namespace ExploitStrap.UI.ViewModels.Bootstrapper
 {
     public class ByfronDialogViewModel : BootstrapperDialogViewModel
     {

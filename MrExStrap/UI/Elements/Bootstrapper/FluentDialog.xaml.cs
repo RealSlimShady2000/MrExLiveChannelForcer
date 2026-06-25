@@ -1,5 +1,5 @@
-using MrExStrap.UI.Elements.Bootstrapper.Base;
-using MrExStrap.UI.ViewModels.Bootstrapper;
+using ExploitStrap.UI.Elements.Bootstrapper.Base;
+using ExploitStrap.UI.ViewModels.Bootstrapper;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -19,7 +19,7 @@ using System.Windows.Shapes;
 using System.Windows.Shell;
 using System.Windows.Threading;
 
-namespace MrExStrap.UI.Elements.Bootstrapper
+namespace ExploitStrap.UI.Elements.Bootstrapper
 {
     /// <summary>
     /// Interaction logic for FluentDialog.xaml
@@ -28,7 +28,7 @@ namespace MrExStrap.UI.Elements.Bootstrapper
     {
         private readonly FluentDialogViewModel _viewModel;
 
-        public MrExStrap.Bootstrapper? Bootstrapper { get; set; }
+        public ExploitStrap.Bootstrapper? Bootstrapper { get; set; }
 
         private bool _isClosing;
 
@@ -105,7 +105,7 @@ namespace MrExStrap.UI.Elements.Bootstrapper
             }
         }
 
-        // --- MrExStrap fork: extended loading-screen info ---
+        // --- ExploitStrap fork: extended loading-screen info ---
 
         public string VersionInfoText
         {

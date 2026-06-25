@@ -1,6 +1,6 @@
 using Microsoft.Win32;
 
-namespace MrExStrap.Utility
+namespace ExploitStrap.Utility
 {
     static class WindowsRegistry
     {
@@ -30,7 +30,7 @@ namespace MrExStrap.Utility
         }
 
         /// <summary>
-        /// Registers Roblox Player protocols for MrExStrap
+        /// Registers Roblox Player protocols for ExploitStrap
         /// </summary>
         public static void RegisterPlayer() => RegisterPlayer(Paths.Application, "-player \"%1\"");
 
@@ -41,7 +41,7 @@ namespace MrExStrap.Utility
         }
 
         /// <summary>
-        /// Registers all Roblox Studio classes for MrExStrap
+        /// Registers all Roblox Studio classes for ExploitStrap
         /// </summary>
         public static void RegisterStudio()
         {
@@ -122,14 +122,14 @@ namespace MrExStrap.Utility
 
         /// <summary>
         /// Hand the roblox:// / roblox-player:// / roblox-studio:// protocol handlers back to
-        /// stock Roblox WITHOUT uninstalling MrExBloxstrap, so the user can temporarily run
+        /// stock Roblox WITHOUT uninstalling ExploitStrap, so the user can temporarily run
         /// normal Roblox or an executor that doesn't support bootstrappers (e.g. Volt).
         ///
         /// Smart restore, mirroring Installer.DoUninstall's protocol block: if a stock Roblox
         /// install is registered, point the protocols at its exe; if not, just unregister
-        /// MrExBloxstrap's handlers so the next Roblox/executor installer claims them.
+        /// ExploitStrap's handlers so the next Roblox/executor installer claims them.
         ///
-        /// Fully reversible: the next Roblox launch through MrExBloxstrap calls RegisterPlayer
+        /// Fully reversible: the next Roblox launch through ExploitStrap calls RegisterPlayer
         /// again (Bootstrapper.cs), so no reinstall is needed to re-hook.
         /// Returns a short human-readable summary of what happened for the UI + log.
         /// </summary>
@@ -149,7 +149,7 @@ namespace MrExStrap.Utility
                 {
                     Unregister("roblox");
                     Unregister("roblox-player");
-                    summary.Add("Removed MrExBloxstrap's Roblox player handler (no stock Roblox install found — the next Roblox or executor installer will claim it).");
+                    summary.Add("Removed ExploitStrap's Roblox player handler (no stock Roblox install found — the next Roblox or executor installer will claim it).");
                     App.Logger.WriteLine(LOG_IDENT, "No stock player install; unregistered roblox + roblox-player.");
                 }
                 else

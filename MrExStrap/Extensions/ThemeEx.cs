@@ -1,20 +1,11 @@
 using Microsoft.Win32;
 
-namespace MrExStrap.Extensions
+namespace ExploitStrap.Extensions
 {
     public static class ThemeEx
     {
-        public static Theme GetFinal(this Theme dialogTheme)
-        {
-            if (dialogTheme != Theme.Default)
-                return dialogTheme;
-
-            using var key = Registry.CurrentUser.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize");
-
-            if (key?.GetValue("AppsUseLightTheme") is int value && value == 0)
-                return Theme.Dark;
-
-            return Theme.Light;
-        }
+        // ExploitStrap is dark-only — every theme resolves to Dark regardless of the stored
+        // setting or the OS light/dark preference.
+        public static Theme GetFinal(this Theme dialogTheme) => Theme.Dark;
     }
 }

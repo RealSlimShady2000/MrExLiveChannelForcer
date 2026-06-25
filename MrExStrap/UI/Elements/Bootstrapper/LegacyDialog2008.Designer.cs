@@ -1,6 +1,6 @@
 using System.Windows.Forms;
 
-namespace MrExStrap.UI.Elements.Bootstrapper
+namespace ExploitStrap.UI.Elements.Bootstrapper
 {
     partial class LegacyDialog2008
     {

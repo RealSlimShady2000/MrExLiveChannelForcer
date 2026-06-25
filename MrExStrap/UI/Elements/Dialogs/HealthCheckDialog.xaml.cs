@@ -1,10 +1,10 @@
 using System.Windows;
 using Microsoft.Win32;
 
-using MrExStrap.UI.Elements.Base;
-using MrExStrap.Utility;
+using ExploitStrap.UI.Elements.Base;
+using ExploitStrap.Utility;
 
-namespace MrExStrap.UI.Elements.Dialogs
+namespace ExploitStrap.UI.Elements.Dialogs
 {
     public partial class HealthCheckDialog : WpfUiWindow
     {
@@ -75,7 +75,7 @@ namespace MrExStrap.UI.Elements.Dialogs
                     ? Paths.Base
                     : Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
 
-                string defaultName = $"MrExBloxstrap-healthcheck-{DateTime.Now:yyyyMMdd-HHmmss}.txt";
+                string defaultName = $"ExploitStrap-healthcheck-{DateTime.Now:yyyyMMdd-HHmmss}.txt";
 
                 var dialog = new SaveFileDialog
                 {

@@ -1,4 +1,4 @@
-namespace MrExStrap.Utility.Accounts
+namespace ExploitStrap.Utility.Accounts
 {
     // Store operations over App.Accounts (Accounts.json) plus the "turn a pasted/captured cookie
     // into a saved account" flow. Keeps the cookie encryption + Roblox validation in one place so

@@ -7,9 +7,9 @@ using System.Windows.Media.Imaging;
 using Windows.Win32;
 using Windows.Win32.Foundation;
 
-using MrExStrap.UI.Utility;
+using ExploitStrap.UI.Utility;
 
-namespace MrExStrap.UI.Elements.Dialogs
+namespace ExploitStrap.UI.Elements.Dialogs
 {
     // wpfui does have its own messagebox control but it SUCKS so heres this instead
 

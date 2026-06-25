@@ -1,6 +1,6 @@
 using System.Text;
 
-namespace MrExStrap.Extensions
+namespace ExploitStrap.Extensions
 {
     static class CustomThemeTemplateEx
     {

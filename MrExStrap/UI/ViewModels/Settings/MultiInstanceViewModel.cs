@@ -5,11 +5,11 @@ using System.Windows;
 using System.Windows.Input;
 using CommunityToolkit.Mvvm.Input;
 
-using MrExStrap.Models;
-using MrExStrap.Models.Persistable;
-using MrExStrap.Utility.Accounts;
+using ExploitStrap.Models;
+using ExploitStrap.Models.Persistable;
+using ExploitStrap.Utility.Accounts;
 
-namespace MrExStrap.UI.ViewModels.Settings
+namespace ExploitStrap.UI.ViewModels.Settings
 {
     // One row in the account list. Wraps a saved RobloxAccount and adds the bulk-launch selection
     // checkbox state without polluting the persisted model.
@@ -143,7 +143,7 @@ namespace MrExStrap.UI.ViewModels.Settings
                 return;
 
             var confirm = Frontend.ShowMessageBox(
-                $"Remove {row.DisplayLabel} from MrExBloxstrap?\n\nThis only deletes the saved login on this PC. The Roblox account itself is untouched.",
+                $"Remove {row.DisplayLabel} from ExploitStrap?\n\nThis only deletes the saved login on this PC. The Roblox account itself is untouched.",
                 MessageBoxImage.Question, MessageBoxButton.YesNo, MessageBoxResult.No);
             if (confirm != MessageBoxResult.Yes)
                 return;
@@ -238,7 +238,7 @@ namespace MrExStrap.UI.ViewModels.Settings
         public bool IsNotLaunching => !_isLaunching;
 
         // Every launch path (single row "Launch" and bulk) runs through this gate so two
-        // MrExBloxstrap processes never start in the same UTC second. The launcher names its
+        // ExploitStrap processes never start in the same UTC second. The launcher names its
         // log file to the second, and a second process that lands on the same name fails to
         // initialise its logger and self-terminates as a "duplicate launch" (see Logger) — so
         // without spacing, clicking Launch on two accounts quickly, or a single launch firing

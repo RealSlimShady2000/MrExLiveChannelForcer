@@ -5,7 +5,7 @@ using System.Windows.Shell;
 
 using CommunityToolkit.Mvvm.Input;
 
-namespace MrExStrap.UI.ViewModels.Bootstrapper
+namespace ExploitStrap.UI.ViewModels.Bootstrapper
 {
     public class BootstrapperDialogViewModel : NotifyPropertyChangedViewModel
     {
@@ -26,7 +26,7 @@ namespace MrExStrap.UI.ViewModels.Bootstrapper
         public bool CancelEnabled { get; set; } = false;
         public Visibility CancelButtonVisibility => CancelEnabled ? Visibility.Visible : Visibility.Collapsed;
 
-        // --- MrExStrap fork: extended loading-screen info ---
+        // --- ExploitStrap fork: extended loading-screen info ---
 
         private string _versionInfoText = "";
         public string VersionInfoText
@@ -69,7 +69,7 @@ namespace MrExStrap.UI.ViewModels.Bootstrapper
         public Visibility DownloadSizeVisibility =>
             string.IsNullOrEmpty(_downloadSizeText) ? Visibility.Collapsed : Visibility.Visible;
 
-        // MrExStrap fork: smoothed "X MB/s · ~30s remaining" line under the size text.
+        // ExploitStrap fork: smoothed "X MB/s · ~30s remaining" line under the size text.
         // Hidden until we have a sample to base a rate on (avoids "0 B/s · forever").
         private string _downloadSpeedText = "";
         public string DownloadSpeedText

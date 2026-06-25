@@ -5,7 +5,7 @@ using Microsoft.Win32;
 
 using CommunityToolkit.Mvvm.Input;
 
-namespace MrExStrap.UI.ViewModels.Settings
+namespace ExploitStrap.UI.ViewModels.Settings
 {
     public class IntegrationsViewModel : NotifyPropertyChangedViewModel
     {

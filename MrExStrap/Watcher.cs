@@ -1,8 +1,8 @@
-using MrExStrap.AppData;
-using MrExStrap.Integrations;
-using MrExStrap.Models;
+using ExploitStrap.AppData;
+using ExploitStrap.Integrations;
+using ExploitStrap.Models;
 
-namespace MrExStrap
+namespace ExploitStrap
 {
     public class Watcher : IDisposable
     {
@@ -106,7 +106,7 @@ namespace MrExStrap
             if (!_lock.IsAcquired || _watcherData is null)
                 return;
 
-            // Multi-instance: the watcher is the longest-lived MrExStrap process in a play
+            // Multi-instance: the watcher is the longest-lived ExploitStrap process in a play
             // session, so it owns Roblox's single-instance lock while the client runs. While
             // we own it, no client can become the primary instance and close the others.
             // See Utility.MultiInstance for the full picture. The flag covers account launches

@@ -1,4 +1,4 @@
-namespace MrExStrap.Models.BloxstrapRPC;
+namespace ExploitStrap.Models.BloxstrapRPC;
 
 public class Message
 {

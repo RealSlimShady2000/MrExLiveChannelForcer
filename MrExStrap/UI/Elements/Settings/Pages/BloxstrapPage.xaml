@@ -1,15 +1,15 @@
-<ui:UiPage x:Class="MrExStrap.UI.Elements.Settings.Pages.BloxstrapPage"
+<ui:UiPage x:Class="ExploitStrap.UI.Elements.Settings.Pages.ExploitStrapPage"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
       xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
-      xmlns:local="clr-namespace:MrExStrap.UI.Elements.Settings.Pages"
-      xmlns:controls="clr-namespace:MrExStrap.UI.Elements.Controls"
-      xmlns:models="clr-namespace:MrExStrap.UI.ViewModels.Settings"
-      xmlns:vmroot="clr-namespace:MrExStrap.UI.ViewModels"
-      xmlns:resources="clr-namespace:MrExStrap.Resources"
-      d:DataContext="{d:DesignInstance Type=models:BloxstrapViewModel}"
+      xmlns:local="clr-namespace:ExploitStrap.UI.Elements.Settings.Pages"
+      xmlns:controls="clr-namespace:ExploitStrap.UI.Elements.Controls"
+      xmlns:models="clr-namespace:ExploitStrap.UI.ViewModels.Settings"
+      xmlns:vmroot="clr-namespace:ExploitStrap.UI.ViewModels"
+      xmlns:resources="clr-namespace:ExploitStrap.Resources"
+      d:DataContext="{d:DesignInstance Type=models:ExploitStrapViewModel}"
       mc:Ignorable="d" 
       d:DesignHeight="600" d:DesignWidth="800"
       Title="BehaviourPage"
@@ -39,7 +39,7 @@
                 BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}" BorderThickness="1">
             <TextBlock TextWrapping="Wrap" FontSize="12" Foreground="{DynamicResource TextFillColorSecondaryBrush}">
                 <Run FontWeight="SemiBold">Analytics: </Run>
-                <Run>Permanently disabled in this edition. Nothing is ever sent to Bloxstrap upstream or anywhere else.</Run>
+                <Run>Permanently disabled in this edition. Nothing is ever sent to ExploitStrap upstream or anywhere else.</Run>
             </TextBlock>
         </Border>
 
@@ -65,7 +65,7 @@
         <!-- v420.30.3: close RobloxCrashHandler to free memory (Froststrap-style) -->
         <controls:OptionControl Margin="0,8,0,0"
             Header="Close Roblox's crash handler (free memory)"
-            Description="While Roblox is running, MrExBloxstrap closes the RobloxCrashHandler.exe background process to free the memory it holds. Roblox still runs normally. Off by default. Note: with this on, MrExBloxstrap can't use the crash handler to detect Roblox crashes.">
+            Description="While Roblox is running, ExploitStrap closes the RobloxCrashHandler.exe background process to free the memory it holds. Roblox still runs normally. Off by default. Note: with this on, ExploitStrap can't use the crash handler to detect Roblox crashes.">
             <ui:ToggleSwitch IsChecked="{Binding CloseRobloxCrashHandlerEnabled, Mode=TwoWay}" />
         </controls:OptionControl>
 
@@ -79,21 +79,21 @@
         <!-- v420.28: Stream Mode toggle -->
         <controls:OptionControl Margin="0,8,0,0"
             Header="Stream mode (hide account info from screen-share)"
-            Description="When on, MrExBloxstrap hides your Roblox username from Discord Rich Presence, replaces the place ID on the bootstrapper dialog with a generic 'Joining a Roblox experience', and rewrites the Roblox window title to just 'Roblox'. Useful if you stream or record your screen.">
+            Description="When on, ExploitStrap hides your Roblox username from Discord Rich Presence, replaces the place ID on the bootstrapper dialog with a generic 'Joining a Roblox experience', and rewrites the Roblox window title to just 'Roblox'. Useful if you stream or record your screen.">
             <ui:ToggleSwitch IsChecked="{Binding StreamModeEnabled, Mode=TwoWay}" />
         </controls:OptionControl>
 
         <!-- v420.28: Tray launcher toggle -->
         <controls:OptionControl Margin="0,8,0,0"
             Header="System tray launcher (start with Windows)"
-            Description="Adds MrExBloxstrap to Windows startup as a small system tray icon. Right-click the icon to switch profiles or open settings, double-click to open the launch menu. No admin needed. Turn off to remove from startup.">
+            Description="Adds ExploitStrap to Windows startup as a small system tray icon. Right-click the icon to switch profiles or open settings, double-click to open the launch menu. No admin needed. Turn off to remove from startup.">
             <ui:ToggleSwitch IsChecked="{Binding TrayLauncherEnabled, Mode=TwoWay}" />
         </controls:OptionControl>
 
         <!-- v420.28: Roblox LIVE-change toast -->
         <controls:OptionControl Margin="0,8,0,0"
             Header="Notify when Roblox ships a new LIVE build"
-            Description="Pops a Windows notification when Roblox's official LIVE channel moves to a new build. Checked when you open MrExBloxstrap, and every 30 minutes if the tray launcher above is running. Off by default.">
+            Description="Pops a Windows notification when Roblox's official LIVE channel moves to a new build. Checked when you open ExploitStrap, and every 30 minutes if the tray launcher above is running. Off by default.">
             <ui:ToggleSwitch IsChecked="{Binding NotifyOnLiveChange, Mode=TwoWay}" />
         </controls:OptionControl>
 
@@ -104,10 +104,10 @@
             <ui:ToggleSwitch IsChecked="{Binding NotifyOnExecutorUpdate, Mode=TwoWay}" />
         </controls:OptionControl>
 
-        <!-- v420.29.5: MrExBloxstrap update toast -->
+        <!-- v420.29.5: ExploitStrap update toast -->
         <controls:OptionControl Margin="0,8,0,0"
-            Header="Notify when a MrExBloxstrap update is available"
-            Description="Pops a Windows notification when a newer version of MrExBloxstrap is released. Checked when you open MrExBloxstrap, and every 30 minutes if the tray launcher above is running. On by default.">
+            Header="Notify when a ExploitStrap update is available"
+            Description="Pops a Windows notification when a newer version of ExploitStrap is released. Checked when you open ExploitStrap, and every 30 minutes if the tray launcher above is running. On by default.">
             <ui:ToggleSwitch IsChecked="{Binding NotifyOnAppUpdate, Mode=TwoWay}" />
         </controls:OptionControl>
 
@@ -138,7 +138,7 @@
         <!-- Clear Roblox cache -->
         <controls:OptionControl Margin="0,8,0,0"
             Header="Clear Roblox cache"
-            Description="Delete the Roblox client cache (Bloxstrap Mr Exploit edition's version cache + the default-location Roblox install). Your settings, FastFlags, and custom themes are kept. Roblox will redownload the client on next launch.">
+            Description="Delete the Roblox client cache (ExploitStrap's version cache + the default-location Roblox install). Your settings, FastFlags, and custom themes are kept. Roblox will redownload the client on next launch.">
             <ui:Button MinWidth="100" Icon="Delete24" Content="Clear" Appearance="Danger"
                        Command="{Binding ClearRobloxCacheCommand, Mode=OneTime}" />
         </controls:OptionControl>
@@ -146,7 +146,7 @@
         <!-- Debug mode toggle -->
         <controls:OptionControl Margin="0,8,0,0"
             Header="Debug mode"
-            Description="Reveals diagnostic tools below: run a health check, jump to the log folder, or build a one-click diagnostic snapshot (zip) you can hand the maintainer to debug a problem. None of these change MrExBloxstrap's behaviour — they only surface information.">
+            Description="Reveals diagnostic tools below: run a health check, jump to the log folder, or build a one-click diagnostic snapshot (zip) you can hand the maintainer to debug a problem. None of these change ExploitStrap's behaviour — they only surface information.">
             <ui:ToggleSwitch IsChecked="{Binding DebugModeEnabled, Mode=TwoWay}" />
         </controls:OptionControl>
 

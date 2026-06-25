@@ -1,4 +1,4 @@
-namespace MrExStrap
+namespace ExploitStrap
 {
     public class JsonManager<T> where T : class, new()
     {

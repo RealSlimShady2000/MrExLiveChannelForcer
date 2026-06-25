@@ -1,4 +1,4 @@
-namespace MrExStrap.Integrations
+namespace ExploitStrap.Integrations
 {
     public class ActivityWatcher : IDisposable
     {

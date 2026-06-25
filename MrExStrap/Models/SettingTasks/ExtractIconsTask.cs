@@ -1,6 +1,6 @@
 using System.Reflection;
 
-namespace MrExStrap.Models.SettingTasks
+namespace ExploitStrap.Models.SettingTasks
 {
     public class ExtractIconsTask : BoolBaseTask
     {
@@ -22,7 +22,7 @@ namespace MrExStrap.Models.SettingTasks
 
                 foreach (string name in resourceNames)
                 {
-                    string path = Path.Combine(_path, name.Replace("MrExStrap.Resources.", ""));
+                    string path = Path.Combine(_path, name.Replace("ExploitStrap.Resources.", ""));
                     var stream = assembly.GetManifestResourceStream(name)!;
 
                     using var memoryStream = new MemoryStream();

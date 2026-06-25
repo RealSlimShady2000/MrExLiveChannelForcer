@@ -1,4 +1,4 @@
-namespace MrExStrap.Models
+namespace ExploitStrap.Models
 {
     public class CustomIntegration
     {

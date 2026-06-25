@@ -1,6 +1,6 @@
 using System.Reflection;
 
-namespace MrExStrap
+namespace ExploitStrap
 {
     static class Resource
     {

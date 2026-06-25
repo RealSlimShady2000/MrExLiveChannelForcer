@@ -5,9 +5,9 @@ using System.Windows.Controls;
 using Wpf.Ui.Controls.Interfaces;
 using Wpf.Ui.Mvvm.Contracts;
 
-using MrExStrap.UI.ViewModels.Settings;
+using ExploitStrap.UI.ViewModels.Settings;
 
-namespace MrExStrap.UI.Elements.Settings
+namespace ExploitStrap.UI.Elements.Settings
 {
     /// <summary>
     /// Interaction logic for MainWindow.xaml

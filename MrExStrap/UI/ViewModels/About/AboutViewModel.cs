@@ -2,9 +2,9 @@ using System.Windows;
 using System.Windows.Input;
 using CommunityToolkit.Mvvm.Input;
 
-using MrExStrap.UI;
+using ExploitStrap.UI;
 
-namespace MrExStrap.UI.ViewModels.About
+namespace ExploitStrap.UI.ViewModels.About
 {
     public class AboutViewModel : NotifyPropertyChangedViewModel
     {
@@ -32,7 +32,7 @@ namespace MrExStrap.UI.ViewModels.About
             const string LOG_IDENT = "AboutViewModel::CopyDiagnosticInfo";
             try
             {
-                string blob = await MrExStrap.Utility.Diagnostics.BuildAsync();
+                string blob = await ExploitStrap.Utility.Diagnostics.BuildAsync();
                 Clipboard.SetDataObject(blob, true);
                 Frontend.ShowMessageBox("Diagnostic info copied to clipboard. Paste it into your support message.",
                     MessageBoxImage.Information);

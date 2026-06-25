@@ -1,4 +1,4 @@
-namespace MrExStrap.Models.Manifest
+namespace ExploitStrap.Models.Manifest
 {
     public class ManifestFile
     {

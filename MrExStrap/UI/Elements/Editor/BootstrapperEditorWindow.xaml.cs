@@ -7,11 +7,11 @@ using ICSharpCode.AvalonEdit.Editing;
 using ICSharpCode.AvalonEdit.Highlighting.Xshd;
 using ICSharpCode.AvalonEdit.Highlighting;
 
-using MrExStrap.UI.Elements.Base;
-using MrExStrap.UI.ViewModels.Editor;
+using ExploitStrap.UI.Elements.Base;
+using ExploitStrap.UI.ViewModels.Editor;
 using System.Windows;
 
-namespace MrExStrap.UI.Elements.Editor
+namespace ExploitStrap.UI.Elements.Editor
 {
     /// <summary>
     /// Interaction logic for BootstrapperEditorWindow.xaml

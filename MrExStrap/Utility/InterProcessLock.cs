@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MrExStrap.Utility
+namespace ExploitStrap.Utility
 {
     public class InterProcessLock : IDisposable
     {
@@ -16,7 +16,7 @@ namespace MrExStrap.Utility
 
         public InterProcessLock(string name, TimeSpan timeout)
         {
-            Mutex = new Mutex(false, "MrExStrap-" + name);
+            Mutex = new Mutex(false, "ExploitStrap-" + name);
 
             try
             {

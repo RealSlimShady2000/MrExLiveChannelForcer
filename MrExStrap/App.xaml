@@ -1,9 +1,9 @@
-<Application x:Class="MrExStrap.App"
+<Application x:Class="ExploitStrap.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:local="clr-namespace:MrExStrap"
+             xmlns:local="clr-namespace:ExploitStrap"
              xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
-             xmlns:converters="clr-namespace:MrExStrap.UI.Converters"
+             xmlns:converters="clr-namespace:ExploitStrap.UI.Converters"
              ShutdownMode="OnExplicitShutdown"
              DispatcherUnhandledException="GlobalExceptionHandler">
     <Application.Resources>
@@ -13,6 +13,7 @@
                 <ui:ControlsDictionary />
                 <ResourceDictionary x:Name="CustomTheme" Source="UI/Style/Dark.xaml" /> <!-- NOTE: WpfUiWindow::ApplyTheme relies on this order. If you plan to change the order, please update the index in the function. -->
                 <ResourceDictionary x:Name="Default" Source="UI/Style/Default.xaml" />
+                <ResourceDictionary Source="UI/Style/Brand.xaml" />
             </ResourceDictionary.MergedDictionaries>
 
             <FontFamily x:Key="Rubik">pack://application:,,,/Resources/Fonts/#Rubik Light</FontFamily>

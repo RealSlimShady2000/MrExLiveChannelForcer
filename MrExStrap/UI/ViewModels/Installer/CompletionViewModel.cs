@@ -2,11 +2,11 @@ using System.Windows;
 using System.Windows.Input;
 using CommunityToolkit.Mvvm.Input;
 
-using MrExStrap.Resources;
+using ExploitStrap.Resources;
 
 using Microsoft.Win32;
 
-namespace MrExStrap.UI.ViewModels.Installer
+namespace ExploitStrap.UI.ViewModels.Installer
 {
     public class CompletionViewModel
     {

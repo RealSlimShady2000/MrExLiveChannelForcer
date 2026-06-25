@@ -1,11 +1,11 @@
 using System.Web;
 using System.Windows;
 using System.Windows.Input;
-using MrExStrap.AppData;
-using MrExStrap.Models.APIs;
+using ExploitStrap.AppData;
+using ExploitStrap.Models.APIs;
 using CommunityToolkit.Mvvm.Input;
 
-namespace MrExStrap.Models.Entities
+namespace ExploitStrap.Models.Entities
 {
     public class ActivityData
     {

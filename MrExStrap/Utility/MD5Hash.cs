@@ -1,6 +1,6 @@
 using System.Security.Cryptography;
 
-namespace MrExStrap.Utility
+namespace ExploitStrap.Utility
 {
     public static class MD5Hash
     {

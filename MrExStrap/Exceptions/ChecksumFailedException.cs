@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MrExStrap.Exceptions
+namespace ExploitStrap.Exceptions
 {
     internal class ChecksumFailedException : Exception
     {

@@ -7,7 +7,7 @@ using System.Windows.Input;
 
 using CommunityToolkit.Mvvm.Input;
 
-namespace MrExStrap.UI.ViewModels.Dialogs
+namespace ExploitStrap.UI.ViewModels.Dialogs
 {
     internal class LanguageSelectorViewModel
     {

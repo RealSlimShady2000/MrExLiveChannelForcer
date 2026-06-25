@@ -4,9 +4,9 @@ using System.Net.Sockets;
 using System.Security.Authentication;
 using System.Text.Json;
 
-using MrExStrap.Models.APIs;
+using ExploitStrap.Models.APIs;
 
-namespace MrExStrap.Utility
+namespace ExploitStrap.Utility
 {
     // Where the executor list actually came from, so the UI can note when the backup was used.
     public enum WeaoSource { None, Weao, Mirror }
@@ -25,7 +25,7 @@ namespace MrExStrap.Utility
     //
     // Per docs.weao.xyz the User-Agent "WEAO-3PService" is required for weao.xyz. The mirror just
     // needs any non-bot User-Agent (a bare "curl/x" UA is challenged) — App.HttpClient's default
-    // "MrExBloxstrap/<version>" already satisfies that, so the mirror request sends no extra header.
+    // "ExploitStrap/<version>" already satisfies that, so the mirror request sends no extra header.
     public static class WeaoClient
     {
         private const string EXPLOITS_ENDPOINT = "https://weao.xyz/api/status/exploits";

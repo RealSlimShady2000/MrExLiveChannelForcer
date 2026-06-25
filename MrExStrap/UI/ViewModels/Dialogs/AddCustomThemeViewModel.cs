@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 
-namespace MrExStrap.UI.ViewModels.Dialogs
+namespace ExploitStrap.UI.ViewModels.Dialogs
 {
     internal class AddCustomThemeViewModel : NotifyPropertyChangedViewModel
     {

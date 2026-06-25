@@ -1,4 +1,4 @@
-namespace MrExStrap.RobloxInterfaces
+namespace ExploitStrap.RobloxInterfaces
 {
     public static class Deployment
     {

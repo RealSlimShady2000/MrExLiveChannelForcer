@@ -1,9 +1,9 @@
 using System.Windows.Input;
 
-using MrExStrap.UI.Utility;
-using MrExStrap.UI.ViewModels.Settings;
+using ExploitStrap.UI.Utility;
+using ExploitStrap.UI.ViewModels.Settings;
 
-namespace MrExStrap.UI.Elements.Settings.Pages
+namespace ExploitStrap.UI.Elements.Settings.Pages
 {
     public partial class VersionPage
     {

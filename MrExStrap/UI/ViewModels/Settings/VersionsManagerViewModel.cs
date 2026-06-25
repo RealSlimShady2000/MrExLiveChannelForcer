@@ -6,10 +6,10 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using CommunityToolkit.Mvvm.Input;
 
-using MrExStrap.Models.Persistable;
-using MrExStrap.Utility;
+using ExploitStrap.Models.Persistable;
+using ExploitStrap.Utility;
 
-namespace MrExStrap.UI.ViewModels.Settings
+namespace ExploitStrap.UI.ViewModels.Settings
 {
     // ViewModel for the Versions Manager tab. Holds the tile list (one item per
     // VersionProfile), exposes commands for activating / editing / deleting /
@@ -217,7 +217,7 @@ namespace MrExStrap.UI.ViewModels.Settings
             if (confirm != MessageBoxResult.Yes) return;
 
             App.Settings.Prop.VersionProfiles.Remove(profile);
-            MrExStrap.Utility.FastFlagProfiles.Delete(id);
+            ExploitStrap.Utility.FastFlagProfiles.Delete(id);
 
             // If we just deleted the active profile, fall back to the built-in LIVE one.
             if (App.Settings.Prop.ActiveVersionProfileId == id)

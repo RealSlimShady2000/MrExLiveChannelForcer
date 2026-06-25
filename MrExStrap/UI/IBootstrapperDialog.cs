@@ -1,7 +1,7 @@
 using System.Windows.Forms;
 using System.Windows.Shell;
 
-namespace MrExStrap.UI
+namespace ExploitStrap.UI
 {
     public interface IBootstrapperDialog
     {

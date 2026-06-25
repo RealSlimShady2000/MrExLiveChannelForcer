@@ -1,16 +1,16 @@
 using Microsoft.Win32;
 
-namespace MrExStrap.Utility.BanAsync
+namespace ExploitStrap.Utility.BanAsync
 {
     // Sweeps Roblox-related files, registry, and prefetch entries off the machine.
     // Modeled on focat69/rblxswap's bypass:run handler but reimplemented in C# and scoped
-    // so it never touches MrExBloxstrap's own settings directory.
+    // so it never touches ExploitStrap's own settings directory.
     public static class CleanupEngine
     {
         private const string LOG_IDENT = "CleanupEngine";
 
         // Roblox processes we'll terminate before deleting their files. We intentionally do NOT
-        // kill third-party launchers (Bloxstrap, Fishstrap, Voidstrap, Wbloxstrap) — those are
+        // kill third-party launchers (ExploitStrap, Fishstrap, Voidstrap, Wbloxstrap) — those are
         // separate apps the user installed deliberately and may be mid-flight.
         private static readonly string[] RobloxProcessNames =
         {
@@ -28,8 +28,8 @@ namespace MrExStrap.Utility.BanAsync
             public bool PreserveFastFlags { get; set; } = true;
             public bool IncludeStudioFolders { get; set; } = false;
 
-            // Also wipe MrExBloxstrap's own Versions folder (the downloaded Roblox
-            // installs under %LocalAppData%\MrExBloxstrap\Versions). Forces a fresh
+            // Also wipe ExploitStrap's own Versions folder (the downloaded Roblox
+            // installs under %LocalAppData%\ExploitStrap\Versions). Forces a fresh
             // download on next launch. Off unless the user opts in.
             public bool CleanMrExVersions { get; set; } = false;
         }
@@ -81,7 +81,7 @@ namespace MrExStrap.Utility.BanAsync
                 }
             }
 
-            // Optional: wipe MrExBloxstrap's own downloaded Roblox installs (Versions).
+            // Optional: wipe ExploitStrap's own downloaded Roblox installs (Versions).
             if (options.CleanMrExVersions)
                 CleanMrExVersionsFolder(result, log);
 
@@ -151,7 +151,7 @@ namespace MrExStrap.Utility.BanAsync
             return result;
         }
 
-        // Wipe MrExBloxstrap's own Versions folder (the downloaded Roblox installs).
+        // Wipe ExploitStrap's own Versions folder (the downloaded Roblox installs).
         // Junction-aware: unlink reparse points without recursing into their targets so a
         // recursive delete can never clobber a per-profile dir through a junction
         // (the v420.25 lesson). Real per-profile dirs are deleted recursively.
@@ -160,11 +160,11 @@ namespace MrExStrap.Utility.BanAsync
             string versions = Paths.Versions;
             if (string.IsNullOrEmpty(versions) || !Directory.Exists(versions))
             {
-                log("No MrExBloxstrap Versions folder to clean.");
+                log("No ExploitStrap Versions folder to clean.");
                 return;
             }
 
-            log($"Wiping MrExBloxstrap Versions folder {versions}…");
+            log($"Wiping ExploitStrap Versions folder {versions}…");
 
             foreach (string child in Directory.EnumerateDirectories(versions))
             {

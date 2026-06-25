@@ -3,7 +3,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 
-namespace MrExStrap.UI.Utility
+namespace ExploitStrap.UI.Utility
 {
     // Fixes the long-standing WPF annoyance where mousewheeling over a ComboBox changes the
     // selected item even though the dropdown is closed. We swallow the wheel event on the

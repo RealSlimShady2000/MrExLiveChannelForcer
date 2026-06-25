@@ -1,9 +1,9 @@
 using System.Windows;
 using Microsoft.Web.WebView2.Core;
 
-using MrExStrap.Utility;
+using ExploitStrap.Utility;
 
-namespace MrExStrap.UI.Elements.Dialogs
+namespace ExploitStrap.UI.Elements.Dialogs
 {
     public partial class VipServerDialog
     {
@@ -84,7 +84,7 @@ namespace MrExStrap.UI.Elements.Dialogs
             // Any navigation that leaves rbxservers and heads to Roblox is the user's pick.
             // The redirect target depends on rbxservers' current routing — could be:
             //   roblox://experiences/start?placeId=X&accessCode=Y     (deep link)
-            //   roblox-player:1+launchmode:play+...accessCode=Y...    (Bloxstrap-style)
+            //   roblox-player:1+launchmode:play+...accessCode=Y...    (ExploitStrap-style)
             //   https://www.roblox.com/games/start?placeId=X&accessCode=Y     (legacy web)
             //   https://www.roblox.com/games/{placeId}?accessCode=Y           (modern detail)
             //   https://www.roblox.com/games/{placeId}/{slug}?accessCode=Y    (with slug)

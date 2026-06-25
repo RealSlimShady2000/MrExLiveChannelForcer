@@ -1,7 +1,7 @@
 using System.Net.Http;
 using System.Security.Cryptography;
 
-namespace MrExStrap.Utility
+namespace ExploitStrap.Utility
 {
     // On-disk cache for executor logos pulled from WEAO's CDN
     // (https://cdn.weao.gg/slug/<slug>/logo.png). The Versions Manager tab renders

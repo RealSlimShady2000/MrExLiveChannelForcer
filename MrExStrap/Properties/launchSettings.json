@@ -1,33 +1,33 @@
 {
   "profiles": {
-    "MrExStrap (Launch)": {
+    "ExploitStrap (Launch)": {
       "commandName": "Project"
     },
-    "MrExStrap (Quiet Launch)": {
+    "ExploitStrap (Quiet Launch)": {
       "commandName": "Project",
       "commandLineArgs": "-quiet"
     },
-    "MrExStrap (Uninstall)": {
+    "ExploitStrap (Uninstall)": {
       "commandName": "Project",
       "commandLineArgs": "-uninstall"
     },
-    "MrExStrap (Quiet Uninstall)": {
+    "ExploitStrap (Quiet Uninstall)": {
       "commandName": "Project",
       "commandLineArgs": "-uninstall -quiet"
     },
-    "MrExStrap (Menu)": {
+    "ExploitStrap (Menu)": {
       "commandName": "Project",
       "commandLineArgs": "-menu"
     },
-    "MrExStrap (Deeplink)": {
+    "ExploitStrap (Deeplink)": {
       "commandName": "Project",
       "commandLineArgs": "-player \"roblox://experiences/start?placeId=13700835620\""
     },
-    "MrExStrap (Studio Launch)": {
+    "ExploitStrap (Studio Launch)": {
       "commandName": "Project",
       "commandLineArgs": "-studio"
     },
-    "MrExStrap (Watcher)": {
+    "ExploitStrap (Watcher)": {
       "commandName": "Project",
       "commandLineArgs": "-watcher"
     }

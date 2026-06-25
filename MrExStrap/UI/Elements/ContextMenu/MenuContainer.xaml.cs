@@ -6,9 +6,9 @@ using Windows.Win32;
 using Windows.Win32.Foundation;
 using Windows.Win32.UI.WindowsAndMessaging;
 
-using MrExStrap.Integrations;
+using ExploitStrap.Integrations;
 
-namespace MrExStrap.UI.Elements.ContextMenu
+namespace ExploitStrap.UI.Elements.ContextMenu
 {
     /// <summary>
     /// Interaction logic for NotifyIconMenu.xaml

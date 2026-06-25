@@ -1,10 +1,10 @@
-using MrExStrap.UI.Elements.Bootstrapper.Base;
-using MrExStrap.UI.ViewModels.Bootstrapper;
+using ExploitStrap.UI.Elements.Bootstrapper.Base;
+using ExploitStrap.UI.ViewModels.Bootstrapper;
 using System.ComponentModel;
 using System.Windows.Forms;
 using System.Windows.Shell;
 
-namespace MrExStrap.UI.Elements.Bootstrapper
+namespace ExploitStrap.UI.Elements.Bootstrapper
 {
     /// <summary>
     /// Interaction logic for CustomDialog.xaml
@@ -13,7 +13,7 @@ namespace MrExStrap.UI.Elements.Bootstrapper
     {
         private readonly BootstrapperDialogViewModel _viewModel;
 
-        public MrExStrap.Bootstrapper? Bootstrapper { get; set; }
+        public ExploitStrap.Bootstrapper? Bootstrapper { get; set; }
 
         private bool _isClosing;
 

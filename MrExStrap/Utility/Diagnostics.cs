@@ -2,7 +2,7 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text;
 
-namespace MrExStrap.Utility
+namespace ExploitStrap.Utility
 {
     // Collects a one-shot diagnostic blob the user can paste into a support thread.
     // Intentionally minimal — fork version, OS, runtime, pinned state, running Roblox PIDs.
@@ -15,7 +15,7 @@ namespace MrExStrap.Utility
             string portableTag = App.IsPortableMode
                 ? (App.IsPortableFastCache ? " (portable, fast-cache)" : " (portable)")
                 : "";
-            sb.AppendLine($"MrExBloxstrap {App.Version}{portableTag}");
+            sb.AppendLine($"ExploitStrap {App.Version}{portableTag}");
             sb.AppendLine($"OS: {RuntimeInformation.OSDescription}");
             sb.AppendLine($"Arch: {RuntimeInformation.OSArchitecture} / Process {RuntimeInformation.ProcessArchitecture}");
             sb.AppendLine($".NET: {RuntimeInformation.FrameworkDescription}");

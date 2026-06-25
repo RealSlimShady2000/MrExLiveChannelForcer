@@ -1,6 +1,6 @@
 using Microsoft.Data.Sqlite;
 
-namespace MrExStrap.Utility.BanAsync
+namespace ExploitStrap.Utility.BanAsync
 {
     // Targeted cookie cleaner. Deletes ONLY the cookies whose host matches roblox.com
     // / rbxcdn.com (and a few related Roblox hostnames) from each installed browser's

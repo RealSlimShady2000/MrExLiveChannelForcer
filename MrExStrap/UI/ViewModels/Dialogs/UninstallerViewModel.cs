@@ -1,9 +1,9 @@
 using System.Windows.Input;
 using CommunityToolkit.Mvvm.Input;
 
-using MrExStrap.Resources;
+using ExploitStrap.Resources;
 
-namespace MrExStrap.UI.ViewModels.Dialogs
+namespace ExploitStrap.UI.ViewModels.Dialogs
 {
     public class UninstallerViewModel
     {

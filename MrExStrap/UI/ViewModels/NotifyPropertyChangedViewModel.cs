@@ -1,6 +1,6 @@
 using System.ComponentModel;
 
-namespace MrExStrap.UI.ViewModels
+namespace ExploitStrap.UI.ViewModels
 {
     public class NotifyPropertyChangedViewModel : INotifyPropertyChanged
     {

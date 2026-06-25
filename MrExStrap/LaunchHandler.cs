@@ -3,10 +3,10 @@ using System.Windows;
 using Windows.Win32;
 using Windows.Win32.Foundation;
 
-using MrExStrap.UI.Elements.Dialogs;
-using MrExStrap.Enums;
+using ExploitStrap.UI.Elements.Dialogs;
+using ExploitStrap.Enums;
 
-namespace MrExStrap
+namespace ExploitStrap
 {
     public static class LaunchHandler
     {
@@ -120,7 +120,7 @@ namespace MrExStrap
             else
             {
 #if QA_BUILD
-                Frontend.ShowMessageBox("You are about to install a QA build of MrExStrap. The red window border indicates that this is a QA build.\n\nQA builds are handled completely separately of your standard installation, like a virtual environment.", MessageBoxImage.Information);
+                Frontend.ShowMessageBox("You are about to install a QA build of ExploitStrap. The red window border indicates that this is a QA build.\n\nQA builds are handled completely separately of your standard installation, like a virtual environment.", MessageBoxImage.Information);
 #endif
 
                 new LanguageSelectorDialog().ShowDialog();
@@ -252,7 +252,7 @@ namespace MrExStrap
         public static void LaunchMenu()
         {
             // Auto-update check on menu open. The Bootstrapper has its own check on the Roblox
-            // launch path, but users who open MrExBloxstrap directly (Start menu shortcut, etc.)
+            // launch path, but users who open ExploitStrap directly (Start menu shortcut, etc.)
             // used to never see new releases. This adds the same flow as a Roblox launch: prompt
             // first, then download with a progress dialog, relaunch with the menu reopened on
             // the new exe. App.Terminate is mandatory on the success path because the App-level
@@ -303,8 +303,8 @@ namespace MrExStrap
                     return false;
 
                 var prompt = Frontend.ShowMessageBox(
-                    $"A new version of MrExBloxstrap is available.\n\nYou're on v{App.Version}. Latest is {release.TagName}.\n\n" +
-                    "Install now? MrExBloxstrap will download the update and reopen the menu on the new version.",
+                    $"A new version of ExploitStrap is available.\n\nYou're on v{App.Version}. Latest is {release.TagName}.\n\n" +
+                    "Install now? ExploitStrap will download the update and reopen the menu on the new version.",
                     MessageBoxImage.Question,
                     MessageBoxButton.YesNo,
                     MessageBoxResult.Yes);
@@ -636,7 +636,7 @@ namespace MrExStrap
             App.Logger.WriteLine(LOG_IDENT, "Initializing bootstrapper");
             App.Bootstrapper = new Bootstrapper(launchMode)
             {
-                MutexNamePrefix = "MrExStrap-BackgroundUpdater",
+                MutexNamePrefix = "ExploitStrap-BackgroundUpdater",
                 QuitIfMutexExists = true
             };
 
@@ -645,7 +645,7 @@ namespace MrExStrap
             Task.Run(() =>
             {
                 App.Logger.WriteLine(LOG_IDENT, "Started event waiter");
-                using (EventWaitHandle handle = new EventWaitHandle(false, EventResetMode.AutoReset, "MrExStrap-BackgroundUpdaterKillEvent"))
+                using (EventWaitHandle handle = new EventWaitHandle(false, EventResetMode.AutoReset, "ExploitStrap-BackgroundUpdaterKillEvent"))
                     handle.WaitOne();
 
                 App.Logger.WriteLine(LOG_IDENT, "Received close event, killing it all!");

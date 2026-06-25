@@ -10,7 +10,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Windows.Forms;
 
-namespace MrExStrap.Utility
+namespace ExploitStrap.Utility
 {
     public static class WindowTiler
     {

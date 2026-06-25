@@ -1,4 +1,4 @@
-namespace MrExStrap.Models.SettingTasks
+namespace ExploitStrap.Models.SettingTasks
 {
     public class ShortcutTask : BoolBaseTask
     {

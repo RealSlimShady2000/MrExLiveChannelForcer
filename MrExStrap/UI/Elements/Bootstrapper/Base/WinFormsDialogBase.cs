@@ -1,15 +1,15 @@
 using System.Windows.Forms;
 using System.Windows.Shell;
 
-using MrExStrap.UI.Utility;
+using ExploitStrap.UI.Utility;
 
-namespace MrExStrap.UI.Elements.Bootstrapper.Base
+namespace ExploitStrap.UI.Elements.Bootstrapper.Base
 {
     public class WinFormsDialogBase : Form, IBootstrapperDialog
     {
         public const int TaskbarProgressMaximum = 100;
 
-        public MrExStrap.Bootstrapper? Bootstrapper { get; set; }
+        public ExploitStrap.Bootstrapper? Bootstrapper { get; set; }
 
         private bool _isClosing;
 

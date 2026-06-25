@@ -1,4 +1,4 @@
-namespace MrExStrap.Extensions
+namespace ExploitStrap.Extensions
 {
     static class EmojiTypeEx
     {

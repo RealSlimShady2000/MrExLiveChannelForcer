@@ -1,4 +1,4 @@
-namespace MrExStrap.Models.APIs.Roblox
+namespace ExploitStrap.Models.APIs.Roblox
 {
     /// <summary>
     /// Roblox.Games.Api.Models.Response.GameCreator

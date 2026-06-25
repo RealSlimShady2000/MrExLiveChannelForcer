@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MrExStrap.Models.SettingTasks.Base
+namespace ExploitStrap.Models.SettingTasks.Base
 {
     public abstract class StringBaseTask : BaseTask
     {

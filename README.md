@@ -1,4 +1,8 @@
-# MrExBloxstrap
+<p align="center">
+  <img src="MrExStrap/Resources/ExploitStrap.png" alt="ExploitStrap" width="420">
+</p>
+
+# ExploitStrap
 
 **The Roblox launcher built for executor and exploit users.**
 
@@ -47,7 +51,7 @@ A fork of [Bloxstrap](https://github.com/bloxstraplabs/bloxstrap) hardened again
 
 ### vs vanilla / normal Bloxstrap
 
-**Pros of MrExBloxstrap**
+**Pros of ExploitStrap**
 
 - ✅ **LIVE channel lock**
   - Vanilla leaves channel routing alone, so Roblox can A/B-route you onto a test build any time.
@@ -68,7 +72,7 @@ A fork of [Bloxstrap](https://github.com/bloxstraplabs/bloxstrap) hardened again
 - ✅ **Analytics permanently off**
   - Hardcoded, no toggle.
 
-**Cons of MrExBloxstrap**
+**Cons of ExploitStrap**
 
 - Smaller user base, less battle-tested than vanilla / normal Bloxstrap.
 - Releases are unsigned, so Windows SmartScreen warns on first run.
@@ -77,7 +81,7 @@ A fork of [Bloxstrap](https://github.com/bloxstraplabs/bloxstrap) hardened again
 
 ### vs Fishstrap (another popular Bloxstrap fork)
 
-**Pros of MrExBloxstrap**
+**Pros of ExploitStrap**
 
 - ✅ **Exploit-first focus**
   - Channel lock, Versions Manager (one profile per executor), and executor version matching are the headline features.
@@ -90,9 +94,9 @@ A fork of [Bloxstrap](https://github.com/bloxstraplabs/bloxstrap) hardened again
 - ✅ **Auto-update on menu open**
   - With a determinate progress bar.
 
-**Cons of MrExBloxstrap**
+**Cons of ExploitStrap**
 
-- Fishstrap is aimed at the broader Roblox community and ships polish for general players (themes, custom assets) that MrExBloxstrap doesn't bother with.
+- Fishstrap is aimed at the broader Roblox community and ships polish for general players (themes, custom assets) that ExploitStrap doesn't bother with.
 - Fishstrap has a larger user base and faster issue feedback.
 - If you're not running an executor, Fishstrap is probably a better fit.
 
@@ -100,7 +104,7 @@ A fork of [Bloxstrap](https://github.com/bloxstraplabs/bloxstrap) hardened again
 
 | Pick this if you… | Use |
 | --- | --- |
-| Run executors/externals and want them to keep working | **MrExBloxstrap** |
+| Run executors/externals and want them to keep working | **ExploitStrap** |
 | Want a polished player launcher with broad theme support | Fishstrap |
 | Want the official vanilla / normal Bloxstrap with the largest user base | Bloxstrap |
 
@@ -109,7 +113,7 @@ A fork of [Bloxstrap](https://github.com/bloxstraplabs/bloxstrap) hardened again
 ## Features in detail
 
 ### LIVE channel lock
-Roblox sometimes A/B-routes your account onto a test channel like `zlive` or `zintegration` without warning. When that happens, every popular executor stops working until they catch up to that build, or until Roblox rolls you back. MrExBloxstrap rewrites the Roblox-side channel registry key on every launch and verifies the write took. A `CHANNEL: LIVE (locked)` badge appears on the bootstrapper so you know it worked.
+Roblox sometimes A/B-routes your account onto a test channel like `zlive` or `zintegration` without warning. When that happens, every popular executor stops working until they catch up to that build, or until Roblox rolls you back. ExploitStrap rewrites the Roblox-side channel registry key on every launch and verifies the write took. A `CHANNEL: LIVE (locked)` badge appears on the bootstrapper so you know it worked.
 
 ### Versions Manager
 A tab full of profile tiles, one per executor you care about (plus a built-in "Latest LIVE" sentinel). One click on a tile makes that profile active for your next launch.
@@ -130,13 +134,13 @@ Pin Roblox to any historical build by version hash. The Downgrading tab:
 - Has a **Match your executor** dropdown powered by weao.xyz — if your executor is behind, pick it and we pin the right historical Roblox build for you
 
 ### Fast Flags (and what gets you banned)
-MrExBloxstrap has a Fast Flag editor, but the important bit isn't the editor — it's the policy banner above it. Roblox staff has publicly drawn a clear line on what they consider acceptable from a launcher:
+ExploitStrap has a Fast Flag editor, but the important bit isn't the editor — it's the policy banner above it. Roblox staff has publicly drawn a clear line on what they consider acceptable from a launcher:
 
 - **Only Fast Flags on Roblox's official [allowlist](https://devforum.roblox.com/t/allowlist-for-local-client-configuration-via-fast-flags/3966569) actually affect the running client.** Anything else is silently ignored. Don't be surprised when a flag you set "does nothing".
-- **Writing flags to a config file before Roblox starts is fine** — that's the method MrExBloxstrap uses (and what Bloxstrap, FishStrap also use). Roblox staff has confirmed this in writing.
+- **Writing flags to a config file before Roblox starts is fine** — that's the method ExploitStrap uses (and what Bloxstrap, FishStrap also use). Roblox staff has confirmed this in writing.
 - **Writing flags by modifying the running Roblox process is an exploit.** Tools that do this (Voidstrap and similar "external" FFlag setters) are classified as cheats by Roblox and the accounts that use them get banned. Quote from Roblox staff: *"All bootstrappers using externals to set FFlags, such as Voidstrap, are considered exploits and therefore subject to consequences. Bloxstrap is a safer bet if you really must use a bootstrapper."*
 
-If you only ever touch Fast Flags through MrExBloxstrap's editor, you're on the safe side of that line. The Editor tab's banner repeats this in plain English so anyone editing flags reads it.
+If you only ever touch Fast Flags through ExploitStrap's editor, you're on the safe side of that line. The Editor tab's banner repeats this in plain English so anyone editing flags reads it.
 
 ### BanAsync tab
 Optional cleanup + spoofing tools inspired by Technitium MAC Address Changer and similar utilities. Everything is opt-in via toggles, and the Activity log shows you exactly what got changed:
@@ -146,7 +150,7 @@ Optional cleanup + spoofing tools inspired by Technitium MAC Address Changer and
 - MachineGuid randomize, gated behind an "I understand the risk" toggle
 
 ### Debug mode
-Toggle in Settings → Bloxstrap → Debug mode. Exposes:
+Toggle in Settings → Debug mode. Exposes:
 - Run health check (sanity test of every subsystem)
 - Open log folder (jump straight to the log directory)
 - **Save diagnostic snapshot** — builds a timestamped zip containing your settings, every log file, environment info, detected network adapters, running Roblox processes, a health check, and a fresh GitHub update probe. Hand the one zip to whoever's helping you debug.
@@ -159,12 +163,12 @@ Checks GitHub for new releases when you launch Roblox AND when you open the menu
 
 ## Install
 
-1. Download the latest `MrExBloxstrap-vX.Y.exe` from the [Releases page](https://github.com/RealSlimShady2000/MrExLiveChannelForcer/releases).
+1. Download the latest `ExploitStrap-vX.Y.exe` from the [Releases page](https://github.com/RealSlimShady2000/MrExLiveChannelForcer/releases).
 2. Run it. The installer handles the rest.
 
-The release binary is self-contained — no .NET runtime install required. Install location is `%localappdata%\MrExBloxstrap`.
+The release binary is self-contained — no .NET runtime install required. Install location is `%localappdata%\ExploitStrap`.
 
-To uninstall: Windows **Settings → Apps → Installed apps**, search for "Bloxstrap", or run `MrExBloxstrap.exe --uninstall`.
+To uninstall: Windows **Settings → Apps → Installed apps**, search for "ExploitStrap", or run `ExploitStrap.exe -uninstall`.
 
 ---
 
@@ -177,10 +181,10 @@ Don't want to take my word for it? **Build it yourself** — it's a stock .NET 6
 ```
 git clone --recurse-submodules https://github.com/RealSlimShady2000/MrExLiveChannelForcer.git
 cd MrExLiveChannelForcer
-dotnet publish MrExStrap/MrExStrap.csproj -p:PublishSingleFile=true -r win-x64 -c Release --self-contained true
+dotnet publish MrExStrap/ExploitStrap.csproj -p:PublishSingleFile=true -r win-x64 -c Release --self-contained true
 ```
 
-Output lands at `MrExStrap/bin/Release/net6.0-windows/win-x64/publish/MrExBloxstrap.exe`.
+Output lands at `MrExStrap/bin/Release/net6.0-windows/win-x64/publish/ExploitStrap.exe`.
 
 You can also compare the `SHA256SUMS` attached to every release against the exe you build yourself.
 
@@ -188,7 +192,7 @@ You can also compare the `SHA256SUMS` attached to every release against the exe 
 
 ## Who made this
 
-vibe pasted by **MrExploit** (aka **Sir Meme**):
+vibe pasted by **Sir Meme**:
 - Active in the Roblox community since 2017
 - Formerly associated with **Synapse Softworks LLC**
 - Currently runs **[robloxscripts.com](https://robloxscripts.com)** and **[rsware.store](https://rsware.store)**

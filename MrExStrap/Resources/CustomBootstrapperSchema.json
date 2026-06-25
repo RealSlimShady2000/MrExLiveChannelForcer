@@ -38,7 +38,7 @@
 				"FontFamily": "FontFamily"
 			}
 		},
-		"BloxstrapCustomBootstrapper": {
+		"ExploitStrapCustomBootstrapper": {
 			"SuperClass": "Control",
 			"IsCreatable": true,
 			"Attributes": {

@@ -1,4 +1,4 @@
-namespace MrExStrap.Models.Persistable
+namespace ExploitStrap.Models.Persistable
 {
     public class AppState
     {

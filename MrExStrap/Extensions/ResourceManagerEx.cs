@@ -1,6 +1,6 @@
 using System.Resources;
 
-namespace MrExStrap.Extensions
+namespace ExploitStrap.Extensions
 {
     static class ResourceManagerEx
     {

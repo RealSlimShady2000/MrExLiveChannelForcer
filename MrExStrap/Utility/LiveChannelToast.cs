@@ -1,7 +1,7 @@
 using System.Windows.Threading;
 using WinForms = System.Windows.Forms;
 
-namespace MrExStrap.Utility
+namespace ExploitStrap.Utility
 {
     public static class LiveChannelToast
     {

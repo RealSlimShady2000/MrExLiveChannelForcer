@@ -4,10 +4,10 @@ using System.Windows.Media;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Win32;
 
-using MrExStrap.RobloxInterfaces;
-using MrExStrap.UI.Elements.About;
+using ExploitStrap.RobloxInterfaces;
+using ExploitStrap.UI.Elements.About;
 
-namespace MrExStrap.UI.ViewModels.Installer
+namespace ExploitStrap.UI.ViewModels.Installer
 {
     public enum ChannelLockState
     {
@@ -89,18 +89,18 @@ namespace MrExStrap.UI.ViewModels.Installer
 
         private void LaunchAbout() => new MainWindow().ShowDialog();
 
-        // "Reset to non-Bloxstrap setup": hand the roblox:// protocol back to stock Roblox
+        // "Reset to non-ExploitStrap setup": hand the roblox:// protocol back to stock Roblox
         // (or unregister it if there's no stock install) so the user can run normal Roblox
         // or an executor that doesn't support bootstrappers (e.g. Volt). Reversible — the
-        // next Roblox launch through MrExBloxstrap re-registers it automatically.
+        // next Roblox launch through ExploitStrap re-registers it automatically.
         private void ResetToStock()
         {
             const string LOG_IDENT = "LaunchMenuViewModel::ResetToStock";
 
             var confirm = Frontend.ShowMessageBox(
-                "This hands Roblox's launch link back to normal Roblox, so Roblox stops launching through MrExBloxstrap.\n\n" +
+                "This hands Roblox's launch link back to normal Roblox, so Roblox stops launching through ExploitStrap.\n\n" +
                 "Use this when you want to run plain Roblox or an executor that doesn't support bootstrappers (like Volt).\n\n" +
-                "Nothing is uninstalled and none of your profiles or settings are touched. To start using MrExBloxstrap again, just launch Roblox through it once — it re-hooks itself automatically.\n\n" +
+                "Nothing is uninstalled and none of your profiles or settings are touched. To start using ExploitStrap again, just launch Roblox through it once — it re-hooks itself automatically.\n\n" +
                 "Continue?",
                 MessageBoxImage.Question,
                 MessageBoxButton.YesNo,
@@ -112,12 +112,12 @@ namespace MrExStrap.UI.ViewModels.Installer
                 return;
             }
 
-            string summary = MrExStrap.Utility.WindowsRegistry.ResetToStockRoblox();
+            string summary = ExploitStrap.Utility.WindowsRegistry.ResetToStockRoblox();
 
             Frontend.ShowMessageBox(
                 "Done — Roblox is back to its normal setup.\n\n" +
                 (string.IsNullOrEmpty(summary) ? "" : summary + "\n\n") +
-                "Launch Roblox through MrExBloxstrap any time to switch back to it.",
+                "Launch Roblox through ExploitStrap any time to switch back to it.",
                 MessageBoxImage.Information);
 
             App.Logger.WriteLine(LOG_IDENT, "Reset-to-stock completed.");
@@ -185,7 +185,7 @@ namespace MrExStrap.UI.ViewModels.Installer
 
                 var prompt = Frontend.ShowMessageBox(
                     $"An update is available.\n\nYou're on v{App.Version}. Latest is {release.TagName}.\n\n" +
-                    "Install now? MrExBloxstrap will download the update and reopen the menu on the new version.",
+                    "Install now? ExploitStrap will download the update and reopen the menu on the new version.",
                     MessageBoxImage.Question, MessageBoxButton.YesNo, MessageBoxResult.Yes);
 
                 if (prompt != MessageBoxResult.Yes)

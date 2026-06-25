@@ -2,11 +2,11 @@ using System.Windows;
 using System.Windows.Input;
 using CommunityToolkit.Mvvm.Input;
 
-namespace MrExStrap.UI.ViewModels.Installer
+namespace ExploitStrap.UI.ViewModels.Installer
 {
     public class InstallViewModel : NotifyPropertyChangedViewModel
     {
-        private readonly MrExStrap.Installer installer = new();
+        private readonly ExploitStrap.Installer installer = new();
 
         private readonly string _originalInstallLocation;
 

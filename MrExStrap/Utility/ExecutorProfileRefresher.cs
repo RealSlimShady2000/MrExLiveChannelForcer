@@ -1,4 +1,4 @@
-namespace MrExStrap.Utility
+namespace ExploitStrap.Utility
 {
     // Pre-launch hook for executor-tracked Versions Manager profiles.
     //
