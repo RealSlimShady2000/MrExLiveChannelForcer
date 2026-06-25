@@ -68,6 +68,7 @@
                     <ui:NavigationItem Content="Versions Manager" PageType="{x:Type pages:VersionsManagerPage}" Icon="Library24" Tag="versionsmanager" />
                     <ui:NavigationItem Content="Downgrading" PageType="{x:Type pages:VersionPage}" Icon="History24" Tag="downgrading" />
                     <ui:NavigationItem Content="VIP Servers" PageType="{x:Type pages:VipServerPage}" Icon="People28" Tag="vipservers" />
+                    <ui:NavigationItem Content="Server Browser" PageType="{x:Type pages:ServerBrowserPage}" Icon="Server24" Tag="serverbrowser" />
 
                     <ui:NavigationHeader Text="ACCOUNTS" />
                     <ui:NavigationItem Content="Multi Instance" PageType="{x:Type pages:MultiInstancePage}" Icon="PeopleTeam24" Tag="multiinstance" />
