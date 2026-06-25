@@ -68,6 +68,18 @@
         </controls:OptionControl>
 
         <controls:OptionControl
+            Header="Max framerate (FPS unlocker)"
+            Description="Removes Roblox's 60 FPS cap by setting the DFIntTaskSchedulerTargetFps engine flag before launch — the safe config method Bloxstrap and Fishstrap use, not a memory patcher like rbxfpsunlocker. Pick your monitor's refresh rate or Unlimited. Whether Roblox honours it can change with engine updates.">
+            <ComboBox Margin="5,0,0,0" Padding="10,5,10,5" Width="200" ItemsSource="{Binding FramerateLimits.Keys, Mode=OneTime}" Text="{Binding SelectedFramerateLimit, Mode=TwoWay}">
+                <ComboBox.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding Path=., Converter={StaticResource EnumNameConverter}}" />
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+            </ComboBox>
+        </controls:OptionControl>
+
+        <controls:OptionControl
             Margin="0,24,0,0"
             Header="{x:Static resources:Strings.Menu_FastFlags_Reset_Title}">
             <ui:ToggleSwitch IsChecked="{Binding ResetConfiguration, Mode=TwoWay}" />

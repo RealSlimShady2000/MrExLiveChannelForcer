@@ -67,25 +67,31 @@ namespace ExploitStrap.Extensions
             };
         }
 
-        // The default / primary bootstrapper icon is now ExploitStrap's own icon. The enum member
-        // is still named IconBloxstrap (settings back-compat) but it's labelled "ExploitStrap" and
-        // shows the brand icon. Loaded from the embedded application icon at runtime so we don't
-        // duplicate it into Properties.Resources; falls back to the upstream icon on any failure.
-        private static Icon GetBrandIcon()
+        private static Icon? _brandIcon;
+
+        // ExploitStrap's own icon as a System.Drawing.Icon, loaded once from the embedded application
+        // icon and cached (shared for the app lifetime — callers must not dispose it). Used for the
+        // default bootstrapper icon, the system-tray icon, and toast/balloon notifications. The enum
+        // member is still named IconBloxstrap for settings back-compat but renders this brand icon.
+        // Falls back to the upstream icon only if the embedded icon can't be loaded.
+        public static Icon GetBrandIcon()
         {
+            if (_brandIcon is not null)
+                return _brandIcon;
+
             try
             {
                 var info = System.Windows.Application.GetResourceStream(new Uri("pack://application:,,,/ExploitStrap.ico"));
                 if (info?.Stream is Stream stream)
                     using (stream)
-                        return new Icon(stream);
+                        _brandIcon = new Icon(stream);
             }
             catch (Exception ex)
             {
                 App.Logger.WriteException("BootstrapperIconEx::GetBrandIcon", ex);
             }
 
-            return Properties.Resources.IconBloxstrap;
+            return _brandIcon ?? Properties.Resources.IconBloxstrap;
         }
     }
 }

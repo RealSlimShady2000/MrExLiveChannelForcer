@@ -44,6 +44,8 @@ namespace ExploitStrap
 
             { "Rendering.TextureQuality.OverrideEnabled", "DFFlagTextureQualityOverrideEnabled" },
             { "Rendering.TextureQuality.Level", "DFIntTextureQualityOverride" },
+
+            { "Rendering.Framerate", "DFIntTaskSchedulerTargetFps" },
         };
 
         public static IReadOnlyDictionary<MSAAMode, string?> MSAAModes => new Dictionary<MSAAMode, string?>
@@ -61,6 +63,20 @@ namespace ExploitStrap
             { TextureQuality.Level1, "1" },
             { TextureQuality.Level2, "2" },
             { TextureQuality.Level3, "3" },
+        };
+
+        // FPS unlocking: DFIntTaskSchedulerTargetFps is the engine's frame target. null leaves
+        // Roblox's default 60 cap in place; a number sets the cap; a high number effectively uncaps.
+        public static IReadOnlyDictionary<FramerateLimit, string?> FramerateLimits => new Dictionary<FramerateLimit, string?>
+        {
+            { FramerateLimit.Default, null },
+            { FramerateLimit.Fps60, "60" },
+            { FramerateLimit.Fps120, "120" },
+            { FramerateLimit.Fps144, "144" },
+            { FramerateLimit.Fps165, "165" },
+            { FramerateLimit.Fps240, "240" },
+            { FramerateLimit.Fps360, "360" },
+            { FramerateLimit.Unlimited, "9999" }
         };
 
         // all fflags are stored as strings

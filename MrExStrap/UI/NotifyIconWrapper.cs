@@ -28,7 +28,7 @@ namespace ExploitStrap.UI
 
             _notifyIcon = new(new System.ComponentModel.Container())
             {
-                Icon = Properties.Resources.IconBloxstrap,
+                Icon = BootstrapperIconEx.GetBrandIcon(),
                 Text = App.ProjectName,
                 Visible = true
             };

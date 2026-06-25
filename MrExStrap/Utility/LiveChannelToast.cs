@@ -66,7 +66,7 @@ namespace ExploitStrap.Utility
             {
                 notifyIcon = new WinForms.NotifyIcon
                 {
-                    Icon = Properties.Resources.IconBloxstrap,
+                    Icon = BootstrapperIconEx.GetBrandIcon(),
                     Visible = true,
                     BalloonTipTitle = title,
                     BalloonTipText = message,

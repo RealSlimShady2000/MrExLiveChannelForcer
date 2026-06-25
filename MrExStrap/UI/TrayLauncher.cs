@@ -36,7 +36,7 @@ namespace ExploitStrap.UI
 
             _notifyIcon = new WinForms.NotifyIcon(new System.ComponentModel.Container())
             {
-                Icon = Properties.Resources.IconBloxstrap,
+                Icon = BootstrapperIconEx.GetBrandIcon(),
                 Visible = true,
                 ContextMenuStrip = _menu,
             };

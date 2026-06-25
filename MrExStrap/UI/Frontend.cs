@@ -150,7 +150,7 @@ namespace ExploitStrap.UI
         {
             var notifyIcon = new System.Windows.Forms.NotifyIcon
             {
-                Icon = Properties.Resources.IconBloxstrap,
+                Icon = BootstrapperIconEx.GetBrandIcon(),
                 Text = App.ProjectName,
                 Visible = true
             };

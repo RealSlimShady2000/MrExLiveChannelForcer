@@ -48,6 +48,15 @@ namespace ExploitStrap.UI.ViewModels.Settings
                 }
             }
         }
+
+        public IReadOnlyDictionary<FramerateLimit, string?> FramerateLimits => FastFlagManager.FramerateLimits;
+
+        public FramerateLimit SelectedFramerateLimit
+        {
+            get => FramerateLimits.FirstOrDefault(x => x.Value == App.FastFlags.GetPreset("Rendering.Framerate")).Key;
+            set => App.FastFlags.SetPreset("Rendering.Framerate", FramerateLimits[value]);
+        }
+
         public bool ResetConfiguration
         {
             get => _preResetFlags is not null;
