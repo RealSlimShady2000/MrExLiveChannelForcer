@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MrExStrap.AppData
+namespace ExploitStrap.AppData
 {
     public abstract class CommonAppData
     {

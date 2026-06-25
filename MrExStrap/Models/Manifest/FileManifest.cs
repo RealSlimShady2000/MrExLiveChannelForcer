@@ -1,6 +1,6 @@
-using MrExStrap.RobloxInterfaces;
+using ExploitStrap.RobloxInterfaces;
 
-namespace MrExStrap.Models.Manifest
+namespace ExploitStrap.Models.Manifest
 {
     public class FileManifest : List<ManifestFile>
     {

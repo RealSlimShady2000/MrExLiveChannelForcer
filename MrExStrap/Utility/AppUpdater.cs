@@ -2,7 +2,7 @@ using System.Net.Http;
 using System.Net.Sockets;
 using System.Security.Authentication;
 
-namespace MrExStrap.Utility
+namespace ExploitStrap.Utility
 {
     // Shared auto-update helpers used by both the Roblox-launch path (Bootstrapper.CheckForUpdates)
     // and the menu-open path (LaunchHandler.LaunchMenu). Keeps the download + relaunch contract
@@ -28,7 +28,7 @@ namespace MrExStrap.Utility
         //   - the user turned off CheckForUpdates,
         //   - we're already mid-upgrade (-upgrade flag passed),
         //   - we're in portable mode (the user updates by re-downloading the portable folder),
-        //   - or there's another MrExBloxstrap instance running (likely a background watcher).
+        //   - or there's another ExploitStrap instance running (likely a background watcher).
         public static bool IsAutoUpdateEligible()
         {
             if (!App.Settings.Prop.CheckForUpdates)
@@ -243,7 +243,7 @@ namespace MrExStrap.Utility
             {
                 return "The secure connection to GitHub was corrupted before it finished (a TLS frame came back malformed). " +
                        "This is almost always antivirus HTTPS/SSL scanning, or a filtering proxy or VPN. " +
-                       "Add MrExBloxstrap to your antivirus's exclusions or turn off its HTTPS/SSL scanning, then try again.";
+                       "Add ExploitStrap to your antivirus's exclusions or turn off its HTTPS/SSL scanning, then try again.";
             }
 
             if (inner is SocketException sock)

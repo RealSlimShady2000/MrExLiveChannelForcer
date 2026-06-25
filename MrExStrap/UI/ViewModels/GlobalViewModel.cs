@@ -1,7 +1,7 @@
 using System.Windows.Input;
 using CommunityToolkit.Mvvm.Input;
 
-namespace MrExStrap.UI.ViewModels
+namespace ExploitStrap.UI.ViewModels
 {
     public static class GlobalViewModel
     {

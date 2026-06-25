@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Data;
 
-namespace MrExStrap.UI.Converters
+namespace ExploitStrap.UI.Converters
 {
     public class StringFormatConverter : IValueConverter
     {

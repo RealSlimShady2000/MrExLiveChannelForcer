@@ -1,4 +1,4 @@
-namespace MrExStrap.Utility
+namespace ExploitStrap.Utility
 {
     // Manages Windows directory junctions used to expose per-profile Roblox
     // install dirs under the standard "Versions\version-<hash>\" name. This is

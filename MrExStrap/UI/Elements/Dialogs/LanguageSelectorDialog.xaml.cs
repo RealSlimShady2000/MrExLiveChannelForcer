@@ -11,9 +11,9 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
-using MrExStrap.UI.ViewModels.Dialogs;
+using ExploitStrap.UI.ViewModels.Dialogs;
 
-namespace MrExStrap.UI.Elements.Dialogs
+namespace ExploitStrap.UI.Elements.Dialogs
 {
     /// <summary>
     /// Interaction logic for LanguageSelectorDialog.xaml

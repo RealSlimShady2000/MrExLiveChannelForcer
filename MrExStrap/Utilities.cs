@@ -1,7 +1,7 @@
-using MrExStrap.AppData;
+using ExploitStrap.AppData;
 using System.ComponentModel;
 
-namespace MrExStrap
+namespace ExploitStrap
 {
     static class Utilities
     {
@@ -39,7 +39,7 @@ namespace MrExStrap
             if (idx != -1)
                 version = version[..idx];
 
-            // MrExStrap fork uses single-number versioning (420, 420.1, 420.2...).
+            // ExploitStrap fork uses single-number versioning (420, 420.1, 420.2...).
             // System.Version requires at least major.minor — pad single-segment values with ".0".
             if (!version.Contains('.'))
                 version += ".0";
@@ -155,7 +155,7 @@ namespace MrExStrap
 
         public static void KillBackgroundUpdater()
         {
-            using EventWaitHandle handle = new EventWaitHandle(false, EventResetMode.AutoReset, "MrExStrap-BackgroundUpdaterKillEvent");
+            using EventWaitHandle handle = new EventWaitHandle(false, EventResetMode.AutoReset, "ExploitStrap-BackgroundUpdaterKillEvent");
             handle.Set();
         }
     }

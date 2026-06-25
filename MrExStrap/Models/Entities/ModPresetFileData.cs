@@ -1,7 +1,7 @@
 using System.Security.Cryptography;
 using System.Windows.Markup;
 
-namespace MrExStrap.Models.Entities
+namespace ExploitStrap.Models.Entities
 {
     public class ModPresetFileData
     {

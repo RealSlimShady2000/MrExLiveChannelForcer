@@ -8,12 +8,12 @@ using CommunityToolkit.Mvvm.Input;
 using ICSharpCode.SharpZipLib.Zip;
 using Microsoft.Win32;
 
-using MrExStrap.Models;
-using MrExStrap.UI;
+using ExploitStrap.Models;
+using ExploitStrap.UI;
 
-namespace MrExStrap.UI.ViewModels.Settings
+namespace ExploitStrap.UI.ViewModels.Settings
 {
-    public class BloxstrapViewModel : NotifyPropertyChangedViewModel
+    public class ExploitStrapViewModel : NotifyPropertyChangedViewModel
     {
         public WebEnvironment[] WebEnvironments => Enum.GetValues<WebEnvironment>();
 
@@ -47,9 +47,9 @@ namespace MrExStrap.UI.ViewModels.Settings
         // reality rather than a stored flag.
         public bool DisableRobloxCapturesEnabled
         {
-            // Fully qualified: the MrExStrap.UI.Utility namespace shadows the top-level Utility here.
-            get => MrExStrap.Utility.RobloxCaptureBlocker.IsBlocked;
-            set { MrExStrap.Utility.RobloxCaptureBlocker.SetBlocked(value); OnPropertyChanged(nameof(DisableRobloxCapturesEnabled)); }
+            // Fully qualified: the ExploitStrap.UI.Utility namespace shadows the top-level Utility here.
+            get => ExploitStrap.Utility.RobloxCaptureBlocker.IsBlocked;
+            set { ExploitStrap.Utility.RobloxCaptureBlocker.SetBlocked(value); OnPropertyChanged(nameof(DisableRobloxCapturesEnabled)); }
         }
 
         // v420.28: Stream Mode
@@ -77,7 +77,7 @@ namespace MrExStrap.UI.ViewModels.Settings
                         StartupRegistration.Enable();
 
                         var prompt = Frontend.ShowMessageBox(
-                            "MrExBloxstrap will now start in the system tray every time Windows starts.\n\n" +
+                            "ExploitStrap will now start in the system tray every time Windows starts.\n\n" +
                             "Start the tray launcher now without rebooting?",
                             MessageBoxImage.Information,
                             MessageBoxButton.YesNo,
@@ -85,7 +85,7 @@ namespace MrExStrap.UI.ViewModels.Settings
                         if (prompt == MessageBoxResult.Yes)
                         {
                             try { Process.Start(Paths.Process, "-tray"); }
-                            catch (Exception ex) { App.Logger.WriteException("BloxstrapViewModel::TrayLauncher::StartNow", ex); }
+                            catch (Exception ex) { App.Logger.WriteException("ExploitStrapViewModel::TrayLauncher::StartNow", ex); }
                         }
                     }
                     else
@@ -95,7 +95,7 @@ namespace MrExStrap.UI.ViewModels.Settings
                 }
                 catch (Exception ex)
                 {
-                    App.Logger.WriteException("BloxstrapViewModel::TrayLauncher::Toggle", ex);
+                    App.Logger.WriteException("ExploitStrapViewModel::TrayLauncher::Toggle", ex);
                 }
             }
         }
@@ -113,7 +113,7 @@ namespace MrExStrap.UI.ViewModels.Settings
             set { App.Settings.Prop.NotifyOnExecutorUpdate = value; OnPropertyChanged(nameof(NotifyOnExecutorUpdate)); }
         }
 
-        // v420.29.5: toast when a newer MrExBloxstrap release is available. Default ON.
+        // v420.29.5: toast when a newer ExploitStrap release is available. Default ON.
         public bool NotifyOnAppUpdate
         {
             get => App.Settings.Prop.NotifyOnAppUpdate;
@@ -170,7 +170,7 @@ namespace MrExStrap.UI.ViewModels.Settings
             }
             catch (Exception ex)
             {
-                App.Logger.WriteException("BloxstrapViewModel::OpenLogFolder", ex);
+                App.Logger.WriteException("ExploitStrapViewModel::OpenLogFolder", ex);
             }
         }
 
@@ -183,7 +183,7 @@ namespace MrExStrap.UI.ViewModels.Settings
             }
             catch (Exception ex)
             {
-                App.Logger.WriteException("BloxstrapViewModel::OpenDebugFolder", ex);
+                App.Logger.WriteException("ExploitStrapViewModel::OpenDebugFolder", ex);
                 Frontend.ShowMessageBox(
                     $"Couldn't open the debug folder at {Paths.DebugOutput}.\n\nReason: {ex.GetType().Name}: {ex.Message}",
                     MessageBoxImage.Warning);
@@ -192,7 +192,7 @@ namespace MrExStrap.UI.ViewModels.Settings
 
         private async Task SaveDiagnosticSnapshotAsync()
         {
-            const string LOG_IDENT = "BloxstrapViewModel::SaveDiagnosticSnapshotAsync";
+            const string LOG_IDENT = "ExploitStrapViewModel::SaveDiagnosticSnapshotAsync";
             try
             {
                 string zipPath = await DiagnosticBundle.CreateAsync();
@@ -237,7 +237,7 @@ namespace MrExStrap.UI.ViewModels.Settings
 
         private async Task ClearRobloxCacheAsync()
         {
-            const string LOG_IDENT = "BloxstrapViewModel::ClearRobloxCacheAsync";
+            const string LOG_IDENT = "ExploitStrapViewModel::ClearRobloxCacheAsync";
 
             // Candidate cache locations. We touch the fork's own version/download cache and
             // the default-location Roblox install (when the user also runs vanilla Roblox on
@@ -267,7 +267,7 @@ namespace MrExStrap.UI.ViewModels.Settings
             string bulletList = string.Join("\n", candidates.Select(p => "- " + p));
             string prompt =
                 "The following folders will be permanently deleted:\n\n" + bulletList +
-                "\n\nYour Bloxstrap Mr Exploit edition settings, FastFlags, and custom themes will be kept. " +
+                "\n\nYour ExploitStrap settings, FastFlags, and custom themes will be kept. " +
                 "Roblox and the client cache will redownload on next launch.\n\n" +
                 "Continue?";
 
@@ -317,7 +317,7 @@ namespace MrExStrap.UI.ViewModels.Settings
 
             var dialog = new SaveFileDialog 
             { 
-                FileName = $"MrExStrap-export-{timestamp}.zip",
+                FileName = $"ExploitStrap-export-{timestamp}.zip",
                 Filter = $"{Strings.FileTypes_ZipArchive}|*.zip" 
             };
 
@@ -359,7 +359,7 @@ namespace MrExStrap.UI.ViewModels.Settings
 
         private void AddFilesToZipStream(ZipOutputStream zipStream, IEnumerable<string> files, string directory)
         {
-            const string LOG_IDENT = "BloxstrapViewModel::AddFilesToZipStream";
+            const string LOG_IDENT = "ExploitStrapViewModel::AddFilesToZipStream";
 
             foreach (string file in files)
             {

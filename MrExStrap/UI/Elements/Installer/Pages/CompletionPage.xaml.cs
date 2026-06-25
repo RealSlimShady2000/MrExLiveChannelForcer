@@ -1,7 +1,7 @@
 using System.Windows;
-using MrExStrap.UI.ViewModels.Installer;
+using ExploitStrap.UI.ViewModels.Installer;
 
-namespace MrExStrap.UI.Elements.Installer.Pages
+namespace ExploitStrap.UI.Elements.Installer.Pages
 {
     /// <summary>
     /// Interaction logic for CompletionPage.xaml

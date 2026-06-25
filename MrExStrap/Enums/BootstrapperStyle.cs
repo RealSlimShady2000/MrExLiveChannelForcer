@@ -1,4 +1,4 @@
-namespace MrExStrap.Enums
+namespace ExploitStrap.Enums
 {
     public enum BootstrapperStyle
     {
@@ -8,7 +8,7 @@ namespace MrExStrap.Enums
         ProgressDialog,
         ClassicFluentDialog,
         ByfronDialog,
-        [EnumName(StaticName = "MrExStrap")]
+        [EnumName(StaticName = "ExploitStrap")]
         FluentDialog,
         FluentAeroDialog,
         CustomDialog

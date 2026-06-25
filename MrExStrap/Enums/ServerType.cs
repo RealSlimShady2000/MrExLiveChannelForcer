@@ -1,4 +1,4 @@
-namespace MrExStrap.Enums
+namespace ExploitStrap.Enums
 {
     public enum ServerType
     {

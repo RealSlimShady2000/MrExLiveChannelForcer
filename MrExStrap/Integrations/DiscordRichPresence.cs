@@ -1,8 +1,8 @@
 using System.Windows;
-using MrExStrap.Models.RobloxApi;
+using ExploitStrap.Models.RobloxApi;
 using DiscordRPC;
 
-namespace MrExStrap.Integrations
+namespace ExploitStrap.Integrations
 {
     public class DiscordRichPresence : IDisposable
     {

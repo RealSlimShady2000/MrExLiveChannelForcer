@@ -24,13 +24,13 @@ jobs:
       run: dotnet build -c Release --no-restore
 
     - name: Publish
-      run: dotnet publish -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:CommitHash=${{ github.sha }} -p:CommitRef=${{ github.ref_type }}/${{ github.ref_name }} -r win-x64 -c Release --self-contained true .\MrExStrap\MrExStrap.csproj
+      run: dotnet publish -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:CommitHash=${{ github.sha }} -p:CommitRef=${{ github.ref_type }}/${{ github.ref_name }} -r win-x64 -c Release --self-contained true .\MrExStrap\ExploitStrap.csproj
 
     - name: Upload Artifact
       id: upload-artifact
       uses: actions/upload-artifact@v7
       with:
-        name: MrExBloxstrap (Release) (${{ github.sha }})
+        name: ExploitStrap (Release) (${{ github.sha }})
         path: .\MrExStrap\bin\Release\net6.0-windows\win-x64\publish\*
 
   release:
@@ -45,7 +45,7 @@ jobs:
       - name: Download artifact
         uses: actions/download-artifact@v4
         with:
-          name: MrExBloxstrap (Release) (${{ github.sha }})
+          name: ExploitStrap (Release) (${{ github.sha }})
           path: release
 
       # SignPath Foundation signing — re-enable once the fork is approved.
@@ -65,12 +65,12 @@ jobs:
       #     output-artifact-directory: 'release'
 
       - name: Rename binary
-        run: mv release/MrExBloxstrap.exe MrExBloxstrap-${{ github.ref_name }}.exe
+        run: mv release/ExploitStrap.exe ExploitStrap-${{ github.ref_name }}.exe
 
       - name: Generate SHA256SUMS
         run: |
           set -e
-          sha256sum MrExBloxstrap-${{ github.ref_name }}.exe > SHA256SUMS
+          sha256sum ExploitStrap-${{ github.ref_name }}.exe > SHA256SUMS
           cat SHA256SUMS
 
       - name: Create release
@@ -78,6 +78,6 @@ jobs:
         with:
           draft: true
           files: |
-            MrExBloxstrap-${{ github.ref_name }}.exe
+            ExploitStrap-${{ github.ref_name }}.exe
             SHA256SUMS
-          name: MrExBloxstrap ${{ github.ref_name }}
+          name: ExploitStrap ${{ github.ref_name }}

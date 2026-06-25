@@ -1,7 +1,7 @@
 using System.Windows;
-using MrExStrap.Resources;
+using ExploitStrap.Resources;
 
-namespace MrExStrap.Utility
+namespace ExploitStrap.Utility
 {
     internal static class Shortcut
     {

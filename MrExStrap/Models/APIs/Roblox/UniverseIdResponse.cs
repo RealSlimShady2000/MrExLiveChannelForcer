@@ -1,4 +1,4 @@
-namespace MrExStrap.Models.APIs.Roblox
+namespace ExploitStrap.Models.APIs.Roblox
 {
     // lmao its just one property
     public class UniverseIdResponse

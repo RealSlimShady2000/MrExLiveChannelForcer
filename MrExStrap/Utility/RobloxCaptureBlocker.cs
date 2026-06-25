@@ -1,4 +1,4 @@
-namespace MrExStrap.Utility
+namespace ExploitStrap.Utility
 {
     // Disables Roblox's built-in screenshot and video capture without touching the Roblox process
     // or any FastFlag. Roblox saves screenshots to %MyPictures%\Roblox and recordings to

@@ -2,7 +2,7 @@ using System.Net.NetworkInformation;
 using System.Security;
 using Microsoft.Win32;
 
-namespace MrExStrap.Utility.BanAsync
+namespace ExploitStrap.Utility.BanAsync
 {
     public static class MacSpoofer
     {

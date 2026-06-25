@@ -5,10 +5,10 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shell;
 
-using MrExStrap.UI.Elements.Bootstrapper.Base;
-using MrExStrap.UI.ViewModels.Bootstrapper;
+using ExploitStrap.UI.Elements.Bootstrapper.Base;
+using ExploitStrap.UI.ViewModels.Bootstrapper;
 
-namespace MrExStrap.UI.Elements.Bootstrapper
+namespace ExploitStrap.UI.Elements.Bootstrapper
 {
     /// <summary>
     /// Interaction logic for ByfronDialog.xaml
@@ -17,7 +17,7 @@ namespace MrExStrap.UI.Elements.Bootstrapper
     {
         private readonly ByfronDialogViewModel _viewModel;
 
-        public MrExStrap.Bootstrapper? Bootstrapper { get; set; }
+        public ExploitStrap.Bootstrapper? Bootstrapper { get; set; }
 
         private bool _isClosing;
 

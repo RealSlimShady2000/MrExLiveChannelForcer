@@ -5,19 +5,19 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;
 
-using MrExStrap.UI.Utility;
-using MrExStrap.UI.ViewModels.Settings;
+using ExploitStrap.UI.Utility;
+using ExploitStrap.UI.ViewModels.Settings;
 
-namespace MrExStrap.UI.Elements.Settings.Pages
+namespace ExploitStrap.UI.Elements.Settings.Pages
 {
     /// <summary>
-    /// Interaction logic for BloxstrapPage.xaml
+    /// Interaction logic for ExploitStrapPage.xaml
     /// </summary>
-    public partial class BloxstrapPage
+    public partial class ExploitStrapPage
     {
-        public BloxstrapPage()
+        public ExploitStrapPage()
         {
-            DataContext = new BloxstrapViewModel();
+            DataContext = new ExploitStrapViewModel();
             InitializeComponent();
         }
 

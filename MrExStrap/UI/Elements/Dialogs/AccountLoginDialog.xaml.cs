@@ -1,7 +1,7 @@
 using System.Windows;
 using Microsoft.Web.WebView2.Core;
 
-namespace MrExStrap.UI.Elements.Dialogs
+namespace ExploitStrap.UI.Elements.Dialogs
 {
     // Embedded Roblox login that captures the .ROBLOSECURITY cookie for a new account. Mirrors the
     // WebView2 approach in VipServerDialog. Starts from a cleared cookie jar so the user logs into

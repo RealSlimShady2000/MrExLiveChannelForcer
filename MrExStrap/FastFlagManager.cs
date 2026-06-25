@@ -1,6 +1,6 @@
-using MrExStrap.Enums.FlagPresets;
+using ExploitStrap.Enums.FlagPresets;
 
-namespace MrExStrap
+namespace ExploitStrap
 {
     public class FastFlagManager : JsonManager<Dictionary<string, object>>
     {

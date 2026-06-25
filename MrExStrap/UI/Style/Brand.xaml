@@ -1,0 +1,71 @@
+<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!--
+        ExploitStrap brand palette, taken from the logo: neon cyan that fades to green, with
+        purple highlights, on a deep technical-dark background. The control accent (toggles,
+        buttons, links) is applied in code via Wpf.Ui.Appearance.Accent.Apply(BrandAccent) in
+        WpfUiWindow.ApplyTheme — these resources are for brand flourishes: headers, the wordmark,
+        the gradient launch CTA, status readouts.
+    -->
+
+    <Color x:Key="BrandCyanColor">#FF22D3EE</Color>
+    <Color x:Key="BrandGreenColor">#FF4ADE80</Color>
+    <Color x:Key="BrandPurpleColor">#FFA855F7</Color>
+    <Color x:Key="BrandInkColor">#FF0B0F14</Color>
+    <Color x:Key="BrandSurfaceColor">#FF121821</Color>
+    <Color x:Key="BrandHairlineColor">#FF1F2A37</Color>
+
+    <SolidColorBrush x:Key="BrandCyanBrush" Color="{StaticResource BrandCyanColor}" />
+    <SolidColorBrush x:Key="BrandGreenBrush" Color="{StaticResource BrandGreenColor}" />
+    <SolidColorBrush x:Key="BrandPurpleBrush" Color="{StaticResource BrandPurpleColor}" />
+    <SolidColorBrush x:Key="BrandInkBrush" Color="{StaticResource BrandInkColor}" />
+    <SolidColorBrush x:Key="BrandSurfaceBrush" Color="{StaticResource BrandSurfaceColor}" />
+    <SolidColorBrush x:Key="BrandHairlineBrush" Color="{StaticResource BrandHairlineColor}" />
+
+    <!-- Signature cyan -> green gradient: wordmark underline, primary CTA, selected-nav accent. -->
+    <LinearGradientBrush x:Key="BrandGradientBrush" StartPoint="0,0" EndPoint="1,0">
+        <GradientStop Color="{StaticResource BrandCyanColor}" Offset="0" />
+        <GradientStop Color="{StaticResource BrandGreenColor}" Offset="1" />
+    </LinearGradientBrush>
+
+    <!-- Purple -> cyan -> green diagonal, for larger hero surfaces (Home header, installer). -->
+    <LinearGradientBrush x:Key="BrandGradientTriBrush" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Color="{StaticResource BrandPurpleColor}" Offset="0" />
+        <GradientStop Color="{StaticResource BrandCyanColor}" Offset="0.55" />
+        <GradientStop Color="{StaticResource BrandGreenColor}" Offset="1" />
+    </LinearGradientBrush>
+
+    <!-- Monospace family for technical readouts: version GUIDs, fast-flag names, channel/status. -->
+    <FontFamily x:Key="BrandMonoFont">Consolas</FontFamily>
+
+    <!-- Cyan neon glow for the logo / accent edges. -->
+    <DropShadowEffect x:Key="BrandGlowEffect" Color="{StaticResource BrandCyanColor}" BlurRadius="18" ShadowDepth="0" Opacity="0.5" />
+
+    <!-- Uppercase, dimmed group label for the sectioned navigation and page section headers. -->
+    <Style x:Key="BrandSectionHeader" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="11" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Opacity" Value="0.55" />
+        <Setter Property="Margin" Value="6,14,0,4" />
+        <Setter Property="Foreground" Value="{DynamicResource TextFillColorTertiaryBrush}" />
+    </Style>
+
+    <!-- Monospace technical readout in brand cyan. -->
+    <Style x:Key="BrandMono" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{StaticResource BrandMonoFont}" />
+        <Setter Property="Foreground" Value="{StaticResource BrandCyanBrush}" />
+    </Style>
+
+    <!-- Elevated surface tile for the Home dashboard status cards. -->
+    <Style x:Key="HomeTile" TargetType="Border">
+        <Setter Property="Background" Value="{StaticResource BrandSurfaceBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource BrandHairlineBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="8" />
+        <Setter Property="Padding" Value="16,14" />
+        <Setter Property="Margin" Value="6" />
+    </Style>
+
+</ResourceDictionary>

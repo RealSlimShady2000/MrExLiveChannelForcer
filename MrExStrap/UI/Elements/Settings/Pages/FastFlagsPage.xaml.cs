@@ -3,11 +3,11 @@ using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Collections.ObjectModel;
 
-using MrExStrap.Models.Persistable;
-using MrExStrap.UI.Elements.Dialogs;
-using MrExStrap.UI.ViewModels.Settings;
+using ExploitStrap.Models.Persistable;
+using ExploitStrap.UI.Elements.Dialogs;
+using ExploitStrap.UI.ViewModels.Settings;
 
-namespace MrExStrap.UI.Elements.Settings.Pages
+namespace ExploitStrap.UI.Elements.Settings.Pages
 {
     /// <summary>
     /// Interaction logic for FastFlagsPage.xaml

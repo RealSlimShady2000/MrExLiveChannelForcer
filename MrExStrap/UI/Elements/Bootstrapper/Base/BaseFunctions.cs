@@ -1,6 +1,6 @@
 using System.Windows;
 
-namespace MrExStrap.UI.Elements.Bootstrapper.Base
+namespace ExploitStrap.UI.Elements.Bootstrapper.Base
 {
     static class BaseFunctions
     {

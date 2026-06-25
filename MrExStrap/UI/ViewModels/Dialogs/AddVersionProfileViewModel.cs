@@ -3,11 +3,11 @@ using System.Windows;
 using System.Windows.Input;
 using CommunityToolkit.Mvvm.Input;
 
-using MrExStrap.Models.APIs;
-using MrExStrap.Models.Persistable;
-using MrExStrap.Utility;
+using ExploitStrap.Models.APIs;
+using ExploitStrap.Models.Persistable;
+using ExploitStrap.Utility;
 
-namespace MrExStrap.UI.ViewModels.Dialogs
+namespace ExploitStrap.UI.ViewModels.Dialogs
 {
     public class AddVersionProfileViewModel : NotifyPropertyChangedViewModel
     {

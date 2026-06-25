@@ -4,7 +4,7 @@
  * Copyright (c) 2015-present MaximumADHD
 */
 
-namespace MrExStrap.Models.Manifest
+namespace ExploitStrap.Models.Manifest
 {
     public class Package
     {

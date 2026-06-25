@@ -1,4 +1,4 @@
-namespace MrExStrap.Enums.FlagPresets
+namespace ExploitStrap.Enums.FlagPresets
 {
     public enum TextureQuality
     {

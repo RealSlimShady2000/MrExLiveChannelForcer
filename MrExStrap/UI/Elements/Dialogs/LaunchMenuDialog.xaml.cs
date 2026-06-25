@@ -11,11 +11,11 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
-using MrExStrap.UI.ViewModels.Dialogs;
-using MrExStrap.UI.ViewModels.Installer;
+using ExploitStrap.UI.ViewModels.Dialogs;
+using ExploitStrap.UI.ViewModels.Installer;
 using Wpf.Ui.Mvvm.Interfaces;
 
-namespace MrExStrap.UI.Elements.Dialogs
+namespace ExploitStrap.UI.Elements.Dialogs
 {
     /// <summary>
     /// Interaction logic for LaunchMenuDialog.xaml
@@ -40,7 +40,7 @@ namespace MrExStrap.UI.Elements.Dialogs
             // v420.28: fire-and-forget LIVE-change + executor-update toast checks
             // when the launcher opens. UpdateMonitor honours its own toggles and
             // budgets so this is safe to call without gating here.
-            _ = MrExStrap.Utility.UpdateMonitor.CheckAllAsync();
+            _ = ExploitStrap.Utility.UpdateMonitor.CheckAllAsync();
         }
     }
 }

@@ -3,14 +3,14 @@
 // Original behavior: truncate %LocalAppData%\Roblox\LocalStorage\RobloxCookies.dat
 // to 0 bytes before launch so the client starts without the previous session's
 // tracking cookies. This file is a C# port of that behavior with an extra
-// best-effort sweep over MrExBloxstrap's versioned install dirs.
+// best-effort sweep over ExploitStrap's versioned install dirs.
 
-namespace MrExStrap.Utility
+namespace ExploitStrap.Utility
 {
     // Cookie-level "privacy mode" helper. Truncates Roblox's RobloxCookies.dat so the
     // next launch starts without any cached session-tracking cookies from the previous run.
     //
-    // Important caveat (kept in sync with the UI copy on BloxstrapPage):
+    // Important caveat (kept in sync with the UI copy on ExploitStrapPage):
     //   This is NOT hardware-level privacy. It does NOT spoof MAC / HWID / machine GUID,
     //   and does NOT interfere with BanAsync fingerprinting. It only wipes the one cookie
     //   file Roblox uses to link browser and client sessions.
@@ -20,7 +20,7 @@ namespace MrExStrap.Utility
         private const string CookieFileName = "RobloxCookies.dat";
 
         // Best-effort: we truncate wherever Roblox might have written the cookie file on this
-        // machine. That's the default-location install plus any Bloxstrap-managed version dir
+        // machine. That's the default-location install plus any ExploitStrap-managed version dir
         // that happens to have a LocalStorage alongside it.
         public static void TruncateRobloxCookies()
         {
@@ -55,7 +55,7 @@ namespace MrExStrap.Utility
             string defaultLocalStorage = Path.Combine(Paths.LocalAppData, "Roblox", "LocalStorage");
             yield return Path.Combine(defaultLocalStorage, CookieFileName);
 
-            // 2. Anything that happens to live under this Bloxstrap install (Versions\<guid>\LocalStorage).
+            // 2. Anything that happens to live under this ExploitStrap install (Versions\<guid>\LocalStorage).
             //    We don't pin a single path — we recurse under Paths.Versions if it exists. Tolerant of
             //    multiple versioned installs coexisting.
             if (!string.IsNullOrEmpty(Paths.Versions) && Directory.Exists(Paths.Versions))

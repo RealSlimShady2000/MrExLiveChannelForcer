@@ -1,6 +1,6 @@
-using MrExStrap.Models.RobloxApi;
+using ExploitStrap.Models.RobloxApi;
 
-namespace MrExStrap.Models.Entities
+namespace ExploitStrap.Models.Entities
 {
     public class UserDetails
     {

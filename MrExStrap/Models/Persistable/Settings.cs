@@ -1,6 +1,6 @@
 using System.Collections.ObjectModel;
 
-namespace MrExStrap.Models.Persistable
+namespace ExploitStrap.Models.Persistable
 {
     public class Settings
     {
@@ -34,7 +34,7 @@ namespace MrExStrap.Models.Persistable
         // mod preset configuration
         public bool UseDisableAppPatch { get; set; } = false;
 
-        // version downgrade (MrExStrap fork feature)
+        // version downgrade (ExploitStrap fork feature)
         public bool UseCustomVersion { get; set; } = false;
         public string CustomVersionGuid { get; set; } = "";
 
@@ -51,7 +51,7 @@ namespace MrExStrap.Models.Persistable
         public ObservableCollection<VersionProfile> VersionProfiles { get; set; } = new();
         public string ActiveVersionProfileId { get; set; } = "";
 
-        // v420.22+: when ON, every Roblox launch through MrExBloxstrap pops a small
+        // v420.22+: when ON, every Roblox launch through ExploitStrap pops a small
         // version-picker dialog right before the bootstrapper starts (and after the
         // VIP server picker, when that's also enabled). Saves the user a trip to
         // the Versions Manager tab when they just want to switch executor on a
@@ -64,10 +64,10 @@ namespace MrExStrap.Models.Persistable
         // downgrade launch is a meaningful event.
         public bool ConfirmNonLiveLaunch { get; set; } = true;
 
-        // post-launch "Channel: LIVE" toast (MrExStrap fork feature)
+        // post-launch "Channel: LIVE" toast (ExploitStrap fork feature)
         public bool ShowLiveChannelToast { get; set; } = true;
 
-        // privacy mode — truncate RobloxCookies.dat before every launch (MrExStrap fork feature)
+        // privacy mode — truncate RobloxCookies.dat before every launch (ExploitStrap fork feature)
         public bool EnablePrivacyMode { get; set; } = false;
 
         // v420.28+: Stream Mode hides Roblox-account info from Discord Rich Presence,
@@ -76,7 +76,7 @@ namespace MrExStrap.Models.Persistable
         // their screen and don't want viewers to see account-identifying info.
         public bool EnableStreamMode { get; set; } = false;
 
-        // v420.28+: persistent system tray launcher. When ON, MrExBloxstrap registers
+        // v420.28+: persistent system tray launcher. When ON, ExploitStrap registers
         // itself to start with Windows and lives in the notification area with a
         // right-click menu for quick-launching the active profile or switching
         // profiles without opening the full settings UI.
@@ -91,14 +91,14 @@ namespace MrExStrap.Models.Persistable
         public bool NotifyOnLiveChange { get; set; } = false;
         public bool NotifyOnExecutorUpdate { get; set; } = false;
 
-        // v420.29.5+: pop a toast when a newer MrExBloxstrap release is available on
+        // v420.29.5+: pop a toast when a newer ExploitStrap release is available on
         // GitHub. Default ON so users always find out about updates even if they never
         // open the launch menu (e.g. tray-only users). Independent of the existing
         // menu-open "install now?" prompt — this is the passive heads-up.
         public bool NotifyOnAppUpdate { get; set; } = true;
 
         // multi-instance: hold ROBLOX_singletonMutex while clients run so they can start side
-        // by side instead of closing each other (MrExStrap fork feature, see Utility.MultiInstance)
+        // by side instead of closing each other (ExploitStrap fork feature, see Utility.MultiInstance)
         public bool MultiInstanceEnabled { get; set; } = false;
 
         // Multi Instance tab: when on, account launches open to the Roblox home screen instead
@@ -116,28 +116,28 @@ namespace MrExStrap.Models.Persistable
         // the tab). Empty until entered.
         public string BloxGenApiKey { get; set; } = "";
 
-        // auto-tile Roblox windows in a grid once they're visible (MrExStrap fork feature)
+        // auto-tile Roblox windows in a grid once they're visible (ExploitStrap fork feature)
         public bool WindowTilingEnabled { get; set; } = false;
         public WindowTilingLayout WindowTilingLayout { get; set; } = WindowTilingLayout.Auto;
 
         // Multi Instance tab — bulk-launch preferences (not sensitive; the accounts themselves
-        // live DPAPI-encrypted in Accounts.json, never here). MrExStrap fork feature.
+        // live DPAPI-encrypted in Accounts.json, never here). ExploitStrap fork feature.
         public string LastBulkPlaceId { get; set; } = "";
         public string LastBulkJobId { get; set; } = "";
         public int BulkLaunchDelaySeconds { get; set; } = 5;
 
-        // user-visible debug mode — reveals the Run health check button (MrExStrap fork feature)
+        // user-visible debug mode — reveals the Run health check button (ExploitStrap fork feature)
         public bool DebugModeEnabled { get; set; } = false;
 
         // VIP server picker — pop a WebView2 dialog before player launches and offer a free
-        // shared VIP server pulled from rbxservers.xyz. Off by default. (MrExStrap fork feature)
+        // shared VIP server pulled from rbxservers.xyz. Off by default. (ExploitStrap fork feature)
         public bool EnableVipServerPrompt { get; set; } = false;
 
-        // BanAsync tab — trace cleaner + MAC/MachineGuid spoofer. (MrExStrap fork feature)
+        // BanAsync tab — trace cleaner + MAC/MachineGuid spoofer. (ExploitStrap fork feature)
         public bool BanAsyncPreserveInGameSettings { get; set; } = true;
         public bool BanAsyncPreserveFastFlags { get; set; } = true;
         public bool BanAsyncIncludeStudioFolders { get; set; } = false;
-        // Opt-in (default off): "Clean traces" also wipes MrExBloxstrap's downloaded Roblox
+        // Opt-in (default off): "Clean traces" also wipes ExploitStrap's downloaded Roblox
         // installs under Versions\. Destructive — forces a full re-download next launch.
         public bool BanAsyncCleanVersions { get; set; } = false;
         public bool BanAsyncClearBrowserCookies { get; set; } = false;
@@ -148,9 +148,9 @@ namespace MrExStrap.Models.Persistable
         public bool BanAsyncDhcpRefreshAfterSpoof { get; set; } = false;
 
         // Default on. Spoofed MACs are written to HKLM\SYSTEM\...\NetworkAddress which the
-        // Windows driver reads at every load, so the change naturally outlives MrExBloxstrap
+        // Windows driver reads at every load, so the change naturally outlives ExploitStrap
         // closing, being uninstalled, or the machine rebooting. Toggle off if you want
-        // MrExBloxstrap to clear the registry override on its own exit (the MAC stays applied
+        // ExploitStrap to clear the registry override on its own exit (the MAC stays applied
         // for the current Windows session and reverts on next reboot).
         public bool BanAsyncPersistent { get; set; } = true;
         public bool BanAsyncAdvancedMode { get; set; } = false;

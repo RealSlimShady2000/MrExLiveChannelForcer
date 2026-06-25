@@ -1,4 +1,4 @@
-namespace MrExStrap.Models.Persistable
+namespace ExploitStrap.Models.Persistable
 {
     // Backing store for the account manager. Persisted to its OWN file (Accounts.json via
     // JsonManager<AccountsData>("Accounts")) rather than Settings.json, so the cookies — even

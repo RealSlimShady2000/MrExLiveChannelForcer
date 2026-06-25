@@ -1,8 +1,8 @@
-namespace MrExStrap.Enums
+namespace ExploitStrap.Enums
 {
     public enum BootstrapperIcon
     {
-        [EnumName(StaticName = "MrExStrap")]
+        [EnumName(StaticName = "ExploitStrap")]
         IconBloxstrap,
         [EnumName(StaticName = "2008")]
         Icon2008,

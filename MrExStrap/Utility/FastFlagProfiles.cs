@@ -1,4 +1,4 @@
-namespace MrExStrap.Utility
+namespace ExploitStrap.Utility
 {
     // Per-Versions-Manager-profile fast flag storage. Each profile's flag set lives at
     // Paths.FastFlagProfiles\<profileId>.json, kept OUTSIDE Modifications\ so the launch

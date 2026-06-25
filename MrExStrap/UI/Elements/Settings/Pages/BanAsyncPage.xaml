@@ -1,12 +1,12 @@
-<ui:UiPage x:Class="MrExStrap.UI.Elements.Settings.Pages.BanAsyncPage"
+<ui:UiPage x:Class="ExploitStrap.UI.Elements.Settings.Pages.BanAsyncPage"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
       xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
-      xmlns:controls="clr-namespace:MrExStrap.UI.Elements.Controls"
-      xmlns:models="clr-namespace:MrExStrap.UI.ViewModels.Settings"
-      xmlns:vmroot="clr-namespace:MrExStrap.UI.ViewModels"
+      xmlns:controls="clr-namespace:ExploitStrap.UI.Elements.Controls"
+      xmlns:models="clr-namespace:ExploitStrap.UI.ViewModels.Settings"
+      xmlns:vmroot="clr-namespace:ExploitStrap.UI.ViewModels"
       d:DataContext="{d:DesignInstance Type=models:BanAsyncViewModel}"
       mc:Ignorable="d"
       d:DesignHeight="600" d:DesignWidth="800"
@@ -20,7 +20,44 @@
                    Foreground="{DynamicResource TextFillColorSecondaryBrush}"
                    Text="Trace cleanup, network adapter MAC spoofing, and MachineGuid randomization. Aimed at the same surface Roblox's BanAsync detection looks at. Use at your own risk on your own machine." />
 
-        <!-- Elevation banner — visible when MrExBloxstrap is NOT running as administrator.
+        <!-- Volt executor plug (Hyperion emulator + built-in HWID spoofer) — contextual to BanAsync. -->
+        <Border Margin="0,0,0,12" Padding="16,14" CornerRadius="8" Cursor="Hand"
+                Background="{StaticResource BrandSurfaceBrush}" BorderThickness="1.5"
+                BorderBrush="{StaticResource BrandGradientBrush}"
+                ToolTip="https://rsware.store/products/volt-roblox-script-executor-win-10--11">
+            <Border.InputBindings>
+                <MouseBinding MouseAction="LeftClick" Command="vmroot:GlobalViewModel.OpenWebpageCommand"
+                              CommandParameter="https://rsware.store/products/volt-roblox-script-executor-win-10--11" />
+            </Border.InputBindings>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <ui:SymbolIcon Grid.Column="0" Symbol="ShieldKeyhole24" FontSize="30" VerticalAlignment="Center"
+                               Foreground="{StaticResource BrandGreenBrush}" Margin="0,0,14,0" />
+                <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock FontSize="16" FontWeight="SemiBold" VerticalAlignment="Center"
+                                   Foreground="{DynamicResource TextFillColorPrimaryBrush}" Text="Best anti-ban executor: Volt" />
+                        <Border Margin="10,0,0,0" Padding="7,2" CornerRadius="4" VerticalAlignment="Center"
+                                Background="{StaticResource BrandPurpleBrush}">
+                            <TextBlock FontSize="10" FontWeight="Bold" Foreground="White" Text="FIRST BUYERS 5% OFF" />
+                        </Border>
+                    </StackPanel>
+                    <TextBlock FontSize="12.5" Margin="0,4,0,0" TextWrapping="Wrap"
+                               Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                               Text="A Roblox script executor with a Hyperion emulator and a built-in HWID spoofer — the strongest executor to pair with BanAsync's trace cleaning and MAC / MachineGuid spoofing." />
+                </StackPanel>
+                <ui:Button Grid.Column="2" VerticalAlignment="Center" Margin="14,0,0,0" Appearance="Primary"
+                           Icon="Cart24" Content="Get Volt"
+                           Command="vmroot:GlobalViewModel.OpenWebpageCommand"
+                           CommandParameter="https://rsware.store/products/volt-roblox-script-executor-win-10--11" />
+            </Grid>
+        </Border>
+
+        <!-- Elevation banner — visible when ExploitStrap is NOT running as administrator.
              The "Relaunch as administrator" button re-spawns the current exe with the
              runas verb so Windows pops the UAC prompt for the user. -->
         <Border Margin="0,0,0,8" Padding="12,10" CornerRadius="4"
@@ -63,7 +100,7 @@
         <TextBlock Margin="0,10,0,4" Text="Clean Roblox traces" FontSize="15" FontWeight="SemiBold" />
         <TextBlock Margin="0,0,0,4" TextWrapping="Wrap" FontSize="12"
                    Foreground="{DynamicResource TextFillColorSecondaryBrush}"
-                   Text="Closes Roblox, wipes local caches, logs, prefetch entries, and HKCU registry, so the next launch looks like a fresh client to BanAsync. MrExBloxstrap's own settings stay untouched." />
+                   Text="Closes Roblox, wipes local caches, logs, prefetch entries, and HKCU registry, so the next launch looks like a fresh client to BanAsync. ExploitStrap's own settings stay untouched." />
 
         <controls:OptionControl
             Header="Preserve in-game settings"
@@ -73,7 +110,7 @@
 
         <controls:OptionControl
             Header="Preserve vanilla Roblox FastFlags"
-            Description="Holds onto ClientAppSettings.json / ClientSettings.json across the wipe. If you only use MrExBloxstrap-managed FastFlags this doesn't matter — those live elsewhere and are never deleted.">
+            Description="Holds onto ClientAppSettings.json / ClientSettings.json across the wipe. If you only use ExploitStrap-managed FastFlags this doesn't matter — those live elsewhere and are never deleted.">
             <ui:ToggleSwitch IsChecked="{Binding PreserveFastFlags, Mode=TwoWay}" />
         </controls:OptionControl>
 
@@ -85,7 +122,7 @@
 
         <controls:OptionControl
             Header="Also wipe downloaded Roblox installs (Versions)"
-            Description="Deletes MrExBloxstrap's Versions folder — every downloaded Roblox client across all profiles. OFF by default: this forces a full re-download on the next launch and does NOT help with ban traces (the Roblox binaries aren't unique to you). Turn it on only if you want a completely clean slate.">
+            Description="Deletes ExploitStrap's Versions folder — every downloaded Roblox client across all profiles. OFF by default: this forces a full re-download on the next launch and does NOT help with ban traces (the Roblox binaries aren't unique to you). Turn it on only if you want a completely clean slate.">
             <ui:ToggleSwitch IsChecked="{Binding CleanMrExVersions, Mode=TwoWay}" />
         </controls:OptionControl>
 
@@ -131,13 +168,13 @@
 
             <controls:OptionControl Margin="0,8,0,0"
                 Header="Refresh DHCP after spoof (optional)"
-                Description="Not required for BanAsync. The disable/enable cycle MrExBloxstrap already runs on the adapter releases your DHCP lease cleanly, so this is purely an optional belt-and-suspenders pass for overly paranoid users. Side effects if you turn it on: brief network outage, dropped VPN/voice calls, possible captive-portal re-trigger.">
+                Description="Not required for BanAsync. The disable/enable cycle ExploitStrap already runs on the adapter releases your DHCP lease cleanly, so this is purely an optional belt-and-suspenders pass for overly paranoid users. Side effects if you turn it on: brief network outage, dropped VPN/voice calls, possible captive-portal re-trigger.">
                 <ui:ToggleSwitch IsChecked="{Binding DhcpRefreshAfterSpoof, Mode=TwoWay}" />
             </controls:OptionControl>
 
             <controls:OptionControl Margin="0,8,0,0"
-                Header="Persistent (keep MAC change after MrExBloxstrap closes)"
-                Description="Default ON. The spoofed MAC is written to the Windows registry under HKLM and stays applied across MrExBloxstrap closing, being uninstalled, AND reboots — the same way Technitium MAC Address Changer does it. Turn OFF if you want MrExBloxstrap to clear the registry override on its own exit (the MAC still stays active for the current Windows session and reverts on next reboot). Either way, the Revert MAC button works.">
+                Header="Persistent (keep MAC change after ExploitStrap closes)"
+                Description="Default ON. The spoofed MAC is written to the Windows registry under HKLM and stays applied across ExploitStrap closing, being uninstalled, AND reboots — the same way Technitium MAC Address Changer does it. Turn OFF if you want ExploitStrap to clear the registry override on its own exit (the MAC still stays active for the current Windows session and reverts on next reboot). Either way, the Revert MAC button works.">
                 <ui:ToggleSwitch IsChecked="{Binding Persistent, Mode=TwoWay}" />
             </controls:OptionControl>
 
@@ -222,7 +259,7 @@
 
                 <TextBlock Margin="0,10,0,0" FontWeight="SemiBold" FontSize="13" Text="Cons — what could break" />
                 <TextBlock Margin="0,4,0,0" TextWrapping="Wrap" FontSize="12"
-                           Text="Microsoft Office can lose activation. Some paid apps tied to your machine will ask for reactivation. Windows telemetry pairing resets (harmless). MrExBloxstrap saves your original value the first time you randomize so you can restore it from this page at any point." />
+                           Text="Microsoft Office can lose activation. Some paid apps tied to your machine will ask for reactivation. Windows telemetry pairing resets (harmless). ExploitStrap saves your original value the first time you randomize so you can restore it from this page at any point." />
             </StackPanel>
         </Border>
 

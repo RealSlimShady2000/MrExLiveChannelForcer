@@ -6,16 +6,16 @@ using System.Windows.Threading;
 
 using Microsoft.Win32;
 
-namespace MrExStrap
+namespace ExploitStrap
 {
     /// <summary>
     /// Interaction logic for App.xaml
     /// </summary>
     public partial class App : Application
     {
-        public const string ProjectName = "MrExBloxstrap";
-        public const string ProjectDisplayName = "Bloxstrap - Mr Exploit edition";
-        public const string ProjectOwner = "MrExploit";
+        public const string ProjectName = "ExploitStrap";
+        public const string ProjectDisplayName = "ExploitStrap";
+        public const string ProjectOwner = "ExploitStrap";
         public const string ProjectRepository = "RealSlimShady2000/MrExLiveChannelForcer";
         public const string ProjectDownloadLink = "https://github.com/RealSlimShady2000/MrExLiveChannelForcer";
         public const string ProjectHelpLink = "https://github.com/RealSlimShady2000/MrExLiveChannelForcer#readme";
@@ -53,7 +53,7 @@ namespace MrExStrap
 
         public static Bootstrapper? Bootstrapper { get; set; } = null!;
 
-        // MrExStrap fork feature: portable mode. Set at startup when a "portable.txt" flag
+        // ExploitStrap fork feature: portable mode. Set at startup when a "portable.txt" flag
         // file sits next to the exe. In portable mode we run in-place, store all user data
         // next to the exe, and skip registry writes / Start-menu shortcuts.
         public static bool IsPortableMode { get; private set; } = false;
@@ -114,7 +114,7 @@ namespace MrExStrap
                 if (_webUrl != null)
                     return _webUrl;
 
-                string url = ConstructBloxstrapWebUrl();
+                string url = ConstructExploitStrapWebUrl();
                 if (Settings.Loaded) // only cache if settings are done loading
                     _webUrl = url;
                 return url;
@@ -248,7 +248,7 @@ namespace MrExStrap
             Terminate(ErrorCode.ERROR_INSTALL_FAILURE);
         }
 
-        public static string ConstructBloxstrapWebUrl() => "invalid.invalid";
+        public static string ConstructExploitStrapWebUrl() => "invalid.invalid";
 
         public static bool CanSendLogs() => false;
 
@@ -303,6 +303,11 @@ namespace MrExStrap
             Locale.Initialize();
 
             base.OnStartup(e);
+
+            // Apply dark + the ExploitStrap neon-cyan brand accent app-wide as early as possible,
+            // so every surface — including a pure bootstrapper launch with no settings window —
+            // renders on-brand. (WpfUiWindow.ApplyTheme re-applies the same per settings window.)
+            Wpf.Ui.Appearance.Accent.Apply(UI.Elements.Base.WpfUiWindow.BrandAccent, Wpf.Ui.Appearance.ThemeType.Dark);
 
             Logger.WriteLine(LOG_IDENT, $"Starting {ProjectName} v{Version}");
 
@@ -370,12 +375,12 @@ namespace MrExStrap
             string? installLocation = null;
             bool fixInstallLocation = false;
 
-            // Portable-mode detection (MrExStrap fork): a "portable.txt" flag next to the exe
+            // Portable-mode detection (ExploitStrap fork): a "portable.txt" flag next to the exe
             // opts into portable mode. When portable, we skip the installer + registry flow
             // entirely — data lives next to the exe, no LocalAppData, no Start-menu shortcuts.
             //
             // If portable.txt contains the line "cache=local" (case-insensitive), the heavy
-            // Roblox binaries cache to %LocalAppData%\MrExBloxstrap-Cache\ on the host machine
+            // Roblox binaries cache to %LocalAppData%\ExploitStrap-Cache\ on the host machine
             // instead. Config (settings, state, logs, mods, themes) still travels with the USB.
             string? exeDir = Directory.GetParent(Paths.Process)?.FullName;
             if (!string.IsNullOrEmpty(exeDir))
@@ -404,6 +409,12 @@ namespace MrExStrap
 
             if (!IsPortableMode)
             {
+                // ExploitStrap rebrand: bridge an existing pre-rebrand "MrExBloxstrap" install over
+                // to the new identifier BEFORE the install-detection read below, so an auto-updating
+                // user is recognised as installed (keeping their settings) instead of being sent to
+                // the installer. No-op for fresh installs and portable mode.
+                Installer.MigrateBranding();
+
                 using var uninstallKey = Registry.CurrentUser.OpenSubKey(UninstallKey);
 
                 if (uninstallKey?.GetValue("InstallLocation") is string value)

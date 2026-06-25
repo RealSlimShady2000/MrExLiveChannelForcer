@@ -9,10 +9,10 @@ using Windows.Win32.Foundation;
 
 using CommunityToolkit.Mvvm.Input;
 
-using MrExStrap.Models.SettingTasks;
-using MrExStrap.AppData;
+using ExploitStrap.Models.SettingTasks;
+using ExploitStrap.AppData;
 
-namespace MrExStrap.UI.ViewModels.Settings
+namespace ExploitStrap.UI.ViewModels.Settings
 {
     public class ModsViewModel : NotifyPropertyChangedViewModel
     {

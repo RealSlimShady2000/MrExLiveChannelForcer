@@ -1,12 +1,12 @@
 using System.Windows.Threading;
 using WinForms = System.Windows.Forms;
 
-using MrExStrap.Utility;
+using ExploitStrap.Utility;
 
-namespace MrExStrap.UI
+namespace ExploitStrap.UI
 {
     // v420.28: persistent system-tray launcher. Lives in the Windows
-    // notification area when MrExBloxstrap was launched with -tray (set up
+    // notification area when ExploitStrap was launched with -tray (set up
     // by StartupRegistration when EnableTrayLauncher is on).
     //
     // Right-click menu lets the user quick-switch the active Versions

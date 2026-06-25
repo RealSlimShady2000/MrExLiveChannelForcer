@@ -1,4 +1,4 @@
-namespace MrExStrap
+namespace ExploitStrap
 {
     public static class GlobalCache
     {

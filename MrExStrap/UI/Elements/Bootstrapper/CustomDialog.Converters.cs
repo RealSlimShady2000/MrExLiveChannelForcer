@@ -4,7 +4,7 @@ using System.Windows.Media;
 using System.Xml;
 using System.Xml.Linq;
 
-namespace MrExStrap.UI.Elements.Bootstrapper
+namespace ExploitStrap.UI.Elements.Bootstrapper
 {
     public partial class CustomDialog
     {

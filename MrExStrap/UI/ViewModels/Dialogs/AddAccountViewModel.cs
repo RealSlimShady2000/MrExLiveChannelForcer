@@ -1,10 +1,10 @@
 using System.Windows.Input;
 using CommunityToolkit.Mvvm.Input;
 
-using MrExStrap.Models.Persistable;
-using MrExStrap.Utility.Accounts;
+using ExploitStrap.Models.Persistable;
+using ExploitStrap.Utility.Accounts;
 
-namespace MrExStrap.UI.ViewModels.Dialogs
+namespace ExploitStrap.UI.ViewModels.Dialogs
 {
     // Backs AddAccountDialog. Two ways in: paste a .ROBLOSECURITY cookie, or use the embedded
     // browser login. Either way we validate against Roblox, fetch the avatar, encrypt the cookie,

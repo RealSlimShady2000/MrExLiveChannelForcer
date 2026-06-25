@@ -1,17 +1,17 @@
 using Microsoft.Win32;
 
-namespace MrExStrap.Utility
+namespace ExploitStrap.Utility
 {
     // v420.28: HKCU\...\Run registration for the system tray launcher. Per-user
     // (HKCU) so no admin is required, and easy to remove via Task Manager →
     // Startup or by toggling the Versions Manager setting back off. The value
-    // points at the current MrExBloxstrap.exe with a -tray flag so the App
+    // points at the current ExploitStrap.exe with a -tray flag so the App
     // wakes up in tray mode instead of opening the menu.
     public static class StartupRegistration
     {
         private const string LOG_IDENT = "StartupRegistration";
         private const string RunKeyPath = @"Software\Microsoft\Windows\CurrentVersion\Run";
-        private const string ValueName = "MrExBloxstrap";
+        private const string ValueName = "ExploitStrap";
 
         public static bool IsEnabled()
         {

@@ -1,9 +1,9 @@
 using System.Windows;
 
-using MrExStrap.UI.Elements.Bootstrapper;
-using MrExStrap.UI.Elements.Dialogs;
+using ExploitStrap.UI.Elements.Bootstrapper;
+using ExploitStrap.UI.Elements.Dialogs;
 
-namespace MrExStrap.UI
+namespace ExploitStrap.UI
 {
     static class Frontend
     {
@@ -31,14 +31,14 @@ namespace MrExStrap.UI
             if (crash)
             {
                 info.Append("Roblox closed unexpectedly — it looks like the game crashed.");
-                info.Append("\n\nThis is a crash on **Roblox's** side, not MrExBloxstrap. The launcher only "
+                info.Append("\n\nThis is a crash on **Roblox's** side, not ExploitStrap. The launcher only "
                     + "downloads and starts the game — Roblox was already running on its own when it stopped, "
-                    + "so there's nothing in MrExBloxstrap that caused this.");
+                    + "so there's nothing in ExploitStrap that caused this.");
             }
             else
             {
                 info.Append(String.Format(Strings.Dialog_PlayerError_FailedLaunch, App.ProjectSupportLink));
-                info.Append("\n\nThis happens on **Roblox's** side — MrExBloxstrap downloads and launches the "
+                info.Append("\n\nThis happens on **Roblox's** side — ExploitStrap downloads and launches the "
                     + "game, but it's the Roblox client itself that failed to run.");
             }
 
@@ -50,7 +50,7 @@ namespace MrExStrap.UI
             {
                 info.Append($"\n\nYou're launching with the **{executor}** executor. Crashes like this are very "
                     + "often caused by the executor or other external/injection tools, not by Roblox or "
-                    + "MrExBloxstrap. Try switching to the **Latest LIVE** profile in the Versions Manager and "
+                    + "ExploitStrap. Try switching to the **Latest LIVE** profile in the Versions Manager and "
                     + "launching clean — if it stops crashing, the executor was the cause.");
             }
 
@@ -113,7 +113,7 @@ namespace MrExStrap.UI
                 App.Logger.WriteException(LOG_IDENT, ex);
 
                 if (!App.LaunchSettings.QuietFlag.Active)
-                    ShowMessageBox(string.Format(Strings.CustomTheme_Errors_SetupFailed, ex.Message, "MrExStrap"), MessageBoxImage.Error); // NOTE: MrExStrap is the theme name
+                    ShowMessageBox(string.Format(Strings.CustomTheme_Errors_SetupFailed, ex.Message, "ExploitStrap"), MessageBoxImage.Error); // NOTE: ExploitStrap is the theme name
 
                 return GetBootstrapperDialog(BootstrapperStyle.FluentDialog);
             }

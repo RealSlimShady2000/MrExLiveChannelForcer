@@ -1,4 +1,4 @@
-namespace MrExStrap
+namespace ExploitStrap
 {
     static class Paths
     {

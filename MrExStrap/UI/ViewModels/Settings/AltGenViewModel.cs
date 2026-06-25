@@ -2,10 +2,10 @@ using System.Windows;
 using System.Windows.Input;
 using CommunityToolkit.Mvvm.Input;
 
-using MrExStrap.Integrations.BloxGen;
-using MrExStrap.Utility.Accounts;
+using ExploitStrap.Integrations.BloxGen;
+using ExploitStrap.Utility.Accounts;
 
-namespace MrExStrap.UI.ViewModels.Settings
+namespace ExploitStrap.UI.ViewModels.Settings
 {
     // AltGen tab. Generates Roblox alt accounts through BloxGen using the user's OWN API key
     // (entered here, stored locally). Advertises the maintainer's affiliate link so users sign

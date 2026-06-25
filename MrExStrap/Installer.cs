@@ -1,7 +1,7 @@
 using System.Windows;
 using Microsoft.Win32;
 
-namespace MrExStrap
+namespace ExploitStrap
 {
     internal class Installer
     {
@@ -62,9 +62,9 @@ namespace MrExStrap
                     // issues. The original ex.Message is the most useful single line we can show.
                     string hint = ex switch
                     {
-                        UnauthorizedAccessException => "Permission denied. Try running MrExBloxstrap as administrator, or check that no antivirus is locking the install folder.",
+                        UnauthorizedAccessException => "Permission denied. Try running ExploitStrap as administrator, or check that no antivirus is locking the install folder.",
                         IOException io when io.HResult == unchecked((int)0x80070070) => "The target drive is out of space. Free some up and retry.",
-                        IOException => "The installed exe may be in use. Close MrExBloxstrap fully (including any background-updater process) and retry.",
+                        IOException => "The installed exe may be in use. Close ExploitStrap fully (including any background-updater process) and retry.",
                         _ => "See the log file for the full stack trace."
                     };
 
@@ -374,6 +374,125 @@ namespace MrExStrap
             App.SendStat("installAction", "uninstall");
         }
 
+        // ExploitStrap rebrand (formerly "MrExBloxstrap"): an existing install keeps its data folder,
+        // registry uninstall key, Run-key value and shortcuts under the OLD name. On the first launch
+        // of the rebranded build (typically via auto-update) bridge that install to the new identifier
+        // so the user is recognised as installed and keeps their settings, instead of being treated as
+        // a fresh install. Idempotent + best-effort. The physical data folder is intentionally NOT
+        // moved (invisible to users; moving it during a live self-update would risk the Versions\
+        // junctions and a multi-GB copy) — everything user-visible ends up correctly rebranded.
+        //
+        // The "MrExBloxstrap" literals below are the OLD brand and MUST stay literal: they are how we
+        // detect a pre-rebrand install.
+        public static void MigrateBranding()
+        {
+            const string LOG_IDENT = "Installer::MigrateBranding";
+            const string OldName = "MrExBloxstrap";
+
+            if (App.IsPortableMode)
+                return;
+
+            string oldUninstallKey = $@"Software\Microsoft\Windows\CurrentVersion\Uninstall\{OldName}";
+            string oldLocation = "";
+
+            try
+            {
+                // Already migrated? (marker lives on the new key)
+                using (var existing = Registry.CurrentUser.OpenSubKey(App.UninstallKey))
+                {
+                    if (existing?.GetValue("MigratedFrom") is not null)
+                        return;
+                }
+
+                using var oldKey = Registry.CurrentUser.OpenSubKey(oldUninstallKey);
+                if (oldKey is null || oldKey.GetValue("InstallLocation") is not string loc)
+                    return; // no old install -> genuine fresh install, let the normal flow run
+
+                oldLocation = loc;
+
+                // Tolerate a renamed user-profile folder (mirrors the install-detection logic below).
+                if (!Directory.Exists(oldLocation))
+                {
+                    var match = Regex.Match(oldLocation, @"^[a-zA-Z]:\\Users\\([^\\]+)", RegexOptions.IgnoreCase);
+                    if (match.Success)
+                    {
+                        string candidate = oldLocation.Replace(match.Value, Paths.UserProfile, StringComparison.InvariantCultureIgnoreCase);
+                        if (Directory.Exists(candidate))
+                            oldLocation = candidate;
+                    }
+                }
+
+                if (!Directory.Exists(oldLocation) || !File.Exists(Path.Combine(oldLocation, "Settings.json")))
+                    return; // nothing meaningful to carry over
+
+                App.Logger.WriteLine(LOG_IDENT, $"Migrating {OldName} install at '{oldLocation}' to {App.ProjectName} (in place).");
+
+                string newExe = Path.Combine(oldLocation, $"{App.ProjectName}.exe");
+
+                // Write the new uninstall key. This is BOTH the bridge (so install-detection finds us)
+                // and the idempotency commit point (the MigratedFrom marker).
+                using (var newKey = Registry.CurrentUser.CreateSubKey(App.UninstallKey))
+                {
+                    newKey.SetValueSafe("DisplayIcon", $"{newExe},0");
+                    newKey.SetValueSafe("DisplayName", App.ProjectName);
+                    newKey.SetValueSafe("DisplayVersion", (oldKey.GetValue("DisplayVersion") as string) ?? App.Version);
+                    newKey.SetValueSafe("InstallDate", (oldKey.GetValue("InstallDate") as string) ?? DateTime.Now.ToString("yyyyMMdd"));
+                    newKey.SetValueSafe("InstallLocation", oldLocation);
+                    newKey.SetValueSafe("NoRepair", 1);
+                    newKey.SetValueSafe("Publisher", App.ProjectOwner);
+                    newKey.SetValueSafe("ModifyPath", $"\"{newExe}\" -settings");
+                    newKey.SetValueSafe("QuietUninstallString", $"\"{newExe}\" -uninstall -quiet");
+                    newKey.SetValueSafe("UninstallString", $"\"{newExe}\" -uninstall");
+                    newKey.SetValueSafe("HelpLink", App.ProjectHelpLink);
+                    newKey.SetValueSafe("URLInfoAbout", App.ProjectSupportLink);
+                    newKey.SetValueSafe("URLUpdateInfo", App.ProjectDownloadLink);
+                    newKey.SetValueSafe("MigratedFrom", OldName);
+                }
+            }
+            catch (Exception ex)
+            {
+                // Bridge write failed -> leave the OLD key intact so the old identity still works;
+                // retried next launch (marker absent).
+                App.Logger.WriteException(LOG_IDENT, ex);
+                return;
+            }
+
+            string migratedExe = Path.Combine(oldLocation, $"{App.ProjectName}.exe");
+
+            // Migrate the startup (Run) entry, preserving the tray-launcher opt-in. Non-fatal.
+            try
+            {
+                using var runKey = Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\Run", writable: true);
+                if (runKey?.GetValue(OldName) is string oldRun)
+                {
+                    string newRun = oldRun.Replace($"{OldName}.exe", $"{App.ProjectName}.exe", StringComparison.OrdinalIgnoreCase);
+                    runKey.SetValue(App.ProjectName, newRun, RegistryValueKind.String);
+                    runKey.DeleteValue(OldName, throwOnMissingValue: false);
+                }
+            }
+            catch (Exception ex) { App.Logger.WriteException(LOG_IDENT + "::Run", ex); }
+
+            // Recreate Desktop + Start-Menu shortcuts under the new name; remove the old ones. Non-fatal.
+            try
+            {
+                string oldDesktop = Path.Combine(Paths.Desktop, $"{OldName}.lnk");
+                string oldStartMenu = Path.Combine(Paths.WindowsStartMenu, $"{OldName}.lnk");
+
+                Shortcut.Create(migratedExe, "", Path.Combine(Paths.Desktop, $"{App.ProjectName}.lnk"));
+                Shortcut.Create(migratedExe, "", Path.Combine(Paths.WindowsStartMenu, $"{App.ProjectName}.lnk"));
+
+                if (File.Exists(oldDesktop)) File.Delete(oldDesktop);
+                if (File.Exists(oldStartMenu)) File.Delete(oldStartMenu);
+            }
+            catch (Exception ex) { App.Logger.WriteException(LOG_IDENT + "::Shortcuts", ex); }
+
+            // Remove the OLD uninstall key last, after the new key + marker are committed.
+            try { Registry.CurrentUser.DeleteSubKeyTree(oldUninstallKey, false); }
+            catch (Exception ex) { App.Logger.WriteException(LOG_IDENT + "::OldKey", ex); }
+
+            App.Logger.WriteLine(LOG_IDENT, "Brand migration complete (in place).");
+        }
+
         public static void HandleUpgrade()
         {
             const string LOG_IDENT = "Installer::HandleUpgrade";
@@ -535,7 +654,7 @@ namespace MrExStrap
                     }
 
                     string oldDesktopPath = Path.Combine(Paths.Desktop, "Play Roblox.lnk");
-                    string oldStartPath = Path.Combine(Paths.WindowsStartMenu, "MrExStrap");
+                    string oldStartPath = Path.Combine(Paths.WindowsStartMenu, "ExploitStrap");
 
                     if (File.Exists(oldDesktopPath))
                         File.Move(oldDesktopPath, DesktopShortcut, true);
@@ -644,7 +763,7 @@ namespace MrExStrap
                         releaseNoteVersion = currentVer;
                     }
 
-                    Utilities.ShellExecute($"https://github.com/{App.ProjectRepository}/wiki/Release-notes-for-MrExStrap-v{releaseNoteVersion}");
+                    Utilities.ShellExecute($"https://github.com/{App.ProjectRepository}/wiki/Release-notes-for-ExploitStrap-v{releaseNoteVersion}");
                 }
 #pragma warning restore CS0162 // Unreachable code detected
             }

@@ -1,6 +1,6 @@
 using System.Security.Cryptography;
 
-namespace MrExStrap.Utility.Accounts
+namespace ExploitStrap.Utility.Accounts
 {
     // DPAPI wrapper for account secrets (.ROBLOSECURITY cookies).
     //
@@ -14,7 +14,7 @@ namespace MrExStrap.Utility.Accounts
 
         // Extra entropy mixed into the DPAPI blob. Not a secret (it ships in the binary); it just
         // scopes the protection so blobs from other apps can't be cross-decrypted.
-        private static readonly byte[] Entropy = Encoding.UTF8.GetBytes("MrExBloxstrap.Accounts.v1");
+        private static readonly byte[] Entropy = Encoding.UTF8.GetBytes("ExploitStrap.Accounts.v1");
 
         public static string Protect(string plaintext)
         {

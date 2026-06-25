@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MrExStrap.Models.Attributes
+namespace ExploitStrap.Models.Attributes
 {
     class EnumSortAttribute : Attribute
     {

@@ -1,11 +1,11 @@
-using MrExStrap.Extensions;
+using ExploitStrap.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MrExStrap.Exceptions
+namespace ExploitStrap.Exceptions
 {
     internal class CustomThemeException : Exception
     {

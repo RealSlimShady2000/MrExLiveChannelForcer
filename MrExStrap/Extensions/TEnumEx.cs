@@ -1,7 +1,7 @@
 using System.ComponentModel;
 using System.Reflection;
 
-namespace MrExStrap.Extensions
+namespace ExploitStrap.Extensions
 {
     internal static class TEnumEx
     {

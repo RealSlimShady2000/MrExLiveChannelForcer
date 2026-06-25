@@ -1,7 +1,7 @@
 using System.Net.Http;
 using System.Text.RegularExpressions;
 
-namespace MrExStrap.Utility
+namespace ExploitStrap.Utility
 {
     public static class VersionGuidValidator
     {

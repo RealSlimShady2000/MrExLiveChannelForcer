@@ -1,6 +1,6 @@
 using Microsoft.Win32;
 
-namespace MrExStrap.Extensions
+namespace ExploitStrap.Extensions
 {
     public static class RegistryKeyEx
     {

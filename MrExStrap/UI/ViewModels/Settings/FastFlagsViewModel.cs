@@ -1,6 +1,6 @@
-using MrExStrap.Enums.FlagPresets;
+using ExploitStrap.Enums.FlagPresets;
 
-namespace MrExStrap.UI.ViewModels.Settings
+namespace ExploitStrap.UI.ViewModels.Settings
 {
     public class FastFlagsViewModel : NotifyPropertyChangedViewModel
     {

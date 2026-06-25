@@ -1,7 +1,7 @@
-using MrExStrap.Integrations;
-using MrExStrap.UI.ViewModels.ContextMenu;
+using ExploitStrap.Integrations;
+using ExploitStrap.UI.ViewModels.ContextMenu;
 
-namespace MrExStrap.UI.Elements.ContextMenu
+namespace ExploitStrap.UI.Elements.ContextMenu
 {
     /// <summary>
     /// Interaction logic for ServerInformation.xaml

@@ -1,6 +1,6 @@
 using System.Net.Http;
 
-namespace MrExStrap
+namespace ExploitStrap
 {
     internal class HttpClientLoggingHandler : MessageProcessingHandler
     {

@@ -1,10 +1,10 @@
-using MrExStrap.UI.Elements.Base;
-using MrExStrap.UI.ViewModels.Dialogs;
+using ExploitStrap.UI.Elements.Base;
+using ExploitStrap.UI.ViewModels.Dialogs;
 using Microsoft.Win32;
 using System.IO.Compression;
 using System.Windows;
 
-namespace MrExStrap.UI.Elements.Dialogs
+namespace ExploitStrap.UI.Elements.Dialogs
 {
     /// <summary>
     /// Interaction logic for AddCustomThemeDialog.xaml

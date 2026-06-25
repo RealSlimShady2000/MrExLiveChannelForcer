@@ -1,9 +1,9 @@
 using System.Windows;
 using System.Windows.Input;
-using MrExStrap.UI.Elements.About;
+using ExploitStrap.UI.Elements.About;
 using CommunityToolkit.Mvvm.Input;
 
-namespace MrExStrap.UI.ViewModels.Settings
+namespace ExploitStrap.UI.ViewModels.Settings
 {
     public class MainWindowViewModel : NotifyPropertyChangedViewModel
     {

@@ -2,10 +2,10 @@ using System.Collections.ObjectModel;
 using System.Windows.Input;
 using CommunityToolkit.Mvvm.Input;
 
-using MrExStrap.Models.Persistable;
-using MrExStrap.UI.ViewModels.Settings;
+using ExploitStrap.Models.Persistable;
+using ExploitStrap.UI.ViewModels.Settings;
 
-namespace MrExStrap.UI.ViewModels.Dialogs
+namespace ExploitStrap.UI.ViewModels.Dialogs
 {
     // Compact picker shown right before a Roblox launch when the user has
     // ShowVersionPickerOnLaunch turned on. Same tile renderer as the Versions

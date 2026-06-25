@@ -1,4 +1,4 @@
-namespace MrExStrap.Utility.Accounts
+namespace ExploitStrap.Utility.Accounts
 {
     // Launch technique adapted from robloxmanager by sasha / centerepic (MIT) —
     // https://gitlab.com/centerepic/robloxmanager. Each launch mints a fresh one-time ticket from
@@ -63,7 +63,7 @@ namespace MrExStrap.Utility.Accounts
 
         // Sequential bulk launch with a per-account delay. The delay is REQUIRED, not cosmetic:
         //   - the log file is named to the second, so two launches in the same second collide and
-        //     the later MrExBloxstrap self-terminates as a "duplicate launch";
+        //     the later ExploitStrap self-terminates as a "duplicate launch";
         //   - it also throttles the auth-ticket calls for rate-limited IPs.
         // (The singleton lock itself is no longer a timing concern — it's held up front by the
         // bootstrapper/watcher before each client starts, see Utility.MultiInstance.)

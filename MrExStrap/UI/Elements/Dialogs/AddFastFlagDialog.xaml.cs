@@ -1,8 +1,8 @@
 using Microsoft.Win32;
 using System.Windows;
-using MrExStrap.Resources;
+using ExploitStrap.Resources;
 
-namespace MrExStrap.UI.Elements.Dialogs
+namespace ExploitStrap.UI.Elements.Dialogs
 {
     /// <summary>
     /// Interaction logic for AddFastFlagDialog.xaml

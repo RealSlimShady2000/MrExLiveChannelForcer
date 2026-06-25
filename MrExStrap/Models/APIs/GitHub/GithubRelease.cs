@@ -1,4 +1,4 @@
-namespace MrExStrap.Models.APIs.GitHub
+namespace ExploitStrap.Models.APIs.GitHub
 {
     public class GithubRelease
     {

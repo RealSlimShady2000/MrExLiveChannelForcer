@@ -1,13 +1,13 @@
-<ui:UiPage x:Class="MrExStrap.UI.Elements.Settings.Pages.MultiInstancePage"
+<ui:UiPage x:Class="ExploitStrap.UI.Elements.Settings.Pages.MultiInstancePage"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
       xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
-      xmlns:local="clr-namespace:MrExStrap.UI.Elements.Settings.Pages"
-      xmlns:controls="clr-namespace:MrExStrap.UI.Elements.Controls"
-      xmlns:models="clr-namespace:MrExStrap.UI.ViewModels.Settings"
-      xmlns:vmroot="clr-namespace:MrExStrap.UI.ViewModels"
+      xmlns:local="clr-namespace:ExploitStrap.UI.Elements.Settings.Pages"
+      xmlns:controls="clr-namespace:ExploitStrap.UI.Elements.Controls"
+      xmlns:models="clr-namespace:ExploitStrap.UI.ViewModels.Settings"
+      xmlns:vmroot="clr-namespace:ExploitStrap.UI.ViewModels"
       d:DataContext="{d:DesignInstance Type=models:MultiInstanceViewModel}"
       mc:Ignorable="d"
       d:DesignHeight="700" d:DesignWidth="800"
@@ -20,6 +20,34 @@
     </ui:UiPage.Resources>
 
     <StackPanel Margin="0,0,14,14">
+        <!-- Executors that support multi-instance: Volt & Potassium (rsware.store). -->
+        <Border Margin="0,0,0,12" Padding="16,14" CornerRadius="8"
+                Background="{StaticResource BrandSurfaceBrush}" BorderThickness="1.5"
+                BorderBrush="{StaticResource BrandGradientBrush}">
+            <StackPanel>
+                <StackPanel Orientation="Horizontal">
+                    <ui:SymbolIcon Symbol="PeopleTeam24" FontSize="26" VerticalAlignment="Center"
+                                   Foreground="{StaticResource BrandGreenBrush}" Margin="0,0,12,0" />
+                    <TextBlock FontSize="16" FontWeight="SemiBold" VerticalAlignment="Center"
+                               Foreground="{DynamicResource TextFillColorPrimaryBrush}" Text="Executors that support multi-instance" />
+                    <Border Margin="10,0,0,0" Padding="7,2" CornerRadius="4" VerticalAlignment="Center"
+                            Background="{StaticResource BrandPurpleBrush}">
+                        <TextBlock FontSize="10" FontWeight="Bold" Foreground="White" Text="FIRST BUYERS 5% OFF" />
+                    </Border>
+                </StackPanel>
+                <TextBlock FontSize="12.5" Margin="38,4,0,10" TextWrapping="Wrap"
+                           Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                           Text="Both Volt and Potassium support running multiple Roblox clients at once — pair them with the multi-instance tools below." />
+                <StackPanel Orientation="Horizontal" Margin="38,0,0,0">
+                    <ui:Button Margin="0,0,8,0" Appearance="Primary" Icon="Cart24" Content="Get Volt"
+                               Command="vmroot:GlobalViewModel.OpenWebpageCommand"
+                               CommandParameter="https://rsware.store/products/volt-roblox-script-executor-win-10--11" />
+                    <ui:Button Icon="Cart24" Content="Get Potassium"
+                               Command="vmroot:GlobalViewModel.OpenWebpageCommand"
+                               CommandParameter="https://rsware.store/products/potassium-roblox-script-executor-windows-11--10" />
+                </StackPanel>
+            </StackPanel>
+        </Border>
         <TextBlock Margin="0,0,0,8" FontSize="14" TextWrapping="Wrap"
                    Foreground="{DynamicResource TextFillColorSecondaryBrush}"
                    Text="Save your Roblox accounts and launch one — or a whole group — at once. Every launch still runs on the LIVE channel with your FastFlags and mods." />

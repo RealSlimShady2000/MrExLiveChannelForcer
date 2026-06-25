@@ -1,4 +1,4 @@
-namespace MrExStrap.Utility
+namespace ExploitStrap.Utility
 {
     // Recursively sums file sizes under each Paths.Versions\<guid> install so the
     // Versions Manager tab can show users how much disk space each profile uses.

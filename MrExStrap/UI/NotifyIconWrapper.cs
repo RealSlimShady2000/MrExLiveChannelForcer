@@ -1,8 +1,8 @@
-using MrExStrap.Integrations;
-using MrExStrap.UI.Elements.About;
-using MrExStrap.UI.Elements.ContextMenu;
+using ExploitStrap.Integrations;
+using ExploitStrap.UI.Elements.About;
+using ExploitStrap.UI.Elements.ContextMenu;
 
-namespace MrExStrap.UI
+namespace ExploitStrap.UI
 {
     public class NotifyIconWrapper : IDisposable
     {

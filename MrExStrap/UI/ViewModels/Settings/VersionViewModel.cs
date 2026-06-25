@@ -7,10 +7,10 @@ using System.Windows.Input;
 using System.Windows.Media;
 using CommunityToolkit.Mvvm.Input;
 
-using MrExStrap.Models.APIs;
-using MrExStrap.Utility;
+using ExploitStrap.Models.APIs;
+using ExploitStrap.Utility;
 
-namespace MrExStrap.UI.ViewModels.Settings
+namespace ExploitStrap.UI.ViewModels.Settings
 {
     public class VersionViewModel : NotifyPropertyChangedViewModel
     {

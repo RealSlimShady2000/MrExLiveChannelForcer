@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using System.Windows.Media;
 using Wpf.Ui.Appearance;
 
-namespace MrExStrap.UI.ViewModels.Bootstrapper
+namespace ExploitStrap.UI.ViewModels.Bootstrapper
 {
     public class FluentDialogViewModel : BootstrapperDialogViewModel
     {

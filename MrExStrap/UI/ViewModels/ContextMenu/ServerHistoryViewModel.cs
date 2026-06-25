@@ -1,8 +1,8 @@
 using System.Windows.Input;
-using MrExStrap.Integrations;
+using ExploitStrap.Integrations;
 using CommunityToolkit.Mvvm.Input;
 
-namespace MrExStrap.UI.ViewModels.ContextMenu
+namespace ExploitStrap.UI.ViewModels.ContextMenu
 {
     internal class ServerHistoryViewModel : NotifyPropertyChangedViewModel
     {

@@ -1,4 +1,4 @@
-namespace MrExStrap.Models.APIs.Config
+namespace ExploitStrap.Models.APIs.Config
 {
     public class Supporter
     {

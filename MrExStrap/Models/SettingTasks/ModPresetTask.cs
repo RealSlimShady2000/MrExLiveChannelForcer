@@ -1,7 +1,7 @@
-using MrExStrap.Models.Entities;
-using MrExStrap.Models.SettingTasks.Base;
+using ExploitStrap.Models.Entities;
+using ExploitStrap.Models.SettingTasks.Base;
 
-namespace MrExStrap.Models.SettingTasks
+namespace ExploitStrap.Models.SettingTasks
 {
     public class ModPresetTask : BoolBaseTask
     {

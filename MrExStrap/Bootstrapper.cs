@@ -19,13 +19,13 @@ using System.Windows.Shell;
 
 using Microsoft.Win32;
 
-using MrExStrap.AppData;
-using MrExStrap.RobloxInterfaces;
-using MrExStrap.UI.Elements.Bootstrapper.Base;
+using ExploitStrap.AppData;
+using ExploitStrap.RobloxInterfaces;
+using ExploitStrap.UI.Elements.Bootstrapper.Base;
 
 using ICSharpCode.SharpZipLib.Zip;
 
-namespace MrExStrap
+namespace ExploitStrap
 {
     public class Bootstrapper
     {
@@ -289,9 +289,9 @@ namespace MrExStrap
         public bool IsStudioLaunch => _launchMode != LaunchMode.Player;
 
         public string MutexName => $"{MutexNamePrefix}-{_launchMode}";
-        public string BackgroundUpdaterMutexName => $"MrExStrap-BackgroundUpdater-{_launchMode}";
+        public string BackgroundUpdaterMutexName => $"ExploitStrap-BackgroundUpdater-{_launchMode}";
 
-        public string MutexNamePrefix { get; set; } = "MrExStrap-Bootstrapper";
+        public string MutexNamePrefix { get; set; } = "ExploitStrap-Bootstrapper";
         public bool QuitIfMutexExists { get; set; } = false;
         #endregion
 
@@ -364,7 +364,7 @@ namespace MrExStrap
 
             Dialog.TaskbarProgressValue = taskbarProgressValue;
 
-            // MrExStrap fork: show "X MB / Y MB" next to the progress bar plus a smoothed
+            // ExploitStrap fork: show "X MB / Y MB" next to the progress bar plus a smoothed
             // speed/ETA line. The speed line is what tells you "this is slow but progressing"
             // vs "this is genuinely stuck" — the gap that confused users on USB installs.
             if (_totalPackedBytes > 0 && Dialog is UI.Elements.Bootstrapper.FluentDialog fluent)
@@ -861,7 +861,7 @@ namespace MrExStrap
                 _versionPackageManifest = new(pkgManifestData);
             }
 
-            // MrExStrap fork: surface version info + downgrade state on the loading screen.
+            // ExploitStrap fork: surface version info + downgrade state on the loading screen.
             if (Dialog is UI.Elements.Bootstrapper.FluentDialog fluent)
             {
                 string versionLabel = _latestVersion is not null
@@ -1013,13 +1013,13 @@ namespace MrExStrap
             }
 
             // Multi-instance: hold Roblox's single-instance lock BEFORE the client starts.
-            // While an MrExStrap process owns it, no client can elect itself the primary
+            // While an ExploitStrap process owns it, no client can elect itself the primary
             // instance, which is what triggers "the previous instance will be closed" and
             // kills the older client. Also sweeps the singleton event of any client that
             // became primary earlier (launched while this setting was off), so turning the
             // setting on mid-session works too.
             if (MultiInstanceActive && _launchMode == LaunchMode.Player)
-                MrExStrap.Utility.MultiInstance.PrepareForLaunch();
+                ExploitStrap.Utility.MultiInstance.PrepareForLaunch();
 
             SetStatus(Strings.Bootstrapper_Status_Starting);
 
@@ -1101,7 +1101,7 @@ namespace MrExStrap
 
             // Fork feature: single post-launch toast confirming the LIVE channel.
             // Runs once per launch. Handles its own dispatch and cleanup.
-            MrExStrap.Utility.LiveChannelToast.Show();
+            ExploitStrap.Utility.LiveChannelToast.Show();
 
             // Multi-instance safety net: the held mutex (see PrepareForLaunch above) should
             // keep this client from ever becoming the primary instance. If it became primary
@@ -1110,14 +1110,14 @@ namespace MrExStrap
             if (MultiInstanceActive && _launchMode == LaunchMode.Player)
             {
                 App.Logger.WriteLine(LOG_IDENT, $"Multi-instance active — scheduling singleton sweep (PID {_appPid})");
-                MrExStrap.Utility.MultiInstance.ScheduleSingletonSweep();
+                ExploitStrap.Utility.MultiInstance.ScheduleSingletonSweep();
             }
 
             // Window tiling: arrange all Roblox windows into a grid after a short delay.
             if (App.Settings.Prop.WindowTilingEnabled && _launchMode == LaunchMode.Player)
             {
                 App.Logger.WriteLine(LOG_IDENT, $"Window tiling enabled — scheduling tile pass with layout {App.Settings.Prop.WindowTilingLayout}");
-                MrExStrap.Utility.WindowTiler.ScheduleTilePass(App.Settings.Prop.WindowTilingLayout);
+                ExploitStrap.Utility.WindowTiler.ScheduleTilePass(App.Settings.Prop.WindowTilingLayout);
             }
 
             logCreatedEvent.WaitOne(TimeSpan.FromSeconds(15));
@@ -1298,7 +1298,7 @@ namespace MrExStrap
             // i don't like this, but there isn't much better way of doing it /shrug
             if (Process.GetProcessesByName(App.ProjectName).Length > 1)
             {
-                App.Logger.WriteLine(LOG_IDENT, $"More than one MrExStrap instance running, aborting update check");
+                App.Logger.WriteLine(LOG_IDENT, $"More than one ExploitStrap instance running, aborting update check");
                 return false;
             }
 
@@ -1347,7 +1347,7 @@ namespace MrExStrap
             try
             {
 #if DEBUG_UPDATER
-                string downloadLocation = Path.Combine(Paths.TempUpdates, "MrExStrap.exe");
+                string downloadLocation = Path.Combine(Paths.TempUpdates, "ExploitStrap.exe");
 
                 Directory.CreateDirectory(Paths.TempUpdates);
 
@@ -1779,7 +1779,7 @@ namespace MrExStrap
                 _taskbarProgressIncrement = _taskbarProgressMaximum / (double)totalPackedSize;
             }
 
-            // MrExStrap fork: parallelize package downloads. Upstream Bloxstrap downloads
+            // ExploitStrap fork: parallelize package downloads. Upstream ExploitStrap downloads
             // packages one at a time, which is the dominant install bottleneck (~30-50 packages,
             // ~200 MB). With a small concurrency window the same install completes in a fraction
             // of the wall time on any reasonable connection. 6 is a sweet spot — enough to

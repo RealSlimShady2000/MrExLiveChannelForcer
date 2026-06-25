@@ -2,7 +2,7 @@ using System.Windows.Controls;
 using Wpf.Ui.Controls.Interfaces;
 using Wpf.Ui.Mvvm.Contracts;
 
-namespace MrExStrap.UI.Elements.About
+namespace ExploitStrap.UI.Elements.About
 {
     /// <summary>
     /// Interaction logic for MainWindow.xaml

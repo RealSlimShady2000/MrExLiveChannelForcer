@@ -1,6 +1,6 @@
 using System.Drawing;
 
-namespace MrExStrap.Extensions
+namespace ExploitStrap.Extensions
 {
     static class BootstrapperIconEx
     {
@@ -49,12 +49,12 @@ namespace MrExStrap.Extensions
                     }
                 }
 
-                return customIcon ?? Properties.Resources.IconBloxstrap;
+                return customIcon ?? GetBrandIcon();
             }
 
             return icon switch
             {
-                BootstrapperIcon.IconBloxstrap => Properties.Resources.IconBloxstrap,
+                BootstrapperIcon.IconBloxstrap => GetBrandIcon(),
                 BootstrapperIcon.Icon2008 => Properties.Resources.Icon2008,
                 BootstrapperIcon.Icon2011 => Properties.Resources.Icon2011,
                 BootstrapperIcon.IconEarly2015 => Properties.Resources.IconEarly2015,
@@ -63,8 +63,29 @@ namespace MrExStrap.Extensions
                 BootstrapperIcon.Icon2019 => Properties.Resources.Icon2019,
                 BootstrapperIcon.Icon2022 => Properties.Resources.Icon2022,
                 BootstrapperIcon.IconBloxstrapClassic => Properties.Resources.IconBloxstrapClassic,
-                _ => Properties.Resources.IconBloxstrap
+                _ => GetBrandIcon()
             };
+        }
+
+        // The default / primary bootstrapper icon is now ExploitStrap's own icon. The enum member
+        // is still named IconBloxstrap (settings back-compat) but it's labelled "ExploitStrap" and
+        // shows the brand icon. Loaded from the embedded application icon at runtime so we don't
+        // duplicate it into Properties.Resources; falls back to the upstream icon on any failure.
+        private static Icon GetBrandIcon()
+        {
+            try
+            {
+                var info = System.Windows.Application.GetResourceStream(new Uri("pack://application:,,,/ExploitStrap.ico"));
+                if (info?.Stream is Stream stream)
+                    using (stream)
+                        return new Icon(stream);
+            }
+            catch (Exception ex)
+            {
+                App.Logger.WriteException("BootstrapperIconEx::GetBrandIcon", ex);
+            }
+
+            return Properties.Resources.IconBloxstrap;
         }
     }
 }

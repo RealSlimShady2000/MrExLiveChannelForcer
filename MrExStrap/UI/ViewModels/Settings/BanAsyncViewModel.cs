@@ -4,9 +4,9 @@ using System.Windows;
 using System.Windows.Input;
 using CommunityToolkit.Mvvm.Input;
 
-using MrExStrap.Utility.BanAsync;
+using ExploitStrap.Utility.BanAsync;
 
-namespace MrExStrap.UI.ViewModels.Settings
+namespace ExploitStrap.UI.ViewModels.Settings
 {
     public class BanAsyncViewModel : NotifyPropertyChangedViewModel
     {
@@ -29,7 +29,7 @@ namespace MrExStrap.UI.ViewModels.Settings
         public string ElevationStatusText =>
             IsElevated
                 ? "Running with administrator privileges. All actions on this page are available."
-                : "MrExBloxstrap is NOT running as administrator. MAC spoofing, MachineGuid changes, and prefetch cleanup are disabled. Close MrExBloxstrap and relaunch it with 'Run as administrator' to use them.";
+                : "ExploitStrap is NOT running as administrator. MAC spoofing, MachineGuid changes, and prefetch cleanup are disabled. Close ExploitStrap and relaunch it with 'Run as administrator' to use them.";
 
         // ---- adapters -----------------------------------------------------------------
 
@@ -218,13 +218,13 @@ namespace MrExStrap.UI.ViewModels.Settings
                 "  • %Temp%\\Roblox*\n" +
                 "  • Prefetch entries for Roblox (admin only)\n" +
                 "  • HKCU\\Software\\ROBLOX Corporation\n" +
-                (CleanMrExVersions ? "  • MrExBloxstrap's downloaded Roblox installs (Versions) — forces a full re-download next launch\n" : "") +
+                (CleanMrExVersions ? "  • ExploitStrap's downloaded Roblox installs (Versions) — forces a full re-download next launch\n" : "") +
                 (ClearBrowserCookies ? "  • Roblox cookies in any installed browsers (Chrome, Edge, Firefox, Brave, Opera, Vivaldi)\n" : "") +
                 "\n" +
                 (PreserveInGameSettings ? "In-game settings (GlobalBasicSettings_*.xml) will be preserved.\n" : "") +
                 (PreserveFastFlags ? "Vanilla Roblox FastFlags JSON will be preserved.\n" : "") +
                 (ClearBrowserCookies ? "Close any open browsers first or their cookie files will be locked and skipped.\n" : "") +
-                "\nMrExBloxstrap's own settings, FastFlags, and themes are NOT touched.\n\nContinue?";
+                "\nExploitStrap's own settings, FastFlags, and themes are NOT touched.\n\nContinue?";
 
             var confirm = Frontend.ShowMessageBox(prompt, MessageBoxImage.Warning,
                 MessageBoxButton.YesNo, MessageBoxResult.No);
@@ -474,10 +474,10 @@ namespace MrExStrap.UI.ViewModels.Settings
             }
         }
 
-        // Re-launch the current MrExBloxstrap exe with the "runas" verb so Windows pops a
+        // Re-launch the current ExploitStrap exe with the "runas" verb so Windows pops a
         // UAC prompt. The new elevated process opens the menu directly (-menu) and the
         // current one exits, so the user can go straight to BanAsync with full privileges
-        // instead of being told to "close MrExBloxstrap and right-click the exe yourself".
+        // instead of being told to "close ExploitStrap and right-click the exe yourself".
         private void RelaunchAsAdmin()
         {
             const string LOG_IDENT = "BanAsyncViewModel::RelaunchAsAdmin";
@@ -506,7 +506,7 @@ namespace MrExStrap.UI.ViewModels.Settings
                 Frontend.ShowMessageBox(
                     $"Couldn't relaunch as administrator.\n\n" +
                     $"Reason: {ex.GetType().Name}: {ex.Message}\n\n" +
-                    "Close MrExBloxstrap and right-click the exe → 'Run as administrator' instead.",
+                    "Close ExploitStrap and right-click the exe → 'Run as administrator' instead.",
                     MessageBoxImage.Warning);
             }
         }

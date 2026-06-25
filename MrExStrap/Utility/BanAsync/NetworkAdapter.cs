@@ -1,6 +1,6 @@
 using System.Net.NetworkInformation;
 
-namespace MrExStrap.Utility.BanAsync
+namespace ExploitStrap.Utility.BanAsync
 {
     public class NetworkAdapter
     {

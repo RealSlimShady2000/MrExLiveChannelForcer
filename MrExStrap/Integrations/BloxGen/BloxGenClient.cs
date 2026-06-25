@@ -1,6 +1,6 @@
 using System.Net.Http;
 
-namespace MrExStrap.Integrations.BloxGen
+namespace ExploitStrap.Integrations.BloxGen
 {
     // Thin client over the BloxGen alt-account generator API (https://bloxgen.net).
     //   POST https://core.bloxgen.net/api/generate

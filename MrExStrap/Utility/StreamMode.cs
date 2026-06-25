@@ -1,6 +1,6 @@
 using System.Runtime.InteropServices;
 
-namespace MrExStrap.Utility
+namespace ExploitStrap.Utility
 {
     // v420.28: hides Roblox-account info from places where it's user-visible
     // (Discord Rich Presence, bootstrapper dialog place readout, Roblox window

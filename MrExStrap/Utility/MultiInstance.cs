@@ -11,7 +11,7 @@
 //
 // 2) Event sweep, adapted from robloxmanager by sasha / centerepic (MIT) —
 //    https://gitlab.com/centerepic/robloxmanager. If a client became primary anyway (it
-//    started while the setting was off, or no MrExStrap process was alive to hold the
+//    started while the setting was off, or no ExploitStrap process was alive to hold the
 //    mutex), enumerate its handle table and close its "ROBLOX_singletonEvent" so the next
 //    launch isn't blocked and doesn't kill it. C# port using NtQuery*/DuplicateHandle.
 //    Same-user-only; no admin required.
@@ -21,7 +21,7 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using Microsoft.Win32.SafeHandles;
 
-namespace MrExStrap.Utility
+namespace ExploitStrap.Utility
 {
     public static class MultiInstance
     {
@@ -42,7 +42,7 @@ namespace MrExStrap.Utility
         // Hold ROBLOX_singletonMutex for the lifetime of this process. Mutex ownership is
         // per-thread and a thread that exits abandons it, so a dedicated background thread
         // takes ownership and then sleeps forever. When this process exits, ownership flows
-        // to the next MrExStrap process waiting on it (the watcher, or the next launch's
+        // to the next ExploitStrap process waiting on it (the watcher, or the next launch's
         // bootstrapper) — Roblox clients never own it, they only ever open a handle.
         public static void HoldSingletonMutex()
         {
@@ -100,7 +100,7 @@ namespace MrExStrap.Utility
 
                 if (!owned)
                 {
-                    // Queue behind the current owner (another MrExStrap process, or a Roblox
+                    // Queue behind the current owner (another ExploitStrap process, or a Roblox
                     // client that launched while multi-instance was off). When it exits we
                     // inherit ownership and keep the session in multi-instance mode.
                     try
@@ -152,7 +152,7 @@ namespace MrExStrap.Utility
         }
 
         // Safety net behind the held mutex: if the client we just launched still became the
-        // primary instance (no MrExStrap process was holding the mutex when it started), its
+        // primary instance (no ExploitStrap process was holding the mutex when it started), its
         // singleton event would make the next launch kill it. Probe for the event for a while
         // and close it wherever it shows up. This replaces the old single pass at a fixed 4s
         // after launch, which silently missed clients that took longer than that to create

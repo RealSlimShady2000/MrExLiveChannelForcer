@@ -14,7 +14,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace MrExStrap.UI.Elements.Controls
+namespace ExploitStrap.UI.Elements.Controls
 {
     /// <summary>
     /// Interaction logic for OptionControl.xaml

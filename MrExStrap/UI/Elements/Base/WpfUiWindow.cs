@@ -5,11 +5,16 @@ using Wpf.Ui.Controls;
 using Wpf.Ui.Mvvm.Contracts;
 using Wpf.Ui.Mvvm.Services;
 
-namespace MrExStrap.UI.Elements.Base
+namespace ExploitStrap.UI.Elements.Base
 {
     public abstract class WpfUiWindow : UiWindow
     {
         private readonly IThemeService _themeService = new ThemeService();
+
+        // ExploitStrap brand accent (neon cyan from the logo), applied app-wide in place of the
+        // Windows system accent so every control reads on-brand.
+        public static readonly System.Windows.Media.Color BrandAccent =
+            System.Windows.Media.Color.FromRgb(0x22, 0xD3, 0xEE);
 
         public WpfUiWindow()
         {
@@ -20,11 +25,12 @@ namespace MrExStrap.UI.Elements.Base
         {
             const int customThemeIndex = 2; // index for CustomTheme merged dictionary
 
-            _themeService.SetTheme(App.Settings.Prop.Theme.GetFinal() == Enums.Theme.Dark ? ThemeType.Dark : ThemeType.Light);
-            _themeService.SetSystemAccent();
+            // ExploitStrap is dark-only, with the neon-cyan brand accent applied app-wide instead
+            // of the Windows system accent so the look stays consistent and on-brand.
+            _themeService.SetTheme(ThemeType.Dark);
+            Accent.Apply(BrandAccent, ThemeType.Dark);
 
-            // there doesn't seem to be a way to query the name for merged dictionaries
-            var dict = new ResourceDictionary { Source = new Uri($"pack://application:,,,/UI/Style/{Enum.GetName(App.Settings.Prop.Theme.GetFinal())}.xaml") };
+            var dict = new ResourceDictionary { Source = new Uri("pack://application:,,,/UI/Style/Dark.xaml") };
             Application.Current.Resources.MergedDictionaries[customThemeIndex] = dict;
 
 #if QA_BUILD

@@ -1,23 +1,23 @@
 using System.Text.RegularExpressions;
 
-namespace MrExStrap.Utility
+namespace ExploitStrap.Utility
 {
     public static class LaunchArgsUtility
     {
         // Deep-links surface placeId in many shapes — both as a direct query param and as
-        // the hidden value inside the URL-encoded placelauncherurl that Bloxstrap-style
+        // the hidden value inside the URL-encoded placelauncherurl that ExploitStrap-style
         // protocol launches use:
         //   placeId=13700835620            (direct deep link)
         //   placeId%3D13700835620           (URL-encoded inside placelauncherurl)
         //   placeid:13700835620             (rare; some host registrations)
         //
-        // We require at least 4 digits because the outer Bloxstrap payload can include
+        // We require at least 4 digits because the outer ExploitStrap payload can include
         // unrelated short placeholders like "placeid:3" that aren't the real experience id.
         private static readonly Regex PlaceIdRegex = new(
             @"placeid[^0-9]+(\d{4,19})",
             RegexOptions.IgnoreCase | RegexOptions.CultureInvariant | RegexOptions.Compiled);
 
-        // Captures the value of the placelauncherurl key inside a Bloxstrap-style launch
+        // Captures the value of the placelauncherurl key inside a ExploitStrap-style launch
         // payload. Stops at "+", "&", "\"", or whitespace because the outer payload uses
         // "+" as the field separator and inner Roblox URLs are quoted.
         private static readonly Regex PlaceLauncherUrlRegex = new(
@@ -45,7 +45,7 @@ namespace MrExStrap.Utility
                 return null;
 
             // Prefer the placelauncherurl path: it's the canonical source for web launches
-            // and avoids small-integer false matches from the outer Bloxstrap protocol payload.
+            // and avoids small-integer false matches from the outer ExploitStrap protocol payload.
             var launcherMatch = PlaceLauncherUrlRegex.Match(commandLine);
             if (launcherMatch.Success)
             {

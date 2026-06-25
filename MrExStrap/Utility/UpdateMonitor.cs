@@ -1,7 +1,7 @@
-using MrExStrap.RobloxInterfaces;
+using ExploitStrap.RobloxInterfaces;
 using WinForms = System.Windows.Forms;
 
-namespace MrExStrap.Utility
+namespace ExploitStrap.Utility
 {
     // v420.28: opt-in background checks that fire Windows balloon-tip toasts
     // when (a) Roblox's LIVE channel hash moves to a new build or (b) any
@@ -30,7 +30,7 @@ namespace MrExStrap.Utility
             await Task.WhenAll(liveTask, exTask, appTask);
         }
 
-        // Toast when a newer MrExBloxstrap release is on GitHub. Complements the
+        // Toast when a newer ExploitStrap release is on GitHub. Complements the
         // menu-open "install now?" prompt (LaunchHandler.TryMenuAutoUpgrade): that one
         // is modal and only fires when the user opens the menu, this one passively
         // notifies tray users and anyone who declined the prompt. Seed-once guard via
@@ -68,8 +68,8 @@ namespace MrExStrap.Utility
 
                 App.Logger.WriteLine(LOG_IDENT, $"App update available: running v{App.Version}, latest {release.TagName}. Firing toast.");
                 LiveChannelToast.ShowToast(
-                    title: "MrExBloxstrap update available",
-                    message: $"Version {release.TagName} is out (you're on v{App.Version}). Open MrExBloxstrap to update.",
+                    title: "ExploitStrap update available",
+                    message: $"Version {release.TagName} is out (you're on v{App.Version}). Open ExploitStrap to update.",
                     icon: WinForms.ToolTipIcon.Info);
 
                 App.State.Prop.LastNotifiedAppVersion = release.TagName;
@@ -180,7 +180,7 @@ namespace MrExStrap.Utility
                     App.Logger.WriteLine(LOG_IDENT, $"Executor '{match.Title}' updated: {last} -> {match.RbxVersion}. Firing toast.");
                     LiveChannelToast.ShowToast(
                         title: $"{match.Title} just updated",
-                        message: $"Now on {match.RbxVersion}. MrExBloxstrap applies the new version on the profile's next launch.",
+                        message: $"Now on {match.RbxVersion}. ExploitStrap applies the new version on the profile's next launch.",
                         icon: WinForms.ToolTipIcon.Info);
                     profile.LastNotifiedExecutorHash = match.RbxVersion;
                     any = true;

@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace MrExStrap.Models.Persistable
+namespace ExploitStrap.Models.Persistable
 {
     // One saved Roblox account for the Multi Instance tab.
     //

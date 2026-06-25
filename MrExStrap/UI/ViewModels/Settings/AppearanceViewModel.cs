@@ -8,11 +8,11 @@ using ICSharpCode.SharpZipLib.Zip;
 
 using Microsoft.Win32;
 
-using MrExStrap.UI.Elements.Settings;
-using MrExStrap.UI.Elements.Editor;
-using MrExStrap.UI.Elements.Dialogs;
+using ExploitStrap.UI.Elements.Settings;
+using ExploitStrap.UI.Elements.Editor;
+using ExploitStrap.UI.Elements.Dialogs;
 
-namespace MrExStrap.UI.ViewModels.Settings
+namespace ExploitStrap.UI.ViewModels.Settings
 {
     public class AppearanceViewModel : NotifyPropertyChangedViewModel
     {

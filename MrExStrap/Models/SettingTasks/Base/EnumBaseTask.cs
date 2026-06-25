@@ -1,4 +1,4 @@
-namespace MrExStrap.Models.SettingTasks.Base
+namespace ExploitStrap.Models.SettingTasks.Base
 {
     public abstract class EnumBaseTask<T> : BaseTask where T : struct, Enum
     {

@@ -1,4 +1,4 @@
-namespace MrExStrap.Models.Attributes
+namespace ExploitStrap.Models.Attributes
 {
     [AttributeUsage(AttributeTargets.Assembly)]
     public class BuildMetadataAttribute : Attribute

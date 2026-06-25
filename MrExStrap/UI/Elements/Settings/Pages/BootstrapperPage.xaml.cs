@@ -13,9 +13,9 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-using MrExStrap.UI.ViewModels.Settings;
+using ExploitStrap.UI.ViewModels.Settings;
 
-namespace MrExStrap.UI.Elements.Settings.Pages
+namespace ExploitStrap.UI.Elements.Settings.Pages
 {
     /// <summary>
     /// Interaction logic for BehaviourPage.xaml

@@ -15,7 +15,7 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using Wpf.Ui.Common;
 
-namespace MrExStrap.UI.Elements.Controls
+namespace ExploitStrap.UI.Elements.Controls
 {
   /// <summary>
   /// Interaction logic for Expander.xaml

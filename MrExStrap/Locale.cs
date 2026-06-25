@@ -1,6 +1,6 @@
 using System.Windows;
 
-namespace MrExStrap
+namespace ExploitStrap
 {
     internal static class Locale
     {

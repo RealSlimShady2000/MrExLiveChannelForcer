@@ -1,4 +1,4 @@
-namespace MrExStrap.Models.RobloxApi
+namespace ExploitStrap.Models.RobloxApi
 {
     /// <summary>
     /// Roblox.Users.Api.GetUserResponse

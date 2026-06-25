@@ -1,7 +1,7 @@
 using System.Windows;
 using System.Windows.Controls.Primitives;
 
-namespace MrExStrap.UI
+namespace ExploitStrap.UI
 {
     // Fork feature: one-click "export my logs and tell me where to send them" flow,
     // surfaced on every crash/error dialog so users never have to dig through Settings.

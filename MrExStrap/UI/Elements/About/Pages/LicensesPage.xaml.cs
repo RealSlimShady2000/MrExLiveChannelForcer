@@ -1,4 +1,4 @@
-namespace MrExStrap.UI.Elements.About.Pages
+namespace ExploitStrap.UI.Elements.About.Pages
 {
     /// <summary>
     /// Interaction logic for LicensesPage.xaml

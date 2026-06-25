@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace MrExStrap.Resources {
+namespace ExploitStrap.Resources {
     using System;
     
     
@@ -39,7 +39,7 @@ namespace MrExStrap.Resources {
         public static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("MrExStrap.Resources.Strings", typeof(Strings).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("ExploitStrap.Resources.Strings", typeof(Strings).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -70,7 +70,7 @@ namespace MrExStrap.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to These are the people who&apos;ve supported MrExStrap through Ko-fi. A massive thank you to everyone here!
+        ///   Looks up a localized string similar to These are the people who&apos;ve supported ExploitStrap through Ko-fi. A massive thank you to everyone here!
         ///Every person here is ranked by their overall pledge..
         /// </summary>
         public static string About_Supporters_Description {
@@ -107,7 +107,7 @@ namespace MrExStrap.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to About MrExStrap.
+        ///   Looks up a localized string similar to About ExploitStrap.
         /// </summary>
         public static string About_Title {
             get {
@@ -116,7 +116,7 @@ namespace MrExStrap.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to All of MrExStrap&apos;s translations are crowdsourced through [Crowdin]({0}). Everyone listed here are people who generously volunteered their time and effort to help localise MrExStrap. A massive thank you to everyone here!.
+        ///   Looks up a localized string similar to All of ExploitStrap&apos;s translations are crowdsourced through [Crowdin]({0}). Everyone listed here are people who generously volunteered their time and effort to help localise ExploitStrap. A massive thank you to everyone here!.
         /// </summary>
         public static string About_Translators_Description {
             get {
@@ -161,7 +161,7 @@ namespace MrExStrap.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to MrExStrap was unable to automatically update to version {0}. Please update it manually by downloading and running it from the website..
+        ///   Looks up a localized string similar to ExploitStrap was unable to automatically update to version {0}. Please update it manually by downloading and running it from the website..
         /// </summary>
         public static string Bootstrapper_AutoUpdateFailed {
             get {
@@ -197,7 +197,7 @@ namespace MrExStrap.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to MrExStrap tried to upgrade Roblox but can&apos;t because Roblox&apos;s files are still in use.
+        ///   Looks up a localized string similar to ExploitStrap tried to upgrade Roblox but can&apos;t because Roblox&apos;s files are still in use.
         ///
         ///Please close any applications that may be using Roblox&apos;s files, and relaunch..
         /// </summary>
@@ -208,7 +208,7 @@ namespace MrExStrap.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to You must first install MrExStrap before uninstalling..
+        ///   Looks up a localized string similar to You must first install ExploitStrap before uninstalling..
         /// </summary>
         public static string Bootstrapper_FirstRunUninstall {
             get {
@@ -244,7 +244,7 @@ namespace MrExStrap.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to MrExStrap does not have enough disk space to download and install Roblox. Please free up some disk space and try again..
+        ///   Looks up a localized string similar to ExploitStrap does not have enough disk space to download and install Roblox. Please free up some disk space and try again..
         /// </summary>
         public static string Bootstrapper_NotEnoughSpace {
             get {
@@ -325,7 +325,7 @@ namespace MrExStrap.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Getting the latest MrExStrap....
+        ///   Looks up a localized string similar to Getting the latest ExploitStrap....
         /// </summary>
         public static string Bootstrapper_Status_UpgradingBloxstrap {
             get {
@@ -361,7 +361,7 @@ namespace MrExStrap.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to MrExStrap has successfully uninstalled.
+        ///   Looks up a localized string similar to ExploitStrap has successfully uninstalled.
         /// </summary>
         public static string Bootstrapper_SuccessfullyUninstalled {
             get {
@@ -370,7 +370,7 @@ namespace MrExStrap.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Roblox is currently running, but must be closed before uninstalling MrExStrap. Would you like to close Roblox now?.
+        ///   Looks up a localized string similar to Roblox is currently running, but must be closed before uninstalling ExploitStrap. Would you like to close Roblox now?.
         /// </summary>
         public static string Bootstrapper_Uninstall_RobloxRunning {
             get {
@@ -685,7 +685,7 @@ namespace MrExStrap.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Roblox has not yet been installed. Please launch Roblox using MrExStrap at least once before trying to use this option..
+        ///   Looks up a localized string similar to Roblox has not yet been installed. Please launch Roblox using ExploitStrap at least once before trying to use this option..
         /// </summary>
         public static string Common_RobloxNotInstalled {
             get {
@@ -1362,7 +1362,7 @@ namespace MrExStrap.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to MrExStrap was unable to create shortcuts for the Desktop and Start menu. Try creating them later through the settings..
+        ///   Looks up a localized string similar to ExploitStrap was unable to create shortcuts for the Desktop and Start menu. Try creating them later through the settings..
         /// </summary>
         public static string Dialog_CannotCreateShortcuts {
             get {
@@ -1371,7 +1371,7 @@ namespace MrExStrap.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A connection could not be made, which likely indicates a poor internet connection or a firewall block. If your connection is fine, please ensure that your antivirus isn&apos;t blocking MrExStrap..
+        ///   Looks up a localized string similar to A connection could not be made, which likely indicates a poor internet connection or a firewall block. If your connection is fine, please ensure that your antivirus isn&apos;t blocking ExploitStrap..
         /// </summary>
         public static string Dialog_Connectivity_BadConnection {
             get {
@@ -1398,7 +1398,7 @@ namespace MrExStrap.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Because Roblox needs to be installed or upgraded, MrExStrap cannot continue..
+        ///   Looks up a localized string similar to Because Roblox needs to be installed or upgraded, ExploitStrap cannot continue..
         /// </summary>
         public static string Dialog_Connectivity_RobloxUpgradeNeeded {
             get {
@@ -1434,7 +1434,7 @@ namespace MrExStrap.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to MrExStrap is unable to connect to {0}.
+        ///   Looks up a localized string similar to ExploitStrap is unable to connect to {0}.
         /// </summary>
         public static string Dialog_Connectivity_UnableToConnect {
             get {
@@ -1443,7 +1443,7 @@ namespace MrExStrap.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to MrExStrap is unable to download Roblox.
+        ///   Looks up a localized string similar to ExploitStrap is unable to download Roblox.
         /// </summary>
         public static string Dialog_Connectivity_UnableToDownload {
             get {
@@ -1490,9 +1490,9 @@ namespace MrExStrap.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Check the [MrExStrap Wiki]({0}) first to see if this problem has already been addressed with a fix.
+        ///   Looks up a localized string similar to Check the [ExploitStrap Wiki]({0}) first to see if this problem has already been addressed with a fix.
         ///
-        ///If not, then please report this exception to the maintainers of this fork. Do not report this to MrExStrap&apos;s GitHub issues, as this is an unoffical build..
+        ///If not, then please report this exception to the maintainers of this fork. Do not report this to ExploitStrap&apos;s GitHub issues, as this is an unoffical build..
         /// </summary>
         public static string Dialog_Exception_Info_2_Alt {
             get {
@@ -1510,7 +1510,7 @@ namespace MrExStrap.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to MrExStrap Exception.
+        ///   Looks up a localized string similar to ExploitStrap Exception.
         /// </summary>
         public static string Dialog_Exception_Title {
             get {
@@ -1559,7 +1559,7 @@ namespace MrExStrap.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Roblox failed to launch.
         ///
-        ///This may or may not be a MrExStrap issue. To find out, see [this help page]({0})..
+        ///This may or may not be a ExploitStrap issue. To find out, see [this help page]({0})..
         /// </summary>
         public static string Dialog_PlayerError_FailedLaunch {
             get {
@@ -1568,7 +1568,7 @@ namespace MrExStrap.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to MrExStrap is unable to write to the Windows Registry. An antivirus is likely interfering and causing issues. Please check to make sure there isn&apos;t anything that would restrict MrExStrap&apos;s operation..
+        ///   Looks up a localized string similar to ExploitStrap is unable to write to the Windows Registry. An antivirus is likely interfering and causing issues. Please check to make sure there isn&apos;t anything that would restrict ExploitStrap&apos;s operation..
         /// </summary>
         public static string Dialog_RegistryWriteError {
             get {
@@ -1604,7 +1604,7 @@ namespace MrExStrap.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to MrExStrap (Classic).
+        ///   Looks up a localized string similar to ExploitStrap (Classic).
         /// </summary>
         public static string Enums_BootstrapperStyle_ClassicFluentDialog {
             get {
@@ -1622,7 +1622,7 @@ namespace MrExStrap.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to MrExStrap (Glass).
+        ///   Looks up a localized string similar to ExploitStrap (Glass).
         /// </summary>
         public static string Enums_BootstrapperStyle_FluentAeroDialog {
             get {
@@ -1847,7 +1847,7 @@ namespace MrExStrap.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to MrExStrap has been upgraded to v{0}.
+        ///   Looks up a localized string similar to ExploitStrap has been upgraded to v{0}.
         /// </summary>
         public static string InstallChecker_Updated {
             get {
@@ -1856,7 +1856,7 @@ namespace MrExStrap.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The version of MrExStrap you&apos;ve launched is different to the version you currently have installed.
+        ///   Looks up a localized string similar to The version of ExploitStrap you&apos;ve launched is different to the version you currently have installed.
         ///Would you like to upgrade your currently installed version?.
         /// </summary>
         public static string InstallChecker_VersionDifferentThanInstalled {
@@ -1866,7 +1866,7 @@ namespace MrExStrap.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The version of MrExStrap you&apos;ve launched is older than the version you currently have installed.
+        ///   Looks up a localized string similar to The version of ExploitStrap you&apos;ve launched is older than the version you currently have installed.
         ///Issues may occur and your settings may be altered. A reinstall is recommended.
         ///Are you sure you want to continue?.
         /// </summary>
@@ -1904,7 +1904,7 @@ namespace MrExStrap.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Configure MrExStrap&apos;s settings.
+        ///   Looks up a localized string similar to Configure ExploitStrap&apos;s settings.
         /// </summary>
         public static string Installer_Completion_Settings_Title {
             get {
@@ -1913,11 +1913,11 @@ namespace MrExStrap.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to MrExStrap has successfully been installed.
+        ///   Looks up a localized string similar to ExploitStrap has successfully been installed.
         ///
-        ///Roblox has not yet been installed, that will happen when you launch it with MrExStrap for the first time. However, before you do that, you may want to configure MrExStrap&apos;s settings first.
+        ///Roblox has not yet been installed, that will happen when you launch it with ExploitStrap for the first time. However, before you do that, you may want to configure ExploitStrap&apos;s settings first.
         ///
-        ///Also, avoid using the &quot;Roblox Player&quot; shortcut to launch Roblox, as MrExStrap won&apos;t launch with Roblox. If you don&apos;t see MrExStrap show when launching from the website, simply launch Roblox with MrExStrap once from the desktop to fix it.
+        ///Also, avoid using the &quot;Roblox Player&quot; shortcut to launch Roblox, as ExploitStrap won&apos;t launch with Roblox. If you don&apos;t see ExploitStrap show when launching from the website, simply launch Roblox with ExploitStrap once from the desktop to fix it.
         ///
         ///What would you like to do?.
         /// </summary>
@@ -1937,9 +1937,9 @@ namespace MrExStrap.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to MrExStrap has been installed to this location before and is still present, however the installer cannot overwrite the old executable. 
+        ///   Looks up a localized string similar to ExploitStrap has been installed to this location before and is still present, however the installer cannot overwrite the old executable. 
         ///
-        ///Please manually delete MrExStrap.exe from the install location or try restarting your system, and then retry installation afterwards..
+        ///Please manually delete ExploitStrap.exe from the install location or try restarting your system, and then retry installation afterwards..
         /// </summary>
         public static string Installer_Install_CannotOverwrite {
             get {
@@ -2002,7 +2002,7 @@ namespace MrExStrap.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to MrExStrap Installer.
+        ///   Looks up a localized string similar to ExploitStrap Installer.
         /// </summary>
         public static string Installer_Title {
             get {
@@ -2011,11 +2011,11 @@ namespace MrExStrap.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Thank you for downloading MrExStrap. 
+        ///   Looks up a localized string similar to Thank you for downloading ExploitStrap. 
         ///
-        ///The only official websites to download MrExStrap from are {0} and {1}, so please verify that you got it from an official source.
+        ///The only official websites to download ExploitStrap from are {0} and {1}, so please verify that you got it from an official source.
         ///
-        ///This installation process will be quick and simple, and you will be able to configure any of MrExStrap&apos;s settings after installation..
+        ///This installation process will be quick and simple, and you will be able to configure any of ExploitStrap&apos;s settings after installation..
         /// </summary>
         public static string Installer_Welcome_MainText {
             get {
@@ -2042,7 +2042,7 @@ namespace MrExStrap.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to You are trying to install version {0} of MrExStrap, but the latest version available is {1}. Would you like to download it?.
+        ///   Looks up a localized string similar to You are trying to install version {0} of ExploitStrap, but the latest version available is {1}. Would you like to download it?.
         /// </summary>
         public static string Installer_Welcome_UpdateNotice {
             get {
@@ -2069,7 +2069,7 @@ namespace MrExStrap.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to MrExStrap Wiki.
+        ///   Looks up a localized string similar to ExploitStrap Wiki.
         /// </summary>
         public static string LaunchMenu_BloxstrapWiki {
             get {
@@ -2132,7 +2132,7 @@ namespace MrExStrap.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to No log file will be written for this launch because MrExStrap is unable to write to the folder at &apos;{0}&apos;.
+        ///   Looks up a localized string similar to No log file will be written for this launch because ExploitStrap is unable to write to the folder at &apos;{0}&apos;.
         /// </summary>
         public static string Logger_NoWriteMode {
             get {
@@ -2159,7 +2159,7 @@ namespace MrExStrap.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to These are the people who have made notable contributions to MrExStrap, helping make it what it is..
+        ///   Looks up a localized string similar to These are the people who have made notable contributions to ExploitStrap, helping make it what it is..
         /// </summary>
         public static string Menu_About_Contributors_Description {
             get {
@@ -2303,7 +2303,7 @@ namespace MrExStrap.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to MrExStrap is already running.
+        ///   Looks up a localized string similar to ExploitStrap is already running.
         /// </summary>
         public static string Menu_AlreadyRunning_Title {
             get {
@@ -2411,7 +2411,7 @@ namespace MrExStrap.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Configure how MrExStrap should look..
+        ///   Looks up a localized string similar to Configure how ExploitStrap should look..
         /// </summary>
         public static string Menu_Appearance_Description {
             get {
@@ -2501,7 +2501,7 @@ namespace MrExStrap.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to MrExStrap will automatically check and update itself when launching Roblox..
+        ///   Looks up a localized string similar to ExploitStrap will automatically check and update itself when launching Roblox..
         /// </summary>
         public static string Menu_Behaviour_AutoUpdate_Description {
             get {
@@ -2510,7 +2510,7 @@ namespace MrExStrap.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Automatically update MrExStrap.
+        ///   Looks up a localized string similar to Automatically update ExploitStrap.
         /// </summary>
         public static string Menu_Behaviour_AutoUpdate_Title {
             get {
@@ -2555,7 +2555,7 @@ namespace MrExStrap.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Configure what MrExStrap should do when launching Roblox..
+        ///   Looks up a localized string similar to Configure what ExploitStrap should do when launching Roblox..
         /// </summary>
         public static string Menu_Behaviour_Description {
             get {
@@ -2609,7 +2609,7 @@ namespace MrExStrap.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Configure options related to MrExStrap&apos;s behaviour itself..
+        ///   Looks up a localized string similar to Configure options related to ExploitStrap&apos;s behaviour itself..
         /// </summary>
         public static string Menu_Bloxstrap_Description {
             get {
@@ -2627,7 +2627,7 @@ namespace MrExStrap.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to MrExStrap configuration.
+        ///   Looks up a localized string similar to ExploitStrap configuration.
         /// </summary>
         public static string Menu_Bloxstrap_ExportData_ExportConfig {
             get {
@@ -2636,7 +2636,7 @@ namespace MrExStrap.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to All MrExStrap logs.
+        ///   Looks up a localized string similar to All ExploitStrap logs.
         /// </summary>
         public static string Menu_Bloxstrap_ExportData_ExportLogs {
             get {
@@ -2878,7 +2878,7 @@ namespace MrExStrap.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Allow MrExStrap to manage Fast Flags.
+        ///   Looks up a localized string similar to Allow ExploitStrap to manage Fast Flags.
         /// </summary>
         public static string Menu_FastFlags_ManagerEnabled_Title {
             get {
@@ -2977,7 +2977,7 @@ namespace MrExStrap.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to MrExStrap cannot be installed here. Please choose a different location, or resort to using the default location by clicking the reset button..
+        ///   Looks up a localized string similar to ExploitStrap cannot be installed here. Please choose a different location, or resort to using the default location by clicking the reset button..
         /// </summary>
         public static string Menu_InstallLocation_CantInstall {
             get {
@@ -2986,7 +2986,7 @@ namespace MrExStrap.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The folder you&apos;ve chosen to install MrExStrap to already exists and is NOT empty. It is strongly recommended for MrExStrap to be installed to its own independent folder.
+        ///   Looks up a localized string similar to The folder you&apos;ve chosen to install ExploitStrap to already exists and is NOT empty. It is strongly recommended for ExploitStrap to be installed to its own independent folder.
         ///
         ///Changing to the following location is suggested:
         ///{0}
@@ -3010,7 +3010,7 @@ namespace MrExStrap.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to MrExStrap does not have write access to the install location you&apos;ve selected. Please choose another location..
+        ///   Looks up a localized string similar to ExploitStrap does not have write access to the install location you&apos;ve selected. Please choose another location..
         /// </summary>
         public static string Menu_InstallLocation_NoWritePerms {
             get {
@@ -3145,7 +3145,7 @@ namespace MrExStrap.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Allows for MrExStrap to detect what Roblox game you&apos;re playing. Certain features may require this..
+        ///   Looks up a localized string similar to Allows for ExploitStrap to detect what Roblox game you&apos;re playing. Certain features may require this..
         /// </summary>
         public static string Menu_Integrations_EnableActivityTracking_Description {
             get {
@@ -3451,7 +3451,7 @@ namespace MrExStrap.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Configure how MrExStrap can be readily launched..
+        ///   Looks up a localized string similar to Configure how ExploitStrap can be readily launched..
         /// </summary>
         public static string Menu_Shortcuts_Description {
             get {
@@ -3460,7 +3460,7 @@ namespace MrExStrap.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Allows you to use MrExStrap&apos;s range of Roblox icons for your shortcuts. [See how.]({0}).
+        ///   Looks up a localized string similar to Allows you to use ExploitStrap&apos;s range of Roblox icons for your shortcuts. [See how.]({0}).
         /// </summary>
         public static string Menu_Shortcuts_ExtractIcons_Description {
             get {
@@ -3536,7 +3536,7 @@ namespace MrExStrap.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to MrExStrap Settings.
+        ///   Looks up a localized string similar to ExploitStrap Settings.
         /// </summary>
         public static string Menu_Title {
             get {
@@ -3563,7 +3563,7 @@ namespace MrExStrap.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to They&apos;ll be kept where MrExStrap was installed, and will automatically be restored on a reinstall..
+        ///   Looks up a localized string similar to They&apos;ll be kept where ExploitStrap was installed, and will automatically be restored on a reinstall..
         /// </summary>
         public static string Uninstaller_KeepData_Description {
             get {
@@ -3581,11 +3581,11 @@ namespace MrExStrap.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Uninstalling will remove MrExStrap from your system, and automatically reconfigure the default Roblox launcher if it&apos;s still installed.
+        ///   Looks up a localized string similar to Uninstalling will remove ExploitStrap from your system, and automatically reconfigure the default Roblox launcher if it&apos;s still installed.
         ///
-        ///The uninstall process might leave some things behind, so you may need to manually clean up the leftover files where MrExStrap was installed.
+        ///The uninstall process might leave some things behind, so you may need to manually clean up the leftover files where ExploitStrap was installed.
         ///
-        ///MrExStrap was installed at &quot;{1}&quot;..
+        ///ExploitStrap was installed at &quot;{1}&quot;..
         /// </summary>
         public static string Uninstaller_Text {
             get {
@@ -3594,7 +3594,7 @@ namespace MrExStrap.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Uninstall MrExStrap.
+        ///   Looks up a localized string similar to Uninstall ExploitStrap.
         /// </summary>
         public static string Uninstaller_Title {
             get {
