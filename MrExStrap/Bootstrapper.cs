@@ -110,7 +110,31 @@ namespace ExploitStrap
                 return AppData.DistributionState.VersionGuid;
 
             if (!string.IsNullOrEmpty(activeProfile.InstalledVersionGuid))
+            {
+                // Self-heal stale bookkeeping: when the profile claims it is already on the
+                // current LIVE build but the Roblox client actually on disk reports a
+                // DIFFERENT version, the stored hash is lying (e.g. a past upgrade was
+                // interrupted, or an orphan dir got adopted, and the new hash was stamped
+                // without the matching files ever landing). Trusting it launches a stale
+                // client that Roblox kicks with "version out of date" (Error 280) on every
+                // join. Only act on a CONFIRMED mismatch — the profile points at the live
+                // hash, _latestVersion is known, the exe is present, and its file version
+                // differs — so pinned/downgrade profiles (where _latestVersion is null) and
+                // any case where we cannot read a version keep trusting the stored hash and
+                // never trigger a spurious reinstall (the v420.24 regression).
+                if (activeProfile.InstalledVersionGuid == _latestVersionGuid
+                    && _latestVersion is not null
+                    && File.Exists(AppData.ExecutablePath)
+                    && !InstalledExeMatchesLatest())
+                {
+                    App.Logger.WriteLine(LOG_IDENT, $"Profile '{activeProfile.Name}' is bookmarked at {_latestVersionGuid} but the on-disk client is a different build — clearing the stale hash to force an upgrade to v{_latestVersion}.");
+                    activeProfile.InstalledVersionGuid = "";
+                    App.Settings.Save();
+                    return "";
+                }
+
                 return activeProfile.InstalledVersionGuid;
+            }
 
             if (InstalledExeMatchesLatest())
             {
