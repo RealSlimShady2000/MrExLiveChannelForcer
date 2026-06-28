@@ -135,6 +135,18 @@ namespace ExploitStrap.Utility
                 {
                     if (IsJunction(junctionPath))
                     {
+                        // Already resolving to the target? Leave it untouched. Tearing down and
+                        // recreating a junction that's already correct is pure churn, and during
+                        // a multi-instance launch it's actively harmful: starting a second client
+                        // of the same profile would briefly unlink the very junction the first
+                        // client is still running out of. Skipping the rebuild keeps concurrent
+                        // same-profile launches from disturbing each other.
+                        if (JunctionTargetMatches(junctionPath, targetDir))
+                        {
+                            App.Logger.WriteLine(LOG_IDENT, $"Junction {junctionPath} already resolves to {targetDir}; leaving it in place.");
+                            return true;
+                        }
+
                         DeleteJunction(junctionPath);
                     }
                     else
@@ -163,6 +175,28 @@ namespace ExploitStrap.Utility
             catch (Exception ex)
             {
                 App.Logger.WriteException(LOG_IDENT + "::RepointJunction", ex);
+                return false;
+            }
+        }
+
+        // True when the existing junction at junctionPath already resolves to targetDir
+        // (path-normalised, case-insensitive). Lets RepointJunction no-op when nothing needs
+        // to change instead of churning the link out from under a running client.
+        private static bool JunctionTargetMatches(string junctionPath, string targetDir)
+        {
+            string? current = GetJunctionTargetName(junctionPath);
+            if (string.IsNullOrEmpty(current))
+                return false;
+
+            try
+            {
+                string a = Path.TrimEndingDirectorySeparator(Path.GetFullPath(current));
+                string b = Path.TrimEndingDirectorySeparator(Path.GetFullPath(targetDir));
+                return string.Equals(a, b, StringComparison.OrdinalIgnoreCase);
+            }
+            catch (Exception ex)
+            {
+                App.Logger.WriteException(LOG_IDENT + "::JunctionTargetMatches", ex);
                 return false;
             }
         }

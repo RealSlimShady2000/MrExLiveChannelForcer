@@ -164,9 +164,36 @@ namespace ExploitStrap
                     return false;
 
                 var fvi = System.Diagnostics.FileVersionInfo.GetVersionInfo(exePath);
+
+                // The numeric file-version fields come from Win32 VS_FIXEDFILEINFO, where each
+                // of the four parts is a 16-bit WORD. Roblox's build number (the 4th part, e.g.
+                // 7271199) overflows that, so FilePrivatePart reads back wrapped mod 65536
+                // (7271199 -> 62239) and never equals _latestVersion's full value. Comparing the
+                // two directly reported "differs" on every single launch of the live profile,
+                // forcing a full re-extract each time — and because several account launches
+                // re-extract into the one shared install folder at once, that trampled the
+                // already-running clients and broke Multi Instance.
+                //
+                // Gate the decision on the numeric parts compared against _latestVersion wrapped
+                // through the same 16-bit fields: when those differ a genuinely different client
+                // is on disk (a real version bump moves the major/minor/build too), so the
+                // Error 280 self-heal still fires for real staleness. When they match, confirm
+                // with the untruncated StringFileInfo version (which keeps the full build
+                // number) so the astronomically-rare case of two builds congruent mod 65536
+                // can't masquerade as current.
                 var onDisk = new Version(fvi.FileMajorPart, fvi.FileMinorPart, fvi.FileBuildPart, fvi.FilePrivatePart);
-                bool match = onDisk == _latestVersion;
-                App.Logger.WriteLine(LOG_IDENT, $"On-disk {exePath} v{onDisk} vs latest v{_latestVersion}: {(match ? "match" : "differs")}");
+                var latestTruncated = TruncateToFileVersionFields(_latestVersion);
+
+                if (onDisk != latestTruncated)
+                {
+                    App.Logger.WriteLine(LOG_IDENT, $"On-disk {exePath} v{onDisk} vs latest v{_latestVersion} (compared as v{latestTruncated}): differs");
+                    return false;
+                }
+
+                Version? onDiskFull = TryParseFullVersionString(fvi.FileVersion)
+                                   ?? TryParseFullVersionString(fvi.ProductVersion);
+                bool match = onDiskFull is null || onDiskFull == _latestVersion;
+                App.Logger.WriteLine(LOG_IDENT, $"On-disk {exePath} v{onDiskFull?.ToString() ?? onDisk.ToString()} vs latest v{_latestVersion}: {(match ? "match" : "differs")}");
                 return match;
             }
             catch (Exception ex)
@@ -174,6 +201,29 @@ namespace ExploitStrap
                 App.Logger.WriteException(LOG_IDENT, ex);
                 return false;
             }
+        }
+
+        // The Win32 file-version fields (VS_FIXEDFILEINFO) are each 16 bits, so a value like
+        // Roblox's build number 7271199 is stored wrapped (7271199 & 0xFFFF = 62239). Mirror
+        // that wrapping on the latest version so it lines up with what FileVersionInfo reads
+        // back from the on-disk exe's numeric parts.
+        private static Version TruncateToFileVersionFields(Version v) => new(
+            v.Major & 0xFFFF,
+            Math.Max(v.Minor, 0) & 0xFFFF,
+            Math.Max(v.Build, 0) & 0xFFFF,
+            Math.Max(v.Revision, 0) & 0xFFFF);
+
+        // Parse the full, untruncated version Roblox writes into the exe's StringFileInfo block.
+        // It comes back comma-separated ("0, 727, 0, 7271199"); normalise to a dotted form
+        // Version.Parse accepts. Returns null if absent or malformed so the caller can fall
+        // back to the numeric comparison.
+        private static Version? TryParseFullVersionString(string? raw)
+        {
+            if (string.IsNullOrWhiteSpace(raw))
+                return null;
+
+            string normalized = raw.Replace(" ", "").Replace(',', '.');
+            return Version.TryParse(normalized, out var parsed) ? parsed : null;
         }
 
         // v420.24: each profile owns its real Roblox install at
