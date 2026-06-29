@@ -207,6 +207,33 @@ You can also compare the `SHA256SUMS` attached to every release against the exe 
 
 ---
 
+## Antivirus false positives
+
+Some antivirus tools — most often **Windows Defender** — sometimes flag the download or the auto-update as a threat, with a name like `Trojan:Win32/Wacatac.H!ml`. **This is a false positive.** Here's why it happens:
+
+- The `!ml` on the end means a **machine-learning guess** flagged it, not a real virus signature. Wacatac.H!ml is the single most common false-positive bucket Defender has, and it lands on unsigned indie apps all the time.
+- ExploitStrap is an **unsigned, single-file .NET app**, which already looks suspicious to those heuristics. On top of that it legitimately does things malware also does — writes to the registry, spoofs your MAC, randomizes MachineGuid, cleans Roblox cookies, and downloads its own updates. Every one of those is harmless here, but together they trip the heuristic.
+- The "this program is dangerous and executes commands from an attacker" line is Microsoft's generic description for that whole malware family. It is **not** a real finding about ExploitStrap's code.
+- It shows up most on **brand-new releases**, because a fresh file has no reputation yet. It fades as more people download that version.
+
+**Make sure your copy is genuine.** Do this before trusting anything that claims to be ExploitStrap:
+
+- Check the file's SHA-256 against the `SHA256SUMS` attached to the release.
+- Or build it yourself (see above) and compare.
+- Or upload it to [VirusTotal](https://www.virustotal.com) — a couple of heuristic engines flagging it while everything else passes is the classic shape of a false positive.
+
+**If it already got quarantined or removed:**
+
+1. Open **Windows Security → Virus & threat protection → Protection history**, find the item, and choose **Actions → Restore**.
+2. Add an exclusion for `%localappdata%\ExploitStrap` so it doesn't happen again.
+3. If you can't restore it, just re-download from the [official Releases page](https://github.com/RealSlimShady2000/MrExLiveChannelForcer/releases) and run it.
+
+Heads up — if the auto-updater's download keeps getting quarantined, grab the new release manually from GitHub until your antivirus stops flagging it.
+
+Each new release gets submitted to Microsoft as a false positive, which usually clears the warning within a few days. **Code signing is on the way** and will put a stop to these warnings for good.
+
+---
+
 ## Who made this
 
 vibe pasted by **Sir Meme**:
