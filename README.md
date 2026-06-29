@@ -1,12 +1,29 @@
+<!-- markdownlint-disable MD033 MD041 -->
+
+> [!CAUTION]
+> The only official place to download ExploitStrap is **this GitHub repository** — specifically the [Releases page](https://github.com/RealSlimShady2000/MrExLiveChannelForcer/releases). Any other website offering "ExploitStrap" downloads, or claiming to be us, is not controlled by us. Don't download from them.
+
 <p align="center">
-  <img src="MrExStrap/Resources/ExploitStrap.png" alt="ExploitStrap" width="420">
+  <img src="MrExStrap/Resources/ExploitStrap.png" alt="ExploitStrap" width="520">
 </p>
 
-# ExploitStrap
+<p align="center">
+  <a href="./LICENSE"><img src="https://img.shields.io/badge/license-MIT-success" alt="License: MIT"></a>
+  <a href="https://github.com/RealSlimShady2000/MrExLiveChannelForcer/actions/workflows/ci-release.yml"><img src="https://img.shields.io/github/actions/workflow/status/RealSlimShady2000/MrExLiveChannelForcer/ci-release.yml?branch=main&label=build" alt="Build status"></a>
+  <a href="https://github.com/RealSlimShady2000/MrExLiveChannelForcer/releases/latest"><img src="https://img.shields.io/github/downloads/RealSlimShady2000/MrExLiveChannelForcer/latest/total?label=downloads%40latest&color=8b5cf6" alt="Downloads (latest release)"></a>
+  <a href="https://github.com/RealSlimShady2000/MrExLiveChannelForcer/releases/latest"><img src="https://img.shields.io/github/v/release/RealSlimShady2000/MrExLiveChannelForcer?label=release&color=8b5cf6" alt="Latest release"></a>
+  <a href="https://discord.robloxscripts.com"><img src="https://img.shields.io/discord/1424371108244619377?label=discord&logo=discord&logoColor=white&color=5865F2" alt="Discord — join us"></a>
+  <a href="https://github.com/RealSlimShady2000/MrExLiveChannelForcer/stargazers"><img src="https://img.shields.io/github/stars/RealSlimShady2000/MrExLiveChannelForcer?label=stars&color=f59e0b" alt="GitHub stars"></a>
+</p>
 
 **The Roblox launcher built for executor and exploit users.**
 
 A fork of [Bloxstrap](https://github.com/bloxstraplabs/bloxstrap) hardened against the things that usually break executors — surprise channel routing, version updates that ship before your tool catches up, and ban traces left on your machine — plus a load of quality-of-life extras.
+
+If you found any bugs, please [open an issue here](https://github.com/RealSlimShady2000/MrExLiveChannelForcer/issues) or ask in our [Discord server](https://discord.robloxscripts.com).
+
+> [!NOTE]
+> ExploitStrap is an application for **Windows 10 and above**. It's built specifically for Roblox exploit / executor users — if you only play vanilla Roblox, you probably don't need most of what's here.
 
 ---
 
